@@ -27,6 +27,7 @@ diagnostics/
 .local-data/
 
 # Imported and generated media
+input/
 *.mp4
 *.mkv
 *.mov

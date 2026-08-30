@@ -1,9 +1,23 @@
 import { useTranslation } from 'react-i18next';
 
+import type { ProjectRepository } from '../infrastructure/projects';
 import { BrandMark } from '../shared/components/BrandMark';
-import { EmptyProjectState } from '../features/project-overview/EmptyProjectState';
+import { ProjectOverview } from '../features/project-overview/ProjectOverview';
+import { ProjectStoreProvider } from '../features/project-overview/ProjectStoreProvider';
 
-export function App() {
+interface AppProps {
+  readonly repository?: ProjectRepository;
+}
+
+export function App({ repository }: AppProps) {
+  return (
+    <ProjectStoreProvider repository={repository}>
+      <AppContent />
+    </ProjectStoreProvider>
+  );
+}
+
+function AppContent() {
   const { t } = useTranslation();
 
   return (
@@ -27,27 +41,7 @@ export function App() {
         </div>
       </header>
 
-      <main className="project-overview" id="main-content">
-        <div className="project-overview__heading">
-          <div>
-            <p className="section-kicker">{t('projects.kicker')}</p>
-            <h1>{t('projects.title')}</h1>
-            <p className="project-overview__summary">{t('projects.summary')}</p>
-          </div>
-
-          <div className="project-overview__actions" aria-label={t('projects.actionsLabel')}>
-            <button className="button button--secondary" disabled type="button">
-              {t('projects.import')}
-            </button>
-            <button className="button button--primary" disabled type="button">
-              <span aria-hidden="true">+</span>
-              {t('projects.create')}
-            </button>
-          </div>
-        </div>
-
-        <EmptyProjectState />
-      </main>
+      <ProjectOverview />
 
       <footer className="app-footer">
         <span>{t('app.version', { version: '0.0.0' })}</span>

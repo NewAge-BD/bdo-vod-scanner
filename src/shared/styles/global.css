@@ -46,7 +46,8 @@ body {
 }
 
 button,
-input {
+input,
+dialog {
   font: inherit;
 }
 
@@ -70,6 +71,17 @@ a:focus-visible {
 
 .skip-link:focus {
   transform: translateY(0);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .app-shell {
@@ -213,6 +225,252 @@ h1 {
   cursor: not-allowed;
   filter: saturate(0.45);
   opacity: 0.5;
+}
+
+.button:not(:disabled),
+.project-card button,
+.back-button,
+.error-banner button {
+  cursor: pointer;
+}
+
+.loading-state {
+  padding: 4rem;
+  color: var(--muted);
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  color: #ffd5d9;
+  background: rgb(255 105 120 / 9%);
+  border: 1px solid rgb(255 105 120 / 30%);
+  border-radius: 0.6rem;
+}
+
+.error-banner button {
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font-weight: 750;
+  text-decoration: underline;
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1rem;
+}
+
+.project-card {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: linear-gradient(145deg, var(--surface-raised), var(--surface));
+  box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 15%);
+}
+
+.project-card__open {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 1.25rem;
+  color: var(--text);
+  text-align: left;
+  background: transparent;
+  border: 0;
+}
+
+.project-card__open:hover {
+  background: rgb(255 255 255 / 2.5%);
+}
+
+.project-card__icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2.6rem;
+  height: 2.6rem;
+  place-items: center;
+  color: var(--accent);
+  background: rgb(216 254 69 / 8%);
+  border: 1px solid rgb(216 254 69 / 18%);
+  border-radius: 0.55rem;
+  font-size: 1.15rem;
+}
+
+.project-card__open strong,
+.project-card__open small {
+  display: block;
+}
+
+.project-card__open strong {
+  margin-bottom: 0.3rem;
+  font-size: 1rem;
+}
+
+.project-card__open small,
+.project-card__metadata {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.project-card__metadata,
+.project-card__actions {
+  display: flex;
+  align-items: center;
+  padding-inline: 1.25rem;
+}
+
+.project-card__metadata {
+  gap: 0.9rem;
+  padding-block: 0 1rem;
+}
+
+.project-card__actions {
+  gap: 0.35rem;
+  padding-block: 0.7rem;
+  border-top: 1px solid var(--border);
+}
+
+.project-card__actions button {
+  padding: 0.4rem 0.55rem;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.project-card__actions button:hover {
+  color: var(--text);
+  background: rgb(255 255 255 / 4%);
+}
+
+.project-card__actions .danger-action {
+  margin-left: auto;
+  color: #ff929d;
+}
+
+.project-dialog {
+  width: min(31rem, calc(100% - 2rem));
+  padding: 0;
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: 0.9rem;
+  box-shadow: 0 2rem 6rem rgb(0 0 0 / 55%);
+}
+
+.project-dialog::backdrop {
+  background: rgb(3 5 8 / 72%);
+  backdrop-filter: blur(4px);
+}
+
+.project-dialog form {
+  padding: 1.75rem;
+}
+
+.project-dialog h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.6rem;
+  letter-spacing: -0.03em;
+}
+
+.project-dialog label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #c7ced8;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.project-dialog input {
+  width: 100%;
+  min-height: 2.8rem;
+  padding: 0.65rem 0.75rem;
+  color: var(--text);
+  background: #0d1015;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.5rem;
+}
+
+.project-dialog input:focus {
+  border-color: var(--focus);
+  outline: 2px solid rgb(184 215 255 / 20%);
+}
+
+.project-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 1.5rem;
+}
+
+.project-workspace {
+  width: min(1180px, calc(100% - 3rem));
+  margin: 0 auto;
+  padding-block: clamp(2rem, 6vh, 4.5rem);
+}
+
+.back-button {
+  margin-bottom: 2.5rem;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.back-button:hover {
+  color: var(--text);
+}
+
+.project-workspace h1 {
+  margin-bottom: 2rem;
+}
+
+.workspace-ready {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 2rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: 0.8rem;
+  background: var(--surface);
+}
+
+.workspace-ready__icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 3.5rem;
+  height: 3.5rem;
+  place-items: center;
+  color: var(--accent);
+  background: rgb(216 254 69 / 7%);
+  border: 1px solid rgb(216 254 69 / 20%);
+  border-radius: 50%;
+  font-size: 1.6rem;
+}
+
+.workspace-ready h2 {
+  margin-bottom: 0.35rem;
+}
+
+.workspace-ready p {
+  margin-bottom: 0;
+  color: var(--muted);
 }
 
 .empty-state {

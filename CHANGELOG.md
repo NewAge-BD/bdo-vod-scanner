@@ -15,6 +15,10 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added midnight rollover, duplicate-timestamp, invalid-line, and ordering handling.
 - Added case-insensitive partial OR search across family, character, and guild names.
 - Added a synthetic BDO log fixture and comprehensive parser/search tests.
+- Added multiple named local projects backed by IndexedDB.
+- Added project creation, opening, renaming, confirmed deletion, and reload recovery.
+- Added schema-versioned `.bdo-vod-project.json` import and export with strict validation.
+- Added browser coverage for the complete local project-management workflow.
 
 ### Documentation
 

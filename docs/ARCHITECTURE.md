@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, and event search exist; remaining domain features and adapters are implemented incrementally by milestone.
+This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, event search, project schema, IndexedDB repository, and project-management UI exist; remaining domain features and adapters are implemented incrementally by milestone.
 
 ## Architectural style
 
@@ -117,10 +117,13 @@ Use an efficient graphical layer for dense event markers and bundling. Keep inte
 
 - Zustand is the approved state-management family.
 - Store multiple named projects in IndexedDB through a repository abstraction.
+- The implemented IndexedDB database is `bdo-vod-scanner`, with a versioned `projects` object store keyed by project ID.
 - Keep transient playback updates from causing unnecessary application-wide React renders.
 - Store portable domain data separately from browser-only runtime objects.
 - Do not depend on persisted browser file handles for portable project recovery.
 - Version local storage and portable formats independently where needed, with explicit migrations.
+
+Project data is validated with the same strict schema before storage and after retrieval. The UI accesses storage through a repository interface; tests can substitute an in-memory repository without changing feature code.
 
 ## Worker boundaries
 

@@ -4,7 +4,7 @@
 
 The portable BDO VOD Scanner project file preserves a work session without embedding large video content. The website and future Windows application must share the same versioned format.
 
-The exact file extension and finalized JSON schema will be chosen during implementation. The semantic requirements in this document are binding.
+The implemented portable file extension is `.bdo-vod-project.json`. Schema version `1` is the initial strict JSON format and is shared by browser persistence and portable exports.
 
 ## Compatibility rules
 
@@ -15,6 +15,7 @@ The exact file extension and finalized JSON schema will be chosen during impleme
 - Migrations must be deterministic and non-destructive.
 - Potentially data-losing migrations require explicit approval.
 - Validate imported values before using them.
+- Reject an imported project when its project ID already exists locally, preventing silent replacement.
 
 ## Top-level project information
 
@@ -125,3 +126,15 @@ Never embed:
 Define and test sensible bounds for strings, arrays, raw-log size, event count, VOD count, and clip count. Bounds protect the application from malformed files but must comfortably exceed expected BDO sessions.
 
 Use Zod at the untrusted import boundary. Convert validated transport data into domain objects rather than using raw JSON throughout the application.
+
+## Implemented schema version 1
+
+New projects start with no log, VODs, or clips. They use parser version `1`, a 60 FPS DaVinci default, a 1920×1080 default resolution, and an expanded clip panel. The schema currently accepts at most:
+
+- 120 characters for a project name
+- 5,000,000 characters for the embedded raw log
+- 500 VOD references
+- 100,000 clips
+- 50 search terms per VOD or clip snapshot
+
+The importer distinguishes malformed JSON, invalid schema data, and projects written by a newer schema version. No migration is needed before a second schema version exists.

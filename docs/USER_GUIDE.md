@@ -1,7 +1,7 @@
 # User Guide
 
 > [!NOTE]
-> This guide describes the planned MVP. The application has not been implemented yet.
+> Local project management is available now. The log/VOD workflow described after step 1 is the planned MVP and is not implemented yet.
 
 ## What BDO VOD Scanner does
 
@@ -13,7 +13,9 @@ Imported files remain local and are never uploaded.
 
 ### 1. Create or open a project
 
-The project overview stores multiple named projects in the browser. A portable project file can also be imported.
+The project overview stores multiple named projects in this browser. Use **New project** to create one. Existing project cards can be opened, renamed, exported, or deleted. Deletion requires confirmation.
+
+Use **Import project** to select a `.bdo-vod-project.json` file. Import opens the project immediately. A project with the same internal ID as an existing local project is rejected to avoid replacing local work.
 
 ### 2. Import files
 
@@ -55,7 +57,7 @@ The clip keeps a snapshot of the active search terms and matching events even if
 
 ### 8. Save or transfer a project
 
-Projects autosave locally. Use **Export project** to create a portable project file containing the embedded log, synchronization data, searches, clips, ordering, and relevant UI state. VOD contents are never embedded and must be selected again on another session or computer.
+Projects autosave locally in the current browser. Use **Export** on a project card to create a portable `.bdo-vod-project.json` file containing the embedded log, synchronization data, searches, clips, ordering, and relevant UI state. VOD contents are never embedded and must be selected again on another session or computer.
 
 ## Planned keyboard controls
 
