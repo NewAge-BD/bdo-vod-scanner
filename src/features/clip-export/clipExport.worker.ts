@@ -17,7 +17,7 @@ import type {
   ClipExportWorkerResponse,
   LosslessClipExportRequest,
 } from './types';
-import { getPacketTimelineOrigin } from './packetTiming';
+import { getPacketTimelineEnd, getPacketTimelineOrigin } from './packetTiming';
 
 interface WorkerScope {
   addEventListener(
@@ -94,9 +94,9 @@ async function exportClip(request: LosslessClipExportRequest, signal: AbortSigna
       (await videoSink.getNextKeyPacket(keyAtRequestedEnd, { verifyKeyPackets: true })) ??
       undefined;
     const videoInSeconds = startVideoPacket.timestamp;
-    const effectiveOutSeconds =
+    const videoOutSeconds =
       endVideoPacket?.timestamp ?? (await input.computeDuration([videoTrack]));
-    if (effectiveOutSeconds <= videoInSeconds) {
+    if (videoOutSeconds <= videoInSeconds) {
       throw new ClipExportWorkerError('missingKeyframe');
     }
 
@@ -110,12 +110,13 @@ async function exportClip(request: LosslessClipExportRequest, signal: AbortSigna
     const audioPacketAtEnd =
       audioSink === undefined
         ? null
-        : await audioSink.getPacket(effectiveOutSeconds, { metadataOnly: true });
+        : await audioSink.getPacket(videoOutSeconds, { metadataOnly: true });
     const endAudioPacket =
       audioSink === undefined || audioPacketAtEnd === null
         ? undefined
         : ((await audioSink.getNextPacket(audioPacketAtEnd, { metadataOnly: true })) ?? undefined);
     const effectiveInSeconds = getPacketTimelineOrigin(videoInSeconds, startAudioPacket?.timestamp);
+    const effectiveOutSeconds = getPacketTimelineEnd(videoOutSeconds, endAudioPacket?.timestamp);
 
     throwIfCancelled(signal);
     const writable = await request.destination.createWritable();
