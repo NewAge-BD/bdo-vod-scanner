@@ -63,9 +63,12 @@ describe('log timeline markers', () => {
     expect(markers).toHaveLength(1);
     expect(markers[0]).toMatchObject({
       eventCount: killCount,
+      eventIds: Array.from({ length: killCount }, (_, index) => `kill-${index}`),
       killCount,
       killStreakCount: killCount,
       killStreakTier: expectedTier,
+      rangeEndPositionRatio: (30 + killCount - 1) / 100,
+      rangeStartPositionRatio: 0.3,
       representativeEventId: `kill-${killCount - 1}`,
       type: 'bundle',
       videoTimeSeconds: 30 + killCount - 1,
@@ -84,7 +87,12 @@ describe('log timeline markers', () => {
       true,
     );
 
-    expect(markers[0]).toMatchObject({ killStreakCount: 1, killStreakTier: null });
+    expect(markers).toHaveLength(1);
+    expect(markers[0]).toMatchObject({
+      eventIds: ['first', 'second'],
+      killStreakCount: 0,
+      killStreakTier: null,
+    });
   });
 
   it('does not annotate ordinary event timelines with kill streaks', () => {

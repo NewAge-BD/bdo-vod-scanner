@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -1223,37 +1224,32 @@ function SynchronizedVideoPlayer({
             {t('synchronization.videoZoom', { factor: formatZoom(videoZoom) })}
           </span>
           <span className="video-viewport__hint">{t('synchronization.videoViewportHint')}</span>
-          <div
-            className="video-viewport__controls"
-            onClick={(event) => event.stopPropagation()}
-            onDoubleClick={(event) => event.stopPropagation()}
-            onPointerDown={(event) => event.stopPropagation()}
+        </div>
+        <div className="video-viewport__controls">
+          <button onClick={togglePlayback} type="button">
+            {isPlaying ? t('synchronization.pause') : t('synchronization.play')}
+          </button>
+          <button
+            onClick={() => {
+              const video = videoRef.current;
+              if (video !== null) {
+                video.muted = !isMuted;
+                setIsMuted(video.muted);
+              }
+            }}
+            type="button"
           >
-            <button onClick={togglePlayback} type="button">
-              {isPlaying ? t('synchronization.pause') : t('synchronization.play')}
-            </button>
-            <button
-              onClick={() => {
-                const video = videoRef.current;
-                if (video !== null) {
-                  video.muted = !isMuted;
-                  setIsMuted(video.muted);
-                }
-              }}
-              type="button"
-            >
-              {isMuted ? t('synchronization.unmute') : t('synchronization.mute')}
-            </button>
-            <button disabled={videoZoom === 1} onClick={resetVideoViewport} type="button">
-              {t('synchronization.resetView')}
-            </button>
-            <button
-              onClick={() => void videoViewportRef.current?.requestFullscreen?.()}
-              type="button"
-            >
-              {t('synchronization.fullscreen')}
-            </button>
-          </div>
+            {isMuted ? t('synchronization.unmute') : t('synchronization.mute')}
+          </button>
+          <button disabled={videoZoom === 1} onClick={resetVideoViewport} type="button">
+            {t('synchronization.resetView')}
+          </button>
+          <button
+            onClick={() => void videoViewportRef.current?.requestFullscreen?.()}
+            type="button"
+          >
+            {t('synchronization.fullscreen')}
+          </button>
         </div>
       </div>
       <div
@@ -1513,11 +1509,13 @@ function SynchronizedVideoPlayer({
                   : t('synchronization.storedAlignment')}
               </small>
             </div>
-            <div className="log-timeline__track">
+            <div
+              className={`log-timeline__track${logMarkers.some((marker) => marker.killStreakTier !== null) ? ' log-timeline__track--with-streaks' : ''}`}
+            >
               {logMarkers.length === 0 ? (
                 <span className="log-timeline__empty">{t('synchronization.noVisibleEvents')}</span>
               ) : (
-                logMarkers.map((marker) => {
+                logMarkers.map((marker, markerIndex) => {
                   const onlyEvent =
                     marker.eventCount === 1
                       ? events.find((event) => event.id === marker.eventIds[0])
@@ -1545,7 +1543,7 @@ function SynchronizedVideoPlayer({
                       key={marker.id}
                       onClick={() => activateLogMarker(marker)}
                       onDoubleClick={(event) => event.stopPropagation()}
-                      style={{ left: `${marker.positionRatio * 100}%` }}
+                      style={getTimelineMarkerStyle(marker, markerIndex)}
                       title={label}
                       type="button"
                     >
@@ -1700,11 +1698,13 @@ function EventTimelineLane({
           </button>
         )}
       </div>
-      <div className="log-timeline__track">
+      <div
+        className={`log-timeline__track${markers.some((marker) => marker.killStreakTier !== null) ? ' log-timeline__track--with-streaks' : ''}`}
+      >
         {markers.length === 0 ? (
           <span className="log-timeline__empty">{emptyLabel}</span>
         ) : (
-          markers.map((marker) => {
+          markers.map((marker, markerIndex) => {
             const onlyEvent =
               marker.eventCount === 1
                 ? events.find((event) => event.id === marker.eventIds[0])
@@ -1732,7 +1732,7 @@ function EventTimelineLane({
                 key={marker.id}
                 onClick={() => onActivate(marker)}
                 onDoubleClick={(event) => event.stopPropagation()}
-                style={{ left: `${marker.positionRatio * 100}%` }}
+                style={getTimelineMarkerStyle(marker, markerIndex)}
                 title={markerLabel}
                 type="button"
               >
@@ -1750,6 +1750,22 @@ function EventTimelineLane({
       </div>
     </div>
   );
+}
+
+function getTimelineMarkerStyle(marker: LogTimelineMarker, markerIndex: number): CSSProperties {
+  const style: CSSProperties & Record<`--${string}`, string> = {
+    left: `${marker.positionRatio * 100}%`,
+  };
+  if (
+    marker.killStreakTier !== null &&
+    marker.rangeStartPositionRatio !== null &&
+    marker.rangeEndPositionRatio !== null
+  ) {
+    style['--streak-span'] =
+      `${Math.max(0, marker.rangeEndPositionRatio - marker.rangeStartPositionRatio) * 100}%`;
+    style['--streak-top'] = markerIndex % 2 === 0 ? '1rem' : '2.55rem';
+  }
+  return style;
 }
 
 function describeEvent(event: BdoEvent): string {

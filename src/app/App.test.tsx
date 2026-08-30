@@ -95,6 +95,7 @@ describe('App', () => {
     videoElement.currentTime = 0;
     fireEvent.timeUpdate(videoElement);
     const videoViewport = screen.getByLabelText('Zoomable video viewport');
+    expect(videoViewport).not.toContainElement(screen.getByRole('button', { name: 'Play' }));
     vi.spyOn(videoViewport, 'getBoundingClientRect').mockReturnValue({
       bottom: 450,
       height: 450,

@@ -973,16 +973,13 @@ h1 {
 }
 
 .video-viewport__controls {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  min-height: 3rem;
-  padding: 0.6rem 0.7rem;
-  background: linear-gradient(transparent, rgb(0 0 0 / 90%));
+  min-height: 2.6rem;
+  padding: 0.42rem 0.7rem;
+  background: #080b0f;
+  border-top: 1px solid var(--border);
   cursor: default;
 }
 
@@ -1435,6 +1432,15 @@ h1 {
   border-radius: 0.4rem;
 }
 
+.log-timeline__track--with-streaks {
+  height: 5.4rem;
+}
+
+.log-timeline__track--with-streaks > .log-timeline__marker:not(.log-timeline__marker--streak) {
+  top: calc(100% - 1rem);
+  height: 1.5rem;
+}
+
 .log-timeline__empty {
   position: absolute;
   inset: 0;
@@ -1474,8 +1480,9 @@ h1 {
 
 .video-timeline .log-timeline__marker--streak {
   z-index: 2;
-  width: 8rem;
-  height: 1.55rem;
+  top: var(--streak-top, 1rem);
+  width: max(5.25rem, var(--streak-span, 0%));
+  height: 1.4rem;
   color: #fff5e8;
   background: linear-gradient(90deg, transparent, var(--streak-main) 18% 82%, transparent);
   border-color: var(--streak-edge);
@@ -1541,13 +1548,17 @@ h1 {
 .log-timeline__marker span.log-timeline__streak-label {
   position: relative;
   z-index: 1;
-  display: block;
+  display: grid;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
+  place-items: center;
   padding-inline: 0.25rem;
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 0.66rem;
   font-style: italic;
-  line-height: 1.45rem;
+  line-height: 1.1;
+  text-align: center;
   text-overflow: ellipsis;
   text-shadow: 0 1px 2px #1a0d08;
   white-space: nowrap;
