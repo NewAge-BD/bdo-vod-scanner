@@ -818,6 +818,7 @@ function SynchronizedVideoPlayer({
             alignmentEventTime,
             alignmentVideoTime,
             timelineWindow,
+            true,
           ),
           markers: buildAlignedMarkers(
             matchingEvents,
@@ -825,6 +826,7 @@ function SynchronizedVideoPlayer({
             alignmentEventTime,
             alignmentVideoTime,
             timelineWindow,
+            true,
           ),
           term,
         };
@@ -1617,6 +1619,7 @@ function buildAlignedMarkers(
   eventSessionTimeSeconds: number | undefined,
   videoTimeSeconds: number,
   timelineWindow: TimelineWindow,
+  includeKillStreaks = false,
 ): readonly LogTimelineMarker[] {
   if (eventId === undefined || eventSessionTimeSeconds === undefined) {
     return [];
@@ -1630,6 +1633,8 @@ function buildAlignedMarkers(
     events,
     (sessionTime) => mapSessionTimeToVideoTime(anchor, sessionTime),
     timelineWindow,
+    48,
+    includeKillStreaks,
   );
 }
 

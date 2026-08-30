@@ -36,6 +36,7 @@ export function buildLogTimelineMarkers(
   mapToVideoTime: (sessionTimeSeconds: number) => number,
   window: TimelineWindow,
   maximumMarkers = 48,
+  includeKillStreaks = false,
 ): readonly LogTimelineMarker[] {
   if (window.durationSeconds <= 0 || maximumMarkers <= 0) {
     return [];
@@ -52,7 +53,7 @@ export function buildLogTimelineMarkers(
   for (const { event, videoTimeSeconds } of mappedEvents) {
     let killStreakCount = 0;
     let killStreakTier: KillStreakTier | null = null;
-    if (event.verb === 'killed') {
+    if (includeKillStreaks && event.verb === 'killed') {
       while (
         recentKillTimes[0] !== undefined &&
         videoTimeSeconds - recentKillTimes[0] > KILL_STREAK_WINDOW_SECONDS

@@ -57,6 +57,7 @@ describe('log timeline markers', () => {
       (sessionTime) => sessionTime,
       { startSeconds: 0, endSeconds: 100, durationSeconds: 100 },
       1,
+      true,
     );
 
     expect(markers).toHaveLength(1);
@@ -80,9 +81,24 @@ describe('log timeline markers', () => {
       (sessionTime) => sessionTime,
       { startSeconds: 0, endSeconds: 100, durationSeconds: 100 },
       1,
+      true,
     );
 
     expect(markers[0]).toMatchObject({ killStreakCount: 1, killStreakTier: null });
+  });
+
+  it('does not annotate ordinary event timelines with kill streaks', () => {
+    const markers = buildLogTimelineMarkers(
+      [
+        { id: 'first', sessionTimeSeconds: 10, verb: 'killed' },
+        { id: 'second', sessionTimeSeconds: 12, verb: 'killed' },
+      ],
+      (sessionTime) => sessionTime,
+      { startSeconds: 0, endSeconds: 100, durationSeconds: 100 },
+      1,
+    );
+
+    expect(markers[0]).toMatchObject({ killStreakCount: 0, killStreakTier: null });
   });
 
   it('returns no markers for an invalid visible range', () => {

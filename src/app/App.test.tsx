@@ -79,7 +79,8 @@ describe('App', () => {
     const playSpy = vi.spyOn(videoElement, 'play');
     fireEvent.loadedMetadata(videoElement);
     expect(screen.getByLabelText('Shared log event timeline')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /I: Challenger!/ })).toBeVisible();
+    expect(screen.getByRole('button', { name: /3 log events around video time/ })).toBeVisible();
+    expect(screen.queryByRole('button', { name: /I: Challenger!/ })).not.toBeInTheDocument();
     fireEvent.keyDown(window, { code: 'Space', key: ' ' });
     expect(playSpy).toHaveBeenCalledTimes(1);
     const shortcutSearchInput = screen.getByLabelText('Find a family, character, or guild name');
@@ -173,18 +174,22 @@ describe('App', () => {
     fireEvent.doubleClick(timeline);
     expect(screen.getByText('Zoom ×1.0')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /I: Challenger!/ }));
+    await user.click(screen.getByRole('button', { name: /3 log events around video time/ }));
     expect(screen.getByText('Zoom ×1.0')).toBeInTheDocument();
     expect(
       screen.getByText(
-        '[00:00:03] CopperGrove killed MistRunner from StarFoundry (CloudStep, BronzeLeaf)',
+        '[23:59:58] EmberVale killed NightHarbor from MoonGuard (ShadeLance, SolarBloom)',
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText('00:00:05.000', { selector: 'output' })).toBeInTheDocument();
+    expect(screen.getByText('00:00:00.000', { selector: 'output' })).toBeInTheDocument();
     fireEvent.doubleClick(timeline);
 
     fireEvent.change(zoom, { target: { value: '49' } });
-    await user.click(screen.getByRole('button', { name: /I: Challenger!/ }));
+    await user.click(
+      screen.getByRole('button', {
+        name: '00:00:03: CopperGrove killed MistRunner',
+      }),
+    );
     expect(
       screen.getByText(
         '[00:00:03] CopperGrove killed MistRunner from StarFoundry (CloudStep, BronzeLeaf)',
@@ -241,6 +246,14 @@ describe('App', () => {
     const clippingNameInput = within(clippingTimeline).getByLabelText('Selected names');
     expect(
       within(clippingTimeline).queryByRole('button', { name: 'Remove RiverWarden timeline' }),
+    ).not.toBeInTheDocument();
+    await user.type(clippingNameInput, 'er{Enter}');
+    expect(
+      await within(clippingTimeline).findByRole('button', { name: /I: Challenger!/ }),
+    ).toBeVisible();
+    await user.click(within(clippingTimeline).getByRole('button', { name: 'Remove er timeline' }));
+    expect(
+      within(clippingTimeline).queryByRole('button', { name: /I: Challenger!/ }),
     ).not.toBeInTheDocument();
     await user.type(clippingNameInput, 'RiverWarden{Enter}');
     expect(
