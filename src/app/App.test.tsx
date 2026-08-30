@@ -249,9 +249,13 @@ describe('App', () => {
       within(clippingTimeline).queryByRole('button', { name: 'Remove RiverWarden timeline' }),
     ).not.toBeInTheDocument();
     await user.type(clippingNameInput, 'er{Enter}');
-    expect(
-      await within(clippingTimeline).findByRole('button', { name: /I: Challenger!/ }),
-    ).toBeVisible();
+    const challengerBanner = await within(clippingTimeline).findByRole('button', {
+      name: /I: Challenger!/,
+    });
+    expect(challengerBanner).toBeVisible();
+    expect(within(challengerBanner).getByText('I').parentElement).toHaveClass(
+      'log-timeline__streak-emblem',
+    );
     await user.click(within(clippingTimeline).getByRole('button', { name: 'Remove er timeline' }));
     expect(
       within(clippingTimeline).queryByRole('button', { name: /I: Challenger!/ }),

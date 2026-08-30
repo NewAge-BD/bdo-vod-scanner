@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildLogTimelineMarkers, type TimelineLogEvent } from './logTimeline';
+import {
+  buildLogTimelineMarkers,
+  findCollidingKillStreakMarkerIds,
+  type TimelineLogEvent,
+} from './logTimeline';
 
 const events: readonly TimelineLogEvent[] = [
   { id: 'kill', sessionTimeSeconds: 10, verb: 'killed' },
@@ -107,6 +111,26 @@ describe('log timeline markers', () => {
     );
 
     expect(markers[0]).toMatchObject({ killStreakCount: 0, killStreakTier: null });
+  });
+
+  it('collapses banners only while their rendered widths would overlap', () => {
+    const markers = buildLogTimelineMarkers(
+      [
+        { id: 'first-a', sessionTimeSeconds: 0, verb: 'killed' },
+        { id: 'first-b', sessionTimeSeconds: 1, verb: 'killed' },
+        { id: 'second-a', sessionTimeSeconds: 20, verb: 'killed' },
+        { id: 'second-b', sessionTimeSeconds: 21, verb: 'killed' },
+      ],
+      (sessionTime) => sessionTime,
+      { startSeconds: 0, endSeconds: 100, durationSeconds: 100 },
+      48,
+      true,
+    );
+
+    expect(findCollidingKillStreakMarkerIds(markers, 400)).toEqual(
+      new Set(markers.map((marker) => marker.id)),
+    );
+    expect(findCollidingKillStreakMarkerIds(markers, 1_000)).toEqual(new Set());
   });
 
   it('returns no markers for an invalid visible range', () => {

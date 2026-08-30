@@ -157,6 +157,46 @@ export function buildLogTimelineMarkers(
   );
 }
 
+export function findCollidingKillStreakMarkerIds(
+  markers: readonly LogTimelineMarker[],
+  trackWidthPixels: number,
+  minimumBannerWidthPixels = 104,
+): ReadonlySet<string> {
+  if (trackWidthPixels <= 0 || minimumBannerWidthPixels <= 0) {
+    return new Set();
+  }
+  const streakIntervals = markers
+    .filter(
+      (marker) =>
+        marker.killStreakTier !== null &&
+        marker.rangeStartPositionRatio !== null &&
+        marker.rangeEndPositionRatio !== null,
+    )
+    .map((marker) => {
+      const centerPixels = marker.positionRatio * trackWidthPixels;
+      const rangeWidthPixels =
+        (marker.rangeEndPositionRatio! - marker.rangeStartPositionRatio!) * trackWidthPixels;
+      const widthPixels = Math.max(minimumBannerWidthPixels, rangeWidthPixels);
+      return {
+        endPixels: centerPixels + widthPixels / 2,
+        id: marker.id,
+        startPixels: centerPixels - widthPixels / 2,
+      };
+    });
+  const collidingIds = new Set<string>();
+  for (let leftIndex = 0; leftIndex < streakIntervals.length; leftIndex += 1) {
+    const left = streakIntervals[leftIndex]!;
+    for (let rightIndex = leftIndex + 1; rightIndex < streakIntervals.length; rightIndex += 1) {
+      const right = streakIntervals[rightIndex]!;
+      if (left.startPixels < right.endPixels && right.startPixels < left.endPixels) {
+        collidingIds.add(left.id);
+        collidingIds.add(right.id);
+      }
+    }
+  }
+  return collidingIds;
+}
+
 function buildKillStreakSummaries(
   entries: readonly MappedTimelineEntry[],
 ): readonly KillStreakSummary[] {

@@ -1491,17 +1491,33 @@ h1 {
   box-shadow: 0 0 0.8rem color-mix(in srgb, var(--streak-edge) 55%, transparent);
 }
 
-.video-timeline .log-timeline__marker--streak::before {
+.log-timeline__streak-emblem {
   position: absolute;
   top: -0.46rem;
   left: 50%;
+  z-index: 2;
+  display: grid;
   width: 0.72rem;
   height: 0.72rem;
-  content: '';
   background: linear-gradient(135deg, var(--streak-edge), var(--streak-main));
   border: 1px solid color-mix(in srgb, var(--streak-edge) 70%, white);
   box-shadow: 0 0 0.45rem var(--streak-edge);
+  place-items: center;
   transform: translateX(-50%) rotate(45deg);
+}
+
+.log-timeline__streak-emblem > span {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  color: #fff8ed;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.42rem;
+  font-style: normal;
+  line-height: 1;
+  place-items: center;
+  text-shadow: 0 1px 2px #1a0d08;
+  transform: rotate(-45deg);
 }
 
 .video-timeline .log-timeline__marker--streak-challenger {
@@ -1540,19 +1556,40 @@ h1 {
   filter: brightness(1.2);
 }
 
+.video-timeline .log-timeline__marker--streak-collapsed {
+  width: 1.25rem;
+  height: 1.25rem;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.log-timeline__marker--streak-collapsed .log-timeline__streak-emblem {
+  top: 50%;
+  width: 0.95rem;
+  height: 0.95rem;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.log-timeline__marker--streak-collapsed .log-timeline__streak-emblem > span {
+  font-size: 0.5rem;
+}
+
 .log-timeline__marker span {
   font-size: 0.54rem;
   font-weight: 850;
 }
 
 .log-timeline__marker span.log-timeline__streak-label {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 1;
-  display: grid;
-  width: 100%;
+  display: flex;
   min-height: 1.7rem;
-  place-items: center;
+  align-items: center;
+  justify-content: center;
   padding: 0.12rem 0.4rem;
+  box-sizing: border-box;
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 0.82rem;
   font-style: italic;
@@ -1560,6 +1597,18 @@ h1 {
   text-align: center;
   text-shadow: 0 1px 2px #1a0d08;
   white-space: nowrap;
+}
+
+.log-timeline__marker span.log-timeline__streak-emblem > span {
+  font-size: 0.42rem;
+}
+
+.log-timeline__marker--streak-collapsed span.log-timeline__streak-emblem > span {
+  font-size: 0.5rem;
+}
+
+.log-timeline__marker--streak-collapsed span.log-timeline__streak-label {
+  display: none;
 }
 
 .log-timeline__marker[aria-pressed='true'] {

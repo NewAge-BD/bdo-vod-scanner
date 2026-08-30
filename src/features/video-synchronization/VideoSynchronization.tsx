@@ -22,6 +22,7 @@ import {
   buildLogTimelineMarkers,
   calculatePointerAnchoredZoomCenter,
   calculateTimelineWindow,
+  findCollidingKillStreakMarkerIds,
   zoomLevelToFactor,
   type LogTimelineMarker,
   type TimelineWindow,
@@ -1663,6 +1664,27 @@ function EventTimelineLane({
 }) {
   const { t } = useTranslation();
   const accessibleLabel = actionLabel ?? label;
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [trackWidth, setTrackWidth] = useState(0);
+  useEffect(() => {
+    const track = trackRef.current;
+    if (track === null) {
+      return;
+    }
+    const updateWidth = () => setTrackWidth(track.getBoundingClientRect().width);
+    updateWidth();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateWidth);
+      return () => window.removeEventListener('resize', updateWidth);
+    }
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(track);
+    return () => observer.disconnect();
+  }, []);
+  const collapsedStreakIds = useMemo(
+    () => findCollidingKillStreakMarkerIds(markers, trackWidth),
+    [markers, trackWidth],
+  );
   return (
     <div className="clipping-timeline__lane">
       <div className="clipping-timeline__name-label">
@@ -1700,6 +1722,7 @@ function EventTimelineLane({
       </div>
       <div
         className={`log-timeline__track${markers.some((marker) => marker.killStreakTier !== null) ? ' log-timeline__track--with-streaks' : ''}`}
+        ref={trackRef}
       >
         {markers.length === 0 ? (
           <span className="log-timeline__empty">{emptyLabel}</span>
@@ -1728,7 +1751,7 @@ function EventTimelineLane({
                 aria-pressed={
                   selectedEvent !== undefined && marker.eventIds.includes(selectedEvent.id)
                 }
-                className={`log-timeline__marker log-timeline__marker--${marker.type}${marker.killStreakTier === null ? '' : ` log-timeline__marker--streak log-timeline__marker--streak-${marker.killStreakTier}`}`}
+                className={`log-timeline__marker log-timeline__marker--${marker.type}${marker.killStreakTier === null ? '' : ` log-timeline__marker--streak log-timeline__marker--streak-${marker.killStreakTier}${collapsedStreakIds.has(marker.id) ? ' log-timeline__marker--streak-collapsed' : ''}`}`}
                 key={marker.id}
                 onClick={() => onActivate(marker)}
                 onDoubleClick={(event) => event.stopPropagation()}
@@ -1737,9 +1760,14 @@ function EventTimelineLane({
                 type="button"
               >
                 {marker.killStreakTier !== null ? (
-                  <span className="log-timeline__streak-label">
-                    {t(`synchronization.killStreakTitles.${marker.killStreakTier}`)}
-                  </span>
+                  <>
+                    <span aria-hidden="true" className="log-timeline__streak-emblem">
+                      <span>{getKillStreakRomanNumeral(marker.killStreakTier)}</span>
+                    </span>
+                    <span className="log-timeline__streak-label">
+                      {t(`synchronization.killStreakTitles.${marker.killStreakTier}`)}
+                    </span>
+                  </>
                 ) : (
                   marker.eventCount > 1 && <span>{marker.eventCount}</span>
                 )}
@@ -1750,6 +1778,19 @@ function EventTimelineLane({
       </div>
     </div>
   );
+}
+
+function getKillStreakRomanNumeral(tier: NonNullable<LogTimelineMarker['killStreakTier']>): string {
+  switch (tier) {
+    case 'challenger':
+      return 'I';
+    case 'invader':
+      return 'II';
+    case 'slayer':
+      return 'III';
+    case 'conqueror':
+      return 'IV';
+  }
 }
 
 function getTimelineMarkerStyle(marker: LogTimelineMarker, markerIndex: number): CSSProperties {
