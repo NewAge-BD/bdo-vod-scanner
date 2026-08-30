@@ -43,6 +43,8 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added locally persisted clip creation with button and `I`/`O` keyboard in/out marking.
 - Added draggable in/out handles, automatic search snapshots, matching-event counts, and editable clip titles.
 - Added an accessible collapsible clip list with source perspective, range, duration, and deletion.
+- Added a dedicated full-width clipping workspace opened from the synchronization panel.
+- Added one source row per VOD plus separate Kills, Deaths, and Selected names event rows to the clipping timeline.
 
 ### Documentation
 

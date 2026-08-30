@@ -67,7 +67,11 @@ Every VOD keeps its own active names and saves them automatically in the project
 
 ### 6. Mark clips
 
-Pause on the desired start and choose **Set in (I)**, then move to the desired end and choose **Set out (O)**. The `I` and `O` keys perform the same actions while the video is focused. Refine both boundaries with the bright timeline handles and choose **Add clip**.
+After saving a synchronization point, choose **Start Clipping** below the synchronization button. This opens a separate workspace with one large active video and a timeline that uses the full page width. Use **Back to synchronization** whenever an anchor or name filter needs adjustment.
+
+The timeline begins with one source row for every imported VOD. Synchronized source coverage and existing clip ranges are shown on the shared scale; unavailable perspectives remain visible as **Sync required**. Three event rows follow: **Kills**, **Deaths**, and **Selected names**. The last row shows the current perspective's saved name filter.
+
+Pause on the desired start and choose **Set in (I)**, then move to the desired end and choose **Set out (O)**. The `I` and `O` keys perform the same actions while the video is focused in the clipping workspace. Refine both boundaries with the bright timeline handles and choose **Add clip**.
 
 The clip is saved locally with its source perspective, exact range, duration, active-name snapshot, and matching events inside the range. Its generated title uses the active names when available and can be edited in **Marked clips**. Clips can be deleted and the panel can be collapsed. Later search changes do not modify existing clip snapshots. New clips currently remain in creation order; manual ordering is planned.
 

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -187,6 +187,15 @@ describe('App', () => {
     expect(await screen.findByText('1 matching event')).toBeInTheDocument();
     expect(screen.queryByText('EmberVale')).not.toBeInTheDocument();
 
+    await user.click(screen.getByRole('button', { name: 'Start Clipping' }));
+    expect(screen.getByRole('heading', { name: 'Clipping workspace' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Back to synchronization' })).toBeInTheDocument();
+    const clippingTimeline = screen.getByLabelText('Full-width clipping timeline');
+    expect(within(clippingTimeline).getByText('Kills')).toBeInTheDocument();
+    expect(within(clippingTimeline).getByText('Deaths')).toBeInTheDocument();
+    expect(within(clippingTimeline).getByText('Selected names')).toBeInTheDocument();
+    expect(within(clippingTimeline).getByText('Synthetic Perspective')).toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: 'Set in (I)' }));
     fireEvent.change(playhead, { target: { value: '65' } });
     await user.click(screen.getByRole('button', { name: 'Set out (O)' }));
@@ -240,6 +249,13 @@ describe('App', () => {
     fireEvent.loadedMetadata(await screen.findByLabelText('Perspective A video perspective'));
     await user.click(screen.getByRole('button', { name: 'Set synchronization point' }));
     await screen.findByText('Synchronization point saved locally.');
+
+    await user.click(screen.getByRole('button', { name: 'Start Clipping' }));
+    const vodRows = screen.getByLabelText('VOD source timelines');
+    expect(within(vodRows).getByText('Perspective A')).toBeInTheDocument();
+    expect(within(vodRows).getByText('Perspective B')).toBeInTheDocument();
+    expect(within(vodRows).getByText('Sync required')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Back to synchronization' }));
 
     await user.click(screen.getByRole('button', { name: 'Perspective B, Sync required' }));
     expect(screen.getByRole('button', { name: 'Perspective B, Sync required' })).toHaveClass(

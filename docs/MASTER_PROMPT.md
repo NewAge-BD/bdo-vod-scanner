@@ -136,7 +136,9 @@ Do not infer alignment from the VOD filename. Reserve future compatibility for a
 
 Frame accuracy means visual frame-by-frame navigation, not a guaranteed professional frame address. Detect nominal/average FPS, account for fixed and variable rates, use presentation timestamps and `requestVideoFrameCallback` where helpful, and step by the best available estimated frame duration. Support common 30/60/120/144 FPS footage and communicate uncertainty.
 
-Show the main VOD timeline above the shared log timeline on one synchronized scale. Support zoom and horizontal navigation. Bundle dense events while zoomed out and separate them while zoomed in. Render `killed` green, `died to` red, and bundles neutrally. Use efficient graphics for dense markers plus a semantic keyboard-operable event list. Clicking an event seeks and pauses. Display clip ranges with draggable handles.
+Keep synchronization and clip selection as separate workspaces. A **Start Clipping** action below the synchronization confirmation opens the clipping workspace with the active perspective as a large single player and its timeline across the full available width.
+
+Show one source row for every VOD on the synchronized time scale, including a clear sync-required state for unavailable rows. Below those source rows, split the shared event timeline into exactly three semantic rows: **Kills**, **Deaths**, and **Selected names**. Support zoom and horizontal navigation. Bundle dense events while zoomed out and separate them while zoomed in. Render `killed` green, `died to` red, and bundles neutrally. Use efficient graphics for dense markers plus a semantic keyboard-operable event list. Clicking an event seeks and pauses. Display clip ranges with draggable handles.
 
 Minimum keyboard controls:
 

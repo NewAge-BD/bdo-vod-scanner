@@ -707,6 +707,49 @@ h1 {
   text-align: right;
 }
 
+.clipping-workspace__heading {
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.clipping-workspace__description {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.clipping-workspace__back {
+  flex: 0 0 auto;
+}
+
+.clipping-workspace__player {
+  overflow: hidden;
+  background: #030405;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+}
+
+.clipping-workspace .perspective-stage--single {
+  width: 100%;
+}
+
+.clipping-workspace .video-viewport {
+  max-height: min(70vh, 52rem);
+}
+
+.clipping-start {
+  width: 100%;
+  margin-top: 0.55rem;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.clipping-start:hover:not(:disabled) {
+  color: var(--accent-ink);
+  background: #e1ff63;
+}
+
 .perspective-tabs {
   display: flex;
   gap: 0.45rem;
@@ -1289,6 +1332,93 @@ h1 {
 
 .log-timeline {
   margin-top: 0.55rem;
+}
+
+.clipping-timeline {
+  display: grid;
+  gap: 0.32rem;
+  margin-top: 0.7rem;
+}
+
+.clipping-timeline__group {
+  display: grid;
+  gap: 0.22rem;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.08rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.clipping-timeline__lane {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.clipping-timeline__label {
+  overflow: hidden;
+  color: #cbd2dc;
+  font-size: 0.64rem;
+  font-weight: 780;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clipping-timeline__lane--vod .clipping-timeline__label {
+  color: var(--muted);
+}
+
+.clipping-timeline__vod-track {
+  position: relative;
+  height: 1.5rem;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 31px,
+      rgb(255 255 255 / 5%) 32px,
+      transparent 33px
+    ),
+    #0c1015;
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+}
+
+.clipping-timeline__source,
+.clipping-timeline__clip {
+  position: absolute;
+  top: 50%;
+  min-width: 2px;
+  transform: translateY(-50%);
+}
+
+.clipping-timeline__source {
+  height: 0.42rem;
+  background: #596472;
+  border-radius: 999px;
+}
+
+.clipping-timeline__source--active {
+  background: var(--accent);
+}
+
+.clipping-timeline__clip {
+  z-index: 1;
+  height: 1rem;
+  background: rgb(216 254 69 / 28%);
+  border: 1px solid var(--accent);
+  border-radius: 0.2rem;
+}
+
+.clipping-timeline__status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #ffd08a;
+  font-size: 0.57rem;
+  font-weight: 750;
 }
 
 .log-timeline__heading {

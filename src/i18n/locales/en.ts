@@ -126,6 +126,21 @@ export const en = {
     saveError: 'The clip could not be saved.',
     title: 'Marked clips',
   },
+  clipping: {
+    back: 'Back to synchronization',
+    deaths: 'Deaths',
+    description:
+      'Review one perspective at full size and mark clips on a shared, full-width timeline.',
+    kicker: 'CLIP WORKSPACE',
+    kills: 'Kills',
+    noSelectedNames: 'Add at least one name to this perspective to show matching events',
+    selectedNames: 'Selected names',
+    start: 'Start Clipping',
+    syncRequired: 'Sync required',
+    timeline: 'Full-width clipping timeline',
+    title: 'Clipping workspace',
+    vodRows: 'VOD source timelines',
+  },
   sources: {
     codecs: 'Codecs',
     date: 'Session date',

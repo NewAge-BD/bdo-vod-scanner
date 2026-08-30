@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { CreateClipInput, UpdateClipInput } from '../../domain/clips';
 import { parseBdoLog, searchEvents, type BdoEvent } from '../../domain/events';
-import type { PortableProject, VodReference } from '../../domain/projects';
+import type { Clip, PortableProject, VodReference } from '../../domain/projects';
 import {
   mapSessionTimeToVideoTime,
   mapVideoTimeToSessionTime,
@@ -20,6 +20,7 @@ import {
   calculateTimelineWindow,
   zoomLevelToFactor,
   type LogTimelineMarker,
+  type TimelineWindow,
 } from '../../domain/timeline';
 import { clampVideoPan, zoomVideoAtPoint, type ViewportPoint } from '../../domain/viewport';
 import { ClipPanel } from '../clip-editor';
@@ -75,6 +76,9 @@ export function VideoSynchronization({
   const [performanceWarningDismissed, setPerformanceWarningDismissed] = useState(false);
   const [clipDraft, setClipDraft] = useState<ClipDraftRange>({});
   const [clipSaveState, setClipSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [workspaceMode, setWorkspaceMode] = useState<'synchronization' | 'clipping'>(
+    'synchronization',
+  );
 
   const file = activeVod === undefined ? undefined : vodFiles.get(activeVod.id);
   const firstEventId = events[0]?.id;
@@ -298,16 +302,8 @@ export function VideoSynchronization({
     setSaveState(saved ? 'saved' : 'error');
   }
 
-  return (
-    <section className="video-sync" aria-labelledby="video-sync-title">
-      <div className="video-sync__heading">
-        <div>
-          <p className="section-kicker">{t('synchronization.kicker')}</p>
-          <h2 id="video-sync-title">{t('synchronization.title')}</h2>
-        </div>
-        <p>{t('synchronization.description')}</p>
-      </div>
-
+  function renderPerspectiveTabs(clippingMode: boolean) {
+    return (
       <div className="perspective-tabs" role="group" aria-label={t('synchronization.perspectives')}>
         {project.vods.map((vod) => {
           const isActive = vod.id === activeVod?.id;
@@ -322,13 +318,14 @@ export function VideoSynchronization({
                 aria-label={`${vod.displayName}, ${synchronizationStatus}`}
                 aria-pressed={isActive}
                 className={`perspective-tab perspective-tab--${vod.synchronizationAnchor === null ? 'sync-required' : 'synchronized'}${isActive ? ' perspective-tab--active' : ''}`}
+                disabled={clippingMode && vod.synchronizationAnchor === null}
                 onClick={() => selectPerspective(vod.id)}
                 type="button"
               >
                 <span>{vod.displayName}</span>
                 <small>{synchronizationStatus}</small>
               </button>
-              {!isActive && (
+              {!clippingMode && !isActive && (
                 <button
                   aria-pressed={isVisible}
                   className="perspective-visibility"
@@ -344,6 +341,92 @@ export function VideoSynchronization({
           );
         })}
       </div>
+    );
+  }
+
+  function renderPlayer(clippingMode: boolean) {
+    if (file === undefined || activeVod === undefined) {
+      return (
+        <div className="video-unavailable">
+          <strong>{t('synchronization.reselectTitle')}</strong>
+          <p>{t('synchronization.reselectDescription')}</p>
+        </div>
+      );
+    }
+    return (
+      <SynchronizedVideoPlayer
+        clippingMode={clippingMode}
+        clips={project.clips}
+        estimatedFrameRate={estimatedFrameRate}
+        events={events}
+        file={file}
+        initialTime={videoTime}
+        isPlaying={isMainPlaying}
+        eventSeekRequest={eventSeekRequest}
+        clipDraft={clipDraft}
+        clipSaveState={clipSaveState}
+        key={`${activeVod.id}-${file.name}-${file.lastModified}-${file.size}-${clippingMode ? 'clips' : 'sync'}`}
+        onHidePerspective={(vodId) => setPerspectiveVisible(vodId, false)}
+        onClipRangeChange={(range) => {
+          setClipDraft(range);
+          setClipSaveState('idle');
+        }}
+        onMarkClipBoundary={markClipBoundary}
+        onPlaybackChange={setIsMainPlaying}
+        onPromotePerspective={selectPerspective}
+        onReady={setIsVideoReady}
+        onSelectEvent={setSelectedEventId}
+        onTimeChange={setVideoTime}
+        onSaveClip={() => void saveMarkedClip()}
+        secondaryPerspectives={clippingMode ? [] : secondaryPerspectives}
+        selectedEvent={selectedEvent}
+        selectedNameEvents={activeVod.searchTerms.length === 0 ? [] : matchingEvents}
+        vod={activeVod}
+        vods={project.vods}
+      />
+    );
+  }
+
+  if (workspaceMode === 'clipping') {
+    return (
+      <section className="video-sync clipping-workspace" aria-labelledby="clipping-workspace-title">
+        <div className="video-sync__heading clipping-workspace__heading">
+          <div>
+            <p className="section-kicker">{t('clipping.kicker')}</p>
+            <h2 id="clipping-workspace-title">{t('clipping.title')}</h2>
+          </div>
+          <button
+            className="button clipping-workspace__back"
+            onClick={() => setWorkspaceMode('synchronization')}
+            type="button"
+          >
+            {t('clipping.back')}
+          </button>
+        </div>
+        <p className="clipping-workspace__description">{t('clipping.description')}</p>
+        {renderPerspectiveTabs(true)}
+        <div className="clipping-workspace__player">{renderPlayer(true)}</div>
+        <ClipPanel
+          onCollapsedChange={onClipPanelCollapsedChange}
+          onDeleteClip={onDeleteClip}
+          onRenameClip={(clipId, title) => onUpdateClip(clipId, { title })}
+          project={project}
+        />
+      </section>
+    );
+  }
+
+  return (
+    <section className="video-sync" aria-labelledby="video-sync-title">
+      <div className="video-sync__heading">
+        <div>
+          <p className="section-kicker">{t('synchronization.kicker')}</p>
+          <h2 id="video-sync-title">{t('synchronization.title')}</h2>
+        </div>
+        <p>{t('synchronization.description')}</p>
+      </div>
+
+      {renderPerspectiveTabs(false)}
 
       <div className="video-sync__workspace">
         <div className="video-sync__player-column">
@@ -355,39 +438,7 @@ export function VideoSynchronization({
               </button>
             </div>
           )}
-          {file === undefined || activeVod === undefined ? (
-            <div className="video-unavailable">
-              <strong>{t('synchronization.reselectTitle')}</strong>
-              <p>{t('synchronization.reselectDescription')}</p>
-            </div>
-          ) : (
-            <SynchronizedVideoPlayer
-              estimatedFrameRate={estimatedFrameRate}
-              events={events}
-              file={file}
-              initialTime={videoTime}
-              isPlaying={isMainPlaying}
-              eventSeekRequest={eventSeekRequest}
-              clipDraft={clipDraft}
-              clipSaveState={clipSaveState}
-              key={`${activeVod.id}-${file.name}-${file.lastModified}-${file.size}`}
-              onHidePerspective={(vodId) => setPerspectiveVisible(vodId, false)}
-              onClipRangeChange={(range) => {
-                setClipDraft(range);
-                setClipSaveState('idle');
-              }}
-              onMarkClipBoundary={markClipBoundary}
-              onPlaybackChange={setIsMainPlaying}
-              onPromotePerspective={selectPerspective}
-              onReady={setIsVideoReady}
-              onSelectEvent={setSelectedEventId}
-              onTimeChange={setVideoTime}
-              onSaveClip={() => void saveMarkedClip()}
-              secondaryPerspectives={secondaryPerspectives}
-              selectedEvent={selectedEvent}
-              vod={activeVod}
-            />
-          )}
+          {renderPlayer(false)}
         </div>
 
         <div className="sync-event-panel">
@@ -508,6 +559,14 @@ export function VideoSynchronization({
                 ? t('synchronization.confirm')
                 : t('synchronization.update')}
           </button>
+          <button
+            className="button clipping-start"
+            disabled={activeVod?.synchronizationAnchor === null || file === undefined}
+            onClick={() => setWorkspaceMode('clipping')}
+            type="button"
+          >
+            {t('clipping.start')}
+          </button>
           {saveState === 'saved' && <p className="sync-save-state">{t('synchronization.saved')}</p>}
           {saveState === 'error' && (
             <p className="sync-save-state sync-save-state--error">
@@ -524,17 +583,13 @@ export function VideoSynchronization({
             )}
         </div>
       </div>
-      <ClipPanel
-        onCollapsedChange={onClipPanelCollapsedChange}
-        onDeleteClip={onDeleteClip}
-        onRenameClip={(clipId, title) => onUpdateClip(clipId, { title })}
-        project={project}
-      />
     </section>
   );
 }
 
 function SynchronizedVideoPlayer({
+  clippingMode,
+  clips,
   file,
   vod,
   initialTime,
@@ -546,6 +601,8 @@ function SynchronizedVideoPlayer({
   isPlaying: playbackIntent,
   secondaryPerspectives,
   selectedEvent,
+  selectedNameEvents,
+  vods,
   onHidePerspective,
   onClipRangeChange,
   onMarkClipBoundary,
@@ -556,6 +613,8 @@ function SynchronizedVideoPlayer({
   onTimeChange,
   onSaveClip,
 }: {
+  readonly clippingMode: boolean;
+  readonly clips: readonly Clip[];
   readonly file: File;
   readonly vod: VodReference;
   readonly initialTime: number;
@@ -567,6 +626,8 @@ function SynchronizedVideoPlayer({
   readonly isPlaying: boolean;
   readonly secondaryPerspectives: readonly SecondaryPerspective[];
   readonly selectedEvent: BdoEvent | undefined;
+  readonly selectedNameEvents: readonly BdoEvent[];
+  readonly vods: readonly VodReference[];
   readonly onHidePerspective: (vodId: string) => void;
   readonly onClipRangeChange: (range: ClipDraftRange) => void;
   readonly onMarkClipBoundary: (boundary: 'in' | 'out', time: number) => void;
@@ -620,6 +681,39 @@ function SynchronizedVideoPlayer({
       timelineWindow,
     );
   }, [alignmentEventId, alignmentEventTime, alignmentVideoTime, events, timelineWindow]);
+  const killMarkers = useMemo(
+    () =>
+      buildAlignedMarkers(
+        events.filter((event) => event.verb === 'killed'),
+        alignmentEventId,
+        alignmentEventTime,
+        alignmentVideoTime,
+        timelineWindow,
+      ),
+    [alignmentEventId, alignmentEventTime, alignmentVideoTime, events, timelineWindow],
+  );
+  const deathMarkers = useMemo(
+    () =>
+      buildAlignedMarkers(
+        events.filter((event) => event.verb === 'diedTo'),
+        alignmentEventId,
+        alignmentEventTime,
+        alignmentVideoTime,
+        timelineWindow,
+      ),
+    [alignmentEventId, alignmentEventTime, alignmentVideoTime, events, timelineWindow],
+  );
+  const selectedNameMarkers = useMemo(
+    () =>
+      buildAlignedMarkers(
+        selectedNameEvents,
+        alignmentEventId,
+        alignmentEventTime,
+        alignmentVideoTime,
+        timelineWindow,
+      ),
+    [alignmentEventId, alignmentEventTime, alignmentVideoTime, selectedNameEvents, timelineWindow],
+  );
 
   useEffect(() => {
     if (eventSeekRequest === undefined) {
@@ -886,10 +980,10 @@ function SynchronizedVideoPlayer({
               } else if (event.key === ' ') {
                 event.preventDefault();
                 togglePlayback();
-              } else if (event.key.toLocaleLowerCase() === 'i') {
+              } else if (clippingMode && event.key.toLocaleLowerCase() === 'i') {
                 event.preventDefault();
                 markClipBoundary('in');
-              } else if (event.key.toLocaleLowerCase() === 'o') {
+              } else if (clippingMode && event.key.toLocaleLowerCase() === 'o') {
                 event.preventDefault();
                 markClipBoundary('out');
               }
@@ -1018,7 +1112,8 @@ function SynchronizedVideoPlayer({
               Math.max(timelineWindow.startSeconds, displayTime),
             )}
           />
-          {clipDraft.inPointSeconds !== undefined &&
+          {clippingMode &&
+            clipDraft.inPointSeconds !== undefined &&
             clipDraft.outPointSeconds !== undefined &&
             clipDraft.inPointSeconds >= timelineWindow.startSeconds &&
             clipDraft.outPointSeconds <= timelineWindow.endSeconds && (
@@ -1070,85 +1165,129 @@ function SynchronizedVideoPlayer({
             )}
         </div>
 
-        <div className="clip-mark-controls" aria-label={t('clips.kicker')}>
-          <button onClick={() => markClipBoundary('in')} type="button">
-            {t('clips.markIn')}
-          </button>
-          <span>
-            {t('clips.inPoint')}: {formatOptionalTime(clipDraft.inPointSeconds)}
-          </span>
-          <button onClick={() => markClipBoundary('out')} type="button">
-            {t('clips.markOut')}
-          </button>
-          <span>
-            {t('clips.outPoint')}: {formatOptionalTime(clipDraft.outPointSeconds)}
-          </span>
-          <button
-            className="clip-mark-controls__add"
-            disabled={
-              storedAnchor === null ||
-              clipDraft.inPointSeconds === undefined ||
-              clipDraft.outPointSeconds === undefined ||
-              clipDraft.outPointSeconds <= clipDraft.inPointSeconds ||
-              clipSaveState === 'saving'
-            }
-            onClick={onSaveClip}
-            type="button"
-          >
-            {t('clips.add')}
-          </button>
-        </div>
-        {clipSaveState === 'saved' && <p className="clip-save-state">{t('clips.saved')}</p>}
-        {clipSaveState === 'error' && (
+        {clippingMode && (
+          <div className="clip-mark-controls" aria-label={t('clips.kicker')}>
+            <button onClick={() => markClipBoundary('in')} type="button">
+              {t('clips.markIn')}
+            </button>
+            <span>
+              {t('clips.inPoint')}: {formatOptionalTime(clipDraft.inPointSeconds)}
+            </span>
+            <button onClick={() => markClipBoundary('out')} type="button">
+              {t('clips.markOut')}
+            </button>
+            <span>
+              {t('clips.outPoint')}: {formatOptionalTime(clipDraft.outPointSeconds)}
+            </span>
+            <button
+              className="clip-mark-controls__add"
+              disabled={
+                storedAnchor === null ||
+                clipDraft.inPointSeconds === undefined ||
+                clipDraft.outPointSeconds === undefined ||
+                clipDraft.outPointSeconds <= clipDraft.inPointSeconds ||
+                clipSaveState === 'saving'
+              }
+              onClick={onSaveClip}
+              type="button"
+            >
+              {t('clips.add')}
+            </button>
+          </div>
+        )}
+        {clippingMode && clipSaveState === 'saved' && (
+          <p className="clip-save-state">{t('clips.saved')}</p>
+        )}
+        {clippingMode && clipSaveState === 'error' && (
           <p className="clip-save-state clip-save-state--error">{t('clips.saveError')}</p>
         )}
 
-        <div className="log-timeline" aria-label={t('synchronization.logTimeline')}>
-          <div className="log-timeline__heading">
-            <span>{t('synchronization.logEvents')}</span>
-            <small>
-              {storedAnchor === null
-                ? t('synchronization.previewAlignment')
-                : t('synchronization.storedAlignment')}
-            </small>
+        {clippingMode ? (
+          <div className="clipping-timeline" aria-label={t('clipping.timeline')}>
+            <div className="clipping-timeline__group" aria-label={t('clipping.vodRows')}>
+              {vods.map((timelineVod) => (
+                <VodTimelineLane
+                  activeVod={vod}
+                  clips={clips.filter((clip) => clip.vodId === timelineVod.id)}
+                  key={timelineVod.id}
+                  timelineVod={timelineVod}
+                  timelineWindow={timelineWindow}
+                />
+              ))}
+            </div>
+            <EventTimelineLane
+              emptyLabel={t('synchronization.noVisibleEvents')}
+              events={events}
+              label={t('clipping.kills')}
+              markers={killMarkers}
+              onActivate={activateLogMarker}
+              selectedEvent={selectedEvent}
+            />
+            <EventTimelineLane
+              emptyLabel={t('synchronization.noVisibleEvents')}
+              events={events}
+              label={t('clipping.deaths')}
+              markers={deathMarkers}
+              onActivate={activateLogMarker}
+              selectedEvent={selectedEvent}
+            />
+            <EventTimelineLane
+              emptyLabel={t('clipping.noSelectedNames')}
+              events={events}
+              label={t('clipping.selectedNames')}
+              markers={selectedNameMarkers}
+              onActivate={activateLogMarker}
+              selectedEvent={selectedEvent}
+            />
           </div>
-          <div className="log-timeline__track">
-            {logMarkers.length === 0 ? (
-              <span className="log-timeline__empty">{t('synchronization.noVisibleEvents')}</span>
-            ) : (
-              logMarkers.map((marker) => {
-                const onlyEvent =
-                  marker.eventCount === 1
-                    ? events.find((event) => event.id === marker.eventIds[0])
-                    : undefined;
-                const label =
-                  onlyEvent === undefined
-                    ? t('synchronization.eventBundle', {
-                        count: marker.eventCount,
-                        time: formatTime(marker.videoTimeSeconds),
-                      })
-                    : `${onlyEvent.clockTime}: ${describeEvent(onlyEvent)}`;
-                return (
-                  <button
-                    aria-label={label}
-                    aria-pressed={
-                      selectedEvent !== undefined && marker.eventIds.includes(selectedEvent.id)
-                    }
-                    className={`log-timeline__marker log-timeline__marker--${marker.type}`}
-                    key={marker.id}
-                    onClick={() => activateLogMarker(marker)}
-                    onDoubleClick={(event) => event.stopPropagation()}
-                    style={{ left: `${marker.positionRatio * 100}%` }}
-                    title={label}
-                    type="button"
-                  >
-                    {marker.eventCount > 1 && <span>{marker.eventCount}</span>}
-                  </button>
-                );
-              })
-            )}
+        ) : (
+          <div className="log-timeline" aria-label={t('synchronization.logTimeline')}>
+            <div className="log-timeline__heading">
+              <span>{t('synchronization.logEvents')}</span>
+              <small>
+                {storedAnchor === null
+                  ? t('synchronization.previewAlignment')
+                  : t('synchronization.storedAlignment')}
+              </small>
+            </div>
+            <div className="log-timeline__track">
+              {logMarkers.length === 0 ? (
+                <span className="log-timeline__empty">{t('synchronization.noVisibleEvents')}</span>
+              ) : (
+                logMarkers.map((marker) => {
+                  const onlyEvent =
+                    marker.eventCount === 1
+                      ? events.find((event) => event.id === marker.eventIds[0])
+                      : undefined;
+                  const label =
+                    onlyEvent === undefined
+                      ? t('synchronization.eventBundle', {
+                          count: marker.eventCount,
+                          time: formatTime(marker.videoTimeSeconds),
+                        })
+                      : `${onlyEvent.clockTime}: ${describeEvent(onlyEvent)}`;
+                  return (
+                    <button
+                      aria-label={label}
+                      aria-pressed={
+                        selectedEvent !== undefined && marker.eventIds.includes(selectedEvent.id)
+                      }
+                      className={`log-timeline__marker log-timeline__marker--${marker.type}`}
+                      key={marker.id}
+                      onClick={() => activateLogMarker(marker)}
+                      onDoubleClick={(event) => event.stopPropagation()}
+                      style={{ left: `${marker.positionRatio * 100}%` }}
+                      title={label}
+                      type="button"
+                    >
+                      {marker.eventCount > 1 && <span>{marker.eventCount}</span>}
+                    </button>
+                  );
+                })
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="video-timeline__zoom">
           <button
@@ -1197,6 +1336,168 @@ function SynchronizedVideoPlayer({
       </div>
     </>
   );
+}
+
+function buildAlignedMarkers(
+  events: readonly BdoEvent[],
+  eventId: string | undefined,
+  eventSessionTimeSeconds: number | undefined,
+  videoTimeSeconds: number,
+  timelineWindow: TimelineWindow,
+): readonly LogTimelineMarker[] {
+  if (eventId === undefined || eventSessionTimeSeconds === undefined) {
+    return [];
+  }
+  const anchor: SynchronizationAnchorInput = {
+    eventId,
+    eventSessionTimeSeconds,
+    videoTimeSeconds,
+  };
+  return buildLogTimelineMarkers(
+    events,
+    (sessionTime) => mapSessionTimeToVideoTime(anchor, sessionTime),
+    timelineWindow,
+  );
+}
+
+function EventTimelineLane({
+  emptyLabel,
+  events,
+  label,
+  markers,
+  onActivate,
+  selectedEvent,
+}: {
+  readonly emptyLabel: string;
+  readonly events: readonly BdoEvent[];
+  readonly label: string;
+  readonly markers: readonly LogTimelineMarker[];
+  readonly onActivate: (marker: LogTimelineMarker) => void;
+  readonly selectedEvent: BdoEvent | undefined;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="clipping-timeline__lane">
+      <span className="clipping-timeline__label">{label}</span>
+      <div className="log-timeline__track">
+        {markers.length === 0 ? (
+          <span className="log-timeline__empty">{emptyLabel}</span>
+        ) : (
+          markers.map((marker) => {
+            const onlyEvent =
+              marker.eventCount === 1
+                ? events.find((event) => event.id === marker.eventIds[0])
+                : undefined;
+            const markerLabel =
+              onlyEvent === undefined
+                ? t('synchronization.eventBundle', {
+                    count: marker.eventCount,
+                    time: formatTime(marker.videoTimeSeconds),
+                  })
+                : `${onlyEvent.clockTime}: ${describeEvent(onlyEvent)}`;
+            return (
+              <button
+                aria-label={markerLabel}
+                aria-pressed={
+                  selectedEvent !== undefined && marker.eventIds.includes(selectedEvent.id)
+                }
+                className={`log-timeline__marker log-timeline__marker--${marker.type}`}
+                key={marker.id}
+                onClick={() => onActivate(marker)}
+                onDoubleClick={(event) => event.stopPropagation()}
+                style={{ left: `${marker.positionRatio * 100}%` }}
+                title={markerLabel}
+                type="button"
+              >
+                {marker.eventCount > 1 && <span>{marker.eventCount}</span>}
+              </button>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+function VodTimelineLane({
+  activeVod,
+  clips,
+  timelineVod,
+  timelineWindow,
+}: {
+  readonly activeVod: VodReference;
+  readonly clips: readonly Clip[];
+  readonly timelineVod: VodReference;
+  readonly timelineWindow: TimelineWindow;
+}) {
+  const { t } = useTranslation();
+  const activeAnchor = activeVod.synchronizationAnchor;
+  const timelineAnchor = timelineVod.synchronizationAnchor;
+  const duration = timelineVod.durationSeconds;
+  const sourceRange =
+    activeAnchor === null || timelineAnchor === null || duration === null
+      ? undefined
+      : rangeOnActiveTimeline(0, duration, timelineAnchor, activeAnchor, timelineWindow);
+  return (
+    <div className="clipping-timeline__lane clipping-timeline__lane--vod">
+      <span className="clipping-timeline__label" title={timelineVod.displayName}>
+        {timelineVod.displayName}
+      </span>
+      <div className="clipping-timeline__vod-track">
+        {sourceRange === undefined ? (
+          <span className="clipping-timeline__status">{t('clipping.syncRequired')}</span>
+        ) : (
+          <span
+            className={`clipping-timeline__source${timelineVod.id === activeVod.id ? ' clipping-timeline__source--active' : ''}`}
+            style={{ left: `${sourceRange.left}%`, width: `${sourceRange.width}%` }}
+          />
+        )}
+        {clips.map((clip) => {
+          if (activeAnchor === null || timelineAnchor === null) {
+            return null;
+          }
+          const range = rangeOnActiveTimeline(
+            clip.inPointSeconds,
+            clip.outPointSeconds,
+            timelineAnchor,
+            activeAnchor,
+            timelineWindow,
+          );
+          return range === undefined ? null : (
+            <span
+              aria-label={clip.title}
+              className="clipping-timeline__clip"
+              key={clip.id}
+              style={{ left: `${range.left}%`, width: `${range.width}%` }}
+              title={clip.title}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function rangeOnActiveTimeline(
+  startSeconds: number,
+  endSeconds: number,
+  sourceAnchor: NonNullable<VodReference['synchronizationAnchor']>,
+  activeAnchor: NonNullable<VodReference['synchronizationAnchor']>,
+  timelineWindow: TimelineWindow,
+): { readonly left: number; readonly width: number } | undefined {
+  const startSessionTime = mapVideoTimeToSessionTime(sourceAnchor, startSeconds);
+  const endSessionTime = mapVideoTimeToSessionTime(sourceAnchor, endSeconds);
+  const activeStart = mapSessionTimeToVideoTime(activeAnchor, startSessionTime);
+  const activeEnd = mapSessionTimeToVideoTime(activeAnchor, endSessionTime);
+  const visibleStart = Math.max(timelineWindow.startSeconds, activeStart);
+  const visibleEnd = Math.min(timelineWindow.endSeconds, activeEnd);
+  if (visibleEnd <= visibleStart) {
+    return undefined;
+  }
+  return {
+    left: ((visibleStart - timelineWindow.startSeconds) / timelineWindow.durationSeconds) * 100,
+    width: ((visibleEnd - visibleStart) / timelineWindow.durationSeconds) * 100,
+  };
 }
 
 function describeEvent(event: BdoEvent): string {
