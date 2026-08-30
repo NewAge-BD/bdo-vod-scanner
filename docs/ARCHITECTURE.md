@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, per-VOD event search and navigation, project schema, IndexedDB repository, project management, local source import, native playback, per-VOD synchronization, synchronized timelines, coordinated multi-perspective playback, and basic clip editing exist; remaining domain features and adapters are implemented incrementally by milestone.
+This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, per-VOD event search and navigation, project schema, IndexedDB repository, project management, local source import, native playback, per-VOD synchronization, synchronized timelines, shared-time perspective switching, and basic clip editing exist; remaining domain features and adapters are implemented incrementally by milestone.
 
 ## Architectural style
 
@@ -106,7 +106,7 @@ If the log clock crosses from late night to an earlier time, increment the day o
 
 The implemented coordinator derives shared session time from the main VOD's current media time and synchronization anchor. Each visible synchronized miniplayer maps that session time through its own anchor and follows the main play/pause intent. Only the main video is audible. Promoting a miniplayer maps the shared time into the new main VOD before switching.
 
-Hidden perspectives are unmounted and therefore do not keep an active player, object URL, or decoder. Unsynchronized, unlinked, and out-of-range perspectives render state placeholders. A dismissible warning appears above four visible perspectives. Clip ranges will remain attached to their source VOD when clip editing is added.
+The synchronization workspace mounts only the active perspective. Switching tabs maps the current synchronized session time into the newly active VOD and replaces the player source. Inactive perspectives do not keep an object URL, player, or decoder. Clip ranges remain attached to their source VOD.
 
 ## Timeline rendering
 

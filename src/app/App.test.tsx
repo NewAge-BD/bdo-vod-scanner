@@ -330,7 +330,7 @@ describe('App', () => {
     confirmDeletion.mockRestore();
   }, 10_000);
 
-  it('coordinates, promotes, hides, and restores synchronized perspectives', async () => {
+  it('switches synchronized perspectives at the shared session time without a split view', async () => {
     const user = userEvent.setup();
     render(
       <App metadataInspector={metadataInspector} repository={new InMemoryProjectRepository()} />,
@@ -389,31 +389,16 @@ describe('App', () => {
     );
     expect(await screen.findByText('FrostCairn')).toBeInTheDocument();
 
-    expect(
-      await screen.findByLabelText('Perspective A synchronized muted mini player'),
-    ).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Video timeline playhead'), {
       target: { value: '60' },
     });
-    await user.click(
-      screen.getByRole('button', { name: 'Make Perspective A the main perspective' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Perspective A, Synchronized' }));
 
     expect(screen.getByLabelText('Perspective A video perspective')).toBeInTheDocument();
     expect(screen.queryByText('FrostCairn')).not.toBeInTheDocument();
     expect(screen.getByText('00:01:00.000')).toBeInTheDocument();
-    expect(
-      await screen.findByLabelText('Perspective B synchronized muted mini player'),
-    ).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Hide Perspective B mini player' }));
-    expect(
-      screen.queryByLabelText('Perspective B synchronized muted mini player'),
-    ).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Show mini' }));
-    expect(
-      await screen.findByLabelText('Perspective B synchronized muted mini player'),
-    ).toBeInTheDocument();
+    expect(screen.queryByText('Show mini')).not.toBeInTheDocument();
+    expect(screen.queryByText('Hide mini')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Perspective B, Synchronized' }));
     expect(await screen.findByText('FrostCairn')).toBeInTheDocument();
   });

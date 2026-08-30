@@ -35,6 +35,19 @@ export function ClipPanel({
   const [draggedClipId, setDraggedClipId] = useState<string>();
   const [dropTargetClipId, setDropTargetClipId] = useState<string>();
   const [reorderState, setReorderState] = useState<'idle' | 'saving' | 'error'>('idle');
+  const [selectedClipIds, setSelectedClipIds] = useState<ReadonlySet<string>>(() => new Set());
+
+  function setClipSelected(clipId: string, selected: boolean) {
+    setSelectedClipIds((current) => {
+      const next = new Set(current);
+      if (selected) {
+        next.add(clipId);
+      } else {
+        next.delete(clipId);
+      }
+      return next;
+    });
+  }
 
   async function saveOrder(clipOrder: readonly string[]) {
     setReorderState('saving');
@@ -135,18 +148,24 @@ export function ClipPanel({
                 onMoveUp={() => moveClip(clip.id, -1)}
                 onPreview={() => onPreviewClip(clip)}
                 onRename={onRenameClip}
+                onSelectedChange={(selected) => setClipSelected(clip.id, selected)}
                 perspectiveName={
                   project.vods.find((vod) => vod.id === clip.vodId)?.displayName ??
                   t('clips.missingPerspective')
                 }
                 previewDisabled={!vodFiles.has(clip.vodId)}
+                selected={selectedClipIds.has(clip.id)}
               />
             ))}
           </div>
         ))}
       {!collapsed && (
         <>
-          <LosslessClipExportPanel project={project} vodFiles={vodFiles} />
+          <LosslessClipExportPanel
+            project={project}
+            selectedClipIds={selectedClipIds}
+            vodFiles={vodFiles}
+          />
           <DavinciExportPanel onDefaultsChange={onDavinciDefaultsChange} project={project} />
         </>
       )}
@@ -171,7 +190,9 @@ function ClipCard({
   onMoveUp,
   onPreview,
   onRename,
+  onSelectedChange,
   previewDisabled,
+  selected,
 }: {
   readonly clip: Clip;
   readonly perspectiveName: string;
@@ -189,7 +210,9 @@ function ClipCard({
   readonly onMoveUp: () => void;
   readonly onPreview: () => void;
   readonly onRename: (clipId: string, title: string) => Promise<boolean>;
+  readonly onSelectedChange: (selected: boolean) => void;
   readonly previewDisabled: boolean;
+  readonly selected: boolean;
 }) {
   const { t } = useTranslation();
   const [title, setTitle] = useState(clip.title);
@@ -217,6 +240,15 @@ function ClipCard({
       role="listitem"
     >
       <div className="clip-card__title-row">
+        <label className="clip-card__selection">
+          <input
+            aria-label={t('clips.selectForExport', { title: clip.title })}
+            checked={selected}
+            onChange={(event) => onSelectedChange(event.target.checked)}
+            type="checkbox"
+          />
+          <span aria-hidden="true" />
+        </label>
         <button
           aria-label={t('clips.dragClip', { title: clip.title })}
           className="clip-card__drag-handle"

@@ -875,28 +875,12 @@ h1 {
   border-top: 1px solid var(--border);
 }
 
-.perspective-visibility {
-  flex: 1 1 auto;
-  padding: 0.35rem 0.8rem;
-  color: var(--quiet);
-  text-align: left;
-  background: #0c0f14;
-  border: 0;
-  cursor: pointer;
-  font-size: 0.6rem;
-  font-weight: 750;
-}
-
 .perspective-delete {
   width: 2rem;
   min-height: 1.65rem;
   border: 0;
   border-left: 1px solid rgb(255 77 94 / 25%);
   border-radius: 0;
-}
-
-.perspective-visibility[aria-pressed='true'] {
-  color: #c5cdd8;
 }
 
 .video-sync__workspace {
@@ -918,27 +902,6 @@ h1 {
   border-right: 1px solid var(--border);
 }
 
-.perspective-performance-warning {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.65rem 0.75rem;
-  color: #ffd99d;
-  background: rgb(255 208 138 / 9%);
-  border-bottom: 1px solid rgb(255 208 138 / 24%);
-  font-size: 0.68rem;
-}
-
-.perspective-performance-warning button {
-  padding: 0.3rem 0.45rem;
-  color: #ffe9c7;
-  background: transparent;
-  border: 1px solid rgb(255 208 138 / 35%);
-  border-radius: 0.3rem;
-  cursor: pointer;
-}
-
 .perspective-stage {
   display: grid;
   align-items: start;
@@ -948,108 +911,6 @@ h1 {
 
 .perspective-stage--single {
   grid-template-columns: 1fr;
-}
-
-.perspective-stage--split {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.perspective-stage--multi {
-  grid-template-columns: minmax(0, 1.55fr) minmax(13rem, 0.7fr);
-}
-
-.perspective-mini-grid {
-  display: grid;
-  align-content: start;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: 1px;
-  background: var(--border);
-}
-
-.perspective-stage--multi .perspective-mini-grid {
-  grid-template-columns: 1fr;
-}
-
-.perspective-mini {
-  position: relative;
-  display: grid;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  place-items: center;
-  overflow: hidden;
-  background: #07090c;
-}
-
-.perspective-mini video {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  object-fit: contain;
-}
-
-.perspective-mini__name,
-.perspective-mini__state {
-  position: absolute;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.perspective-mini__name {
-  top: 0.45rem;
-  left: 0.45rem;
-  max-width: calc(100% - 2.5rem);
-  overflow: hidden;
-  padding: 0.25rem 0.35rem;
-  color: #f0f3f7;
-  background: rgb(4 6 9 / 78%);
-  border-radius: 0.25rem;
-  font-size: 0.58rem;
-  font-weight: 750;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.perspective-mini__state {
-  inset: 50% 0 auto;
-  padding-inline: 1rem;
-  color: var(--muted);
-  font-size: 0.65rem;
-  line-height: 1.45;
-  text-align: center;
-  transform: translateY(-50%);
-}
-
-.perspective-mini__promote {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-}
-
-.perspective-mini__promote:hover {
-  box-shadow: inset 0 0 0 2px var(--accent);
-}
-
-.perspective-mini__hide {
-  position: absolute;
-  z-index: 3;
-  top: 0.42rem;
-  right: 0.42rem;
-  display: grid;
-  width: 1.45rem;
-  height: 1.45rem;
-  padding: 0;
-  place-items: center;
-  color: #e6ebf1;
-  background: rgb(5 7 10 / 82%);
-  border: 1px solid #4a5462;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 0.75rem;
 }
 
 .video-viewport {
@@ -1969,6 +1830,51 @@ h1 {
   font-size: 1rem;
 }
 
+.clip-card__selection {
+  position: relative;
+  align-self: flex-end;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem !important;
+  cursor: pointer;
+}
+
+.clip-card__selection input {
+  position: absolute;
+  width: 1px;
+  min-height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.clip-card__selection span {
+  display: grid !important;
+  width: 2rem;
+  height: 2rem;
+  margin: 0 !important;
+  place-items: center;
+  background: #141922;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.35rem;
+}
+
+.clip-card__selection input:checked + span {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.clip-card__selection input:checked + span::after {
+  content: '✓';
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.clip-card__selection input:focus-visible + span {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .clip-card__drag-handle:active {
   cursor: grabbing !important;
 }
@@ -2113,6 +2019,12 @@ h1 {
   background: var(--accent) !important;
   border-color: var(--accent) !important;
   font-weight: 850;
+}
+
+.lossless-export__button--all {
+  color: var(--text) !important;
+  background: #141922 !important;
+  border-color: var(--border-strong) !important;
 }
 
 .lossless-export__progress {

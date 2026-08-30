@@ -1,7 +1,7 @@
 # User Guide
 
 > [!NOTE]
-> Local project management, source-file import, one sync point per perspective, synchronized timelines, coordinated multi-perspective playback, event-name navigation, clip marking, manual clip ordering, DaVinci Resolve timeline export, and an experimental direct lossless clip exporter are available now.
+> Local project management, source-file import, one sync point per perspective, synchronized perspective switching, event-name navigation, clip marking, manual clip ordering, DaVinci Resolve timeline export, and an experimental direct lossless clip exporter are available now.
 
 ## What BDO VOD Scanner does
 
@@ -53,13 +53,9 @@ Stop on the matching event and choose **Set synchronization point**.
 
 Every VOD has its own synchronization offset. Select another perspective above the player to synchronize it independently. Existing points can be updated. The current browser implementation uses detected FPS when available and otherwise visibly estimates 60 FPS; it does not promise a professional frame index.
 
-### 4. Compare perspectives
+### 4. Switch perspectives
 
-The preview adapts to the number of visible VODs. Click a perspective to make it the main video. Other visible perspectives continue as muted miniplayers, while hidden perspectives do not consume active playback resources.
-
-Only the main video is audible. Click a miniplayer or its **Open as main perspective** control to promote it. Switching perspectives preserves the shared session position. An unsynchronized, unlinked, or out-of-range perspective displays a status placeholder instead of stale video.
-
-Use **Hide mini** beside a perspective to remove it from the grid and stop its active playback resources. Use **Show mini** to restore it. More than four visible perspectives trigger a dismissible performance warning; playback remains available.
+The synchronization workspace displays one active VOD at full size. Choose another perspective in the tabs above the player to switch recordings. Switching synchronized perspectives preserves the shared session position, so the new recording opens at the same event moment. Only the active VOD is loaded into the player; the synchronization workspace does not use a split screen or miniplayers.
 
 ### 5. Search events
 
@@ -79,7 +75,7 @@ The clip is saved locally with its source perspective, exact range, duration, ac
 
 ### 7. Export
 
-**Export all clips** writes every marked clip to a chosen folder in the saved manual order. The source VOD for each clip must be reselected in the current browser session. Open the local app directly in current Chrome or Edge for the required writable-folder access. Brave intentionally disables the File System Access API used by this large-file export, while embedded preview browsers may display the folder dialog but still refuse to grant the resulting handle. The rest of the application and DaVinci Resolve timeline export remain usable in Brave.
+Select the checkbox on one or more clip cards and choose **Export selected clips** to export only that subset in the saved manual order. **Export all clips** writes every marked clip. Both actions ask for a destination folder. The source VOD for each clip must be reselected in the current browser session. Open the local app directly in current Chrome or Edge for the required writable-folder access. Brave intentionally disables the File System Access API used by this large-file export, while embedded preview browsers may display the folder dialog but still refuse to grant the resulting handle. The rest of the application and DaVinci Resolve timeline export remain usable in Brave.
 
 This browser export is experimental and prioritizes losslessness. It copies the original encoded video and audio without re-encoding, so the effective start may move to the preceding safe video keyframe and the end may extend to the following keyframe. The completed result shows the effective range. When one clip fails or the batch is cancelled, completed earlier clips remain in the chosen folder and a newly created incomplete file is removed.
 

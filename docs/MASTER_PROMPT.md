@@ -124,11 +124,12 @@ Do not infer alignment from the VOD filename. Reserve future compatibility for a
 
 - Use a Discord-stream-style adaptive grid.
 - One VOD fills the preview; more VODs split it.
-- Clicking a VOD promotes it to the main perspective.
+- Clicking a VOD tab replaces the full-size player with that perspective.
 - Other visible VODs remain muted miniplayers and can be hidden.
 - Only visible videos actively decode/play; hidden videos retain logical position.
 - Only the main video is audible.
-- Audio follows the promoted perspective.
+- Do not show miniplayers or a split screen in the synchronization workspace.
+- Audio follows the active perspective.
 - Switching perspective preserves global session time.
 - Brief loading is acceptable; prefer smooth switching.
 - Outside a VOD's available range, render no video content for it.

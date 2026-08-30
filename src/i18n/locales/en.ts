@@ -135,6 +135,7 @@ export const en = {
     rangeHandleOut: 'Clip out-point handle',
     reorderError: 'The clip order could not be saved.',
     reorderSaving: 'Saving clip order…',
+    selectForExport: 'Select {{title}} for direct export',
     saved: 'Clip saved locally.',
     saveError: 'The clip could not be saved.',
     title: 'Marked clips',
@@ -161,6 +162,7 @@ export const en = {
         'The output folder could not be opened. Check browser permission, or open this app in Chrome or Edge and try again. Brave does not support this direct export path.',
     },
     exportAll: 'Export all clips',
+    exportSelected: 'Export selected clips ({{count}})',
     exporting: 'Exporting clips…',
     kicker: 'LOSSLESS MEDIA',
     phases: {

@@ -28,7 +28,6 @@ import { clampVideoPan, zoomVideoAtPoint, type ViewportPoint } from '../../domai
 import { SplitTimelineIcon } from '../../shared/components/SplitTimelineIcon';
 import { TrashIcon } from '../../shared/components/TrashIcon';
 import { ClipPanel } from '../clip-editor';
-import { SynchronizedMiniPlayer } from './SynchronizedMiniPlayer';
 import { useObjectUrl } from './useObjectUrl';
 
 const MAX_VISIBLE_EVENTS = 50;
@@ -96,8 +95,6 @@ export function VideoSynchronization({
     project.vods[0]?.synchronizationAnchor?.videoTimeSeconds ?? 0,
   );
   const [isMainPlaying, setIsMainPlaying] = useState(false);
-  const [hiddenVodIds, setHiddenVodIds] = useState<ReadonlySet<string>>(() => new Set());
-  const [performanceWarningDismissed, setPerformanceWarningDismissed] = useState(false);
   const [clipDraft, setClipDraft] = useState<ClipDraftRange>({});
   const [clipSaveState, setClipSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [workspaceMode, setWorkspaceMode] = useState<'synchronization' | 'clipping'>(
@@ -165,17 +162,6 @@ export function VideoSynchronization({
     activeVod?.synchronizationAnchor === null || activeVod?.synchronizationAnchor === undefined
       ? undefined
       : mapVideoTimeToSessionTime(activeVod.synchronizationAnchor, videoTime);
-  const secondaryPerspectives: readonly SecondaryPerspective[] = project.vods
-    .filter((vod) => vod.id !== activeVod?.id && !hiddenVodIds.has(vod.id))
-    .map((vod) => ({
-      file: vodFiles.get(vod.id),
-      targetVideoTime:
-        sharedSessionTime === undefined || vod.synchronizationAnchor === null
-          ? undefined
-          : mapSessionTimeToVideoTime(vod.synchronizationAnchor, sharedSessionTime),
-      vod,
-    }));
-  const visibleVodCount = 1 + secondaryPerspectives.length;
 
   function selectPerspective(vodId: string) {
     const vod = project.vods.find((candidate) => candidate.id === vodId);
@@ -196,11 +182,6 @@ export function VideoSynchronization({
     setSaveState('idle');
     setIsVideoReady(false);
     setVideoTime(clampToVod(nextVideoTime, vod));
-    setHiddenVodIds((current) => {
-      const next = new Set(current);
-      next.delete(vodId);
-      return next;
-    });
   }
 
   function previewClip(clip: Clip) {
@@ -379,18 +360,6 @@ export function VideoSynchronization({
     }
   }
 
-  function setPerspectiveVisible(vodId: string, visible: boolean) {
-    setHiddenVodIds((current) => {
-      const next = new Set(current);
-      if (visible) {
-        next.delete(vodId);
-      } else {
-        next.add(vodId);
-      }
-      return next;
-    });
-  }
-
   async function saveSynchronization() {
     if (activeVod === undefined || selectedEvent === undefined) {
       return;
@@ -409,11 +378,6 @@ export function VideoSynchronization({
     if (!(await onDeleteVod(vodId))) {
       return;
     }
-    setHiddenVodIds((current) => {
-      const next = new Set(current);
-      next.delete(vodId);
-      return next;
-    });
     if (vodId === activeVod?.id) {
       const nextVod = project.vods.find((vod) => vod.id !== vodId);
       setActiveVodId(nextVod?.id);
@@ -433,7 +397,6 @@ export function VideoSynchronization({
       <div className="perspective-tabs" role="group" aria-label={t('synchronization.perspectives')}>
         {project.vods.map((vod) => {
           const isActive = vod.id === activeVod?.id;
-          const isVisible = isActive || !hiddenVodIds.has(vod.id);
           const synchronizationStatus =
             vod.synchronizationAnchor === null
               ? t('synchronization.notSynchronized')
@@ -452,18 +415,6 @@ export function VideoSynchronization({
                 <small>{synchronizationStatus}</small>
               </button>
               <div className="perspective-tab-actions">
-                {!clippingMode && !isActive && (
-                  <button
-                    aria-pressed={isVisible}
-                    className="perspective-visibility"
-                    onClick={() => setPerspectiveVisible(vod.id, !isVisible)}
-                    type="button"
-                  >
-                    {isVisible
-                      ? t('synchronization.hideMiniPlayer')
-                      : t('synchronization.showMiniPlayer')}
-                  </button>
-                )}
                 <button
                   aria-label={t('sources.deleteVod', { name: vod.displayName })}
                   className="perspective-delete"
@@ -502,7 +453,6 @@ export function VideoSynchronization({
         clipDraft={clipDraft}
         clipSaveState={clipSaveState}
         key={`${activeVod.id}-${file.name}-${file.lastModified}-${file.size}-${clippingMode ? 'clips' : 'sync'}`}
-        onHidePerspective={(vodId) => setPerspectiveVisible(vodId, false)}
         onClipRangeChange={(range) => {
           setClipDraft(range);
           setClipSaveState('idle');
@@ -512,7 +462,6 @@ export function VideoSynchronization({
         onPreviewComplete={(sequence) =>
           setEventSeekRequest((current) => (current?.sequence === sequence ? undefined : current))
         }
-        onPromotePerspective={selectPerspective}
         onReady={setIsVideoReady}
         onRemoveSearchTerm={(term) => void removeClipSearchTerm(term)}
         onSearchDraftChange={setClipSearchDraft}
@@ -521,7 +470,6 @@ export function VideoSynchronization({
         onSelectEvent={setSelectedEventId}
         onTimeChange={setVideoTime}
         onSaveClip={() => void saveMarkedClip()}
-        secondaryPerspectives={clippingMode ? [] : secondaryPerspectives}
         searchDraft={clipSearchDraft}
         searchSaveState={clipSearchSaveState}
         searchTerms={activeVod.searchTerms}
@@ -583,17 +531,7 @@ export function VideoSynchronization({
       {renderPerspectiveTabs(false)}
 
       <div className="video-sync__workspace">
-        <div className="video-sync__player-column">
-          {visibleVodCount > 4 && !performanceWarningDismissed && (
-            <div className="perspective-performance-warning" role="status">
-              <span>{t('synchronization.performanceWarning', { count: visibleVodCount })}</span>
-              <button onClick={() => setPerformanceWarningDismissed(true)} type="button">
-                {t('common.dismiss')}
-              </button>
-            </div>
-          )}
-          {renderPlayer(false)}
-        </div>
+        <div className="video-sync__player-column">{renderPlayer(false)}</div>
 
         <div className="sync-event-panel">
           <p className="sync-event-panel__label">{t('synchronization.selectedEvent')}</p>
@@ -746,18 +684,15 @@ function SynchronizedVideoPlayer({
   clipSaveState,
   events,
   isPlaying: playbackIntent,
-  secondaryPerspectives,
   searchDraft,
   searchSaveState,
   searchTerms,
   splitSearchTerms,
   selectedEvent,
-  onHidePerspective,
   onClipRangeChange,
   onMarkClipBoundary,
   onPlaybackChange,
   onPreviewComplete,
-  onPromotePerspective,
   onReady,
   onRemoveSearchTerm,
   onSearchDraftChange,
@@ -777,18 +712,15 @@ function SynchronizedVideoPlayer({
   readonly clipSaveState: 'idle' | 'saving' | 'saved' | 'error';
   readonly events: readonly BdoEvent[];
   readonly isPlaying: boolean;
-  readonly secondaryPerspectives: readonly SecondaryPerspective[];
   readonly searchDraft: string;
   readonly searchSaveState: 'idle' | 'saving' | 'error';
   readonly searchTerms: readonly string[];
   readonly splitSearchTerms: readonly string[];
   readonly selectedEvent: BdoEvent | undefined;
-  readonly onHidePerspective: (vodId: string) => void;
   readonly onClipRangeChange: (range: ClipDraftRange) => void;
   readonly onMarkClipBoundary: (boundary: 'in' | 'out', time: number) => void;
   readonly onPlaybackChange: (isPlaying: boolean) => void;
   readonly onPreviewComplete: (sequence: number) => void;
-  readonly onPromotePerspective: (vodId: string) => void;
   readonly onReady: (ready: boolean) => void;
   readonly onRemoveSearchTerm: (term: string) => void;
   readonly onSearchDraftChange: (value: string) => void;
@@ -1201,9 +1133,7 @@ function SynchronizedVideoPlayer({
 
   return (
     <>
-      <div
-        className={`perspective-stage perspective-stage--${secondaryPerspectives.length === 0 ? 'single' : secondaryPerspectives.length === 1 ? 'split' : 'multi'}`}
-      >
+      <div className="perspective-stage perspective-stage--single">
         <div
           aria-label={t('synchronization.videoViewport')}
           className={`video-viewport${isVideoPanning ? ' video-viewport--panning' : ''}`}
@@ -1300,19 +1230,6 @@ function SynchronizedVideoPlayer({
             </button>
           </div>
         </div>
-        {secondaryPerspectives.length > 0 && (
-          <div className="perspective-mini-grid">
-            {secondaryPerspectives.map((perspective) => (
-              <SecondaryPerspectivePreview
-                isPlaying={playbackIntent}
-                key={perspective.vod.id}
-                onHide={() => onHidePerspective(perspective.vod.id)}
-                onPromote={() => onPromotePerspective(perspective.vod.id)}
-                perspective={perspective}
-              />
-            ))}
-          </div>
-        )}
       </div>
       <div
         aria-label={t('synchronization.timelineControls')}
@@ -1809,68 +1726,6 @@ function formatZoom(factor: number): string {
   return factor < 10 ? factor.toFixed(1) : factor.toFixed(0);
 }
 
-function SecondaryPerspectivePreview({
-  isPlaying,
-  onHide,
-  onPromote,
-  perspective,
-}: {
-  readonly isPlaying: boolean;
-  readonly onHide: () => void;
-  readonly onPromote: () => void;
-  readonly perspective: SecondaryPerspective;
-}) {
-  const { t } = useTranslation();
-  const { file, targetVideoTime, vod } = perspective;
-  const isOutsideSource =
-    targetVideoTime !== undefined &&
-    (targetVideoTime < 0 ||
-      (vod.durationSeconds !== null && targetVideoTime > vod.durationSeconds));
-
-  if (file !== undefined && targetVideoTime !== undefined && !isOutsideSource) {
-    return (
-      <SynchronizedMiniPlayer
-        file={file}
-        isPlaying={isPlaying}
-        onHide={onHide}
-        onPromote={onPromote}
-        targetVideoTime={targetVideoTime}
-        vod={vod}
-      />
-    );
-  }
-
-  const state =
-    vod.synchronizationAnchor === null
-      ? t('synchronization.miniSyncRequired')
-      : file === undefined
-        ? t('synchronization.miniReselectRequired')
-        : isOutsideSource
-          ? t('synchronization.outsideSourceRange')
-          : t('synchronization.awaitingMainSynchronization');
-
-  return (
-    <div className="perspective-mini perspective-mini--placeholder">
-      <span className="perspective-mini__name">{vod.displayName}</span>
-      <span className="perspective-mini__state">{state}</span>
-      <button
-        aria-label={t('synchronization.promotePerspective', { name: vod.displayName })}
-        className="perspective-mini__promote"
-        onClick={onPromote}
-        type="button"
-      />
-      <button
-        aria-label={t('synchronization.hidePerspective', { name: vod.displayName })}
-        className="perspective-mini__hide"
-        onClick={onHide}
-        type="button"
-      >
-        ×
-      </button>
-    </div>
-  );
-}
-
 function clampToVod(time: number, vod: VodReference | undefined): number {
   const maximum = vod?.durationSeconds ?? Number.POSITIVE_INFINITY;
   return Math.min(maximum, Math.max(0, time));
@@ -1888,12 +1743,6 @@ interface TimelineDragState {
   readonly startX: number;
   readonly originCenter: number;
   readonly secondsPerPixel: number;
-}
-
-interface SecondaryPerspective {
-  readonly file: File | undefined;
-  readonly targetVideoTime: number | undefined;
-  readonly vod: VodReference;
 }
 
 interface EventSeekRequest {

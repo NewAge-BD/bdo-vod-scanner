@@ -39,6 +39,14 @@ describe('ClipPanel', () => {
     await waitFor(() => expect(onReorderClips).toHaveBeenCalledWith([secondId, firstId]));
     fireEvent.click(screen.getAllByRole('button', { name: 'Preview' })[0]!);
     expect(onPreviewClip).toHaveBeenCalledWith(project.clips.find((clip) => clip.id === firstId));
+
+    const firstSelection = screen.getByRole('checkbox', {
+      name: 'Select First clip for direct export',
+    });
+    fireEvent.click(firstSelection);
+    expect(firstSelection).toBeChecked();
+    expect(screen.getByRole('button', { name: 'Export selected clips (1)' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Export all clips' })).toBeInTheDocument();
   });
 });
 

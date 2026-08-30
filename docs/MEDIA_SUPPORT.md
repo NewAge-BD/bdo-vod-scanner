@@ -26,7 +26,7 @@ Mandatory rules:
 - Warn when the number and resolution of visible VODs may exceed practical hardware capacity.
 - Let the user continue after acknowledging the warning.
 
-The current UI warns when a project contains more than eight VOD references and separately warns when more than four perspectives are visible. Hidden perspectives are unmounted so they do not retain an active object URL, player, or decoder.
+The current UI warns when a project contains more than eight VOD references. The synchronization workspace mounts only the active perspective, so inactive VODs do not retain an active object URL, player, or decoder.
 
 ## Playback
 

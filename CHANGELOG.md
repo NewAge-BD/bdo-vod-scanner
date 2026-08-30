@@ -9,6 +9,7 @@ The project intends to follow Semantic Versioning once releases begin.
 ### Added
 
 - Added an experimental worker-based, keyframe-aligned MP4 packet-copy exporter with source audio, direct-to-disk streaming, batch progress, cancellation, partial-failure handling, and collision-safe filenames.
+- Added per-clip export selection and an **Export selected clips** action that preserves the saved manual clip order.
 - Added persistent drag-and-drop clip ordering with accessible move-up and move-down controls.
 - Added local FCPXML export for DaVinci Resolve with persisted frame-rate and resolution settings, source audio, manual clip order, and gapless edits.
 - Added an in-app DaVinci Resolve import guide and one-click clip previews that stop at the saved out-point.
@@ -39,10 +40,8 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added a shared log-event track on the visible video-time scale with green kills, red deaths, neutral dense-event bundles, and marker navigation.
 - Added searchable log-event selection and one persistent synchronization anchor per VOD.
 - Added independent sync status and calculated offset display for every perspective.
-- Added synchronized multi-perspective playback with one audible main VOD and muted secondary miniplayers.
-- Added perspective promotion that preserves shared session time, plus per-perspective show and hide controls.
-- Added placeholders for unsynchronized, unlinked, and out-of-range perspectives without decoding hidden video.
-- Added a dismissible performance warning when more than four perspectives are visible.
+- Added shared-time perspective switching through the VOD tabs with one full-size active player.
+- Kept inactive perspectives unmounted so they do not consume video decoding resources.
 - Added persistent independent search-name filters for every VOD with case-insensitive OR matching.
 - Added previous/next matching-event controls that seek and pause synchronized perspectives.
 - Limited synchronized search results to events inside the active VOD's available source range.
