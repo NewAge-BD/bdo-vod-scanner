@@ -62,7 +62,7 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ### Fixed
 
-- Made bundled timeline markers seekable and highlighted bursts of at least five kills within ten seconds with a dedicated marker style.
+- Made bundled timeline markers seekable and added zoom-independent 15-second kill-streak notifications styled after the Challenger, Invader, Slayer, and Conqueror in-game hierarchy.
 - Rate-limited held-arrow frame stepping so large local recordings do not accumulate expensive seek requests and freeze the player.
 - Made playback, frame stepping, and clipping shortcuts work without focusing the video first while preserving normal typing inside text-entry controls.
 - Previewed the active clip in/out frame in the player while dragging a range handle, then restored the normal timeline cursor when the handle was released.

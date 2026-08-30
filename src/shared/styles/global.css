@@ -1472,14 +1472,49 @@ h1 {
   border-color: #778394;
 }
 
-.video-timeline .log-timeline__marker--killBurst {
-  width: 1.55rem;
-  color: #071109;
-  background: linear-gradient(180deg, #baff8d, var(--kill));
-  border-color: #d5ffc0;
-  box-shadow:
-    0 0 0 1px rgb(111 244 174 / 35%),
-    0 0 0.9rem rgb(111 244 174 / 65%);
+.video-timeline .log-timeline__marker--streak {
+  z-index: 2;
+  width: 8rem;
+  height: 1.55rem;
+  color: #fff5e8;
+  background: linear-gradient(90deg, transparent, var(--streak-main) 18% 82%, transparent);
+  border-color: var(--streak-edge);
+  border-width: 1px 0;
+  border-radius: 0;
+  box-shadow: 0 0 0.8rem color-mix(in srgb, var(--streak-edge) 55%, transparent);
+}
+
+.video-timeline .log-timeline__marker--streak::before {
+  position: absolute;
+  top: -0.46rem;
+  left: 50%;
+  width: 0.72rem;
+  height: 0.72rem;
+  content: '';
+  background: linear-gradient(135deg, var(--streak-edge), var(--streak-main));
+  border: 1px solid color-mix(in srgb, var(--streak-edge) 70%, white);
+  box-shadow: 0 0 0.45rem var(--streak-edge);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.video-timeline .log-timeline__marker--streak-challenger {
+  --streak-main: #8e4c16;
+  --streak-edge: #e29a3f;
+}
+
+.video-timeline .log-timeline__marker--streak-invader {
+  --streak-main: #7d2e20;
+  --streak-edge: #d65d3d;
+}
+
+.video-timeline .log-timeline__marker--streak-slayer {
+  --streak-main: #5f327f;
+  --streak-edge: #a767df;
+}
+
+.video-timeline .log-timeline__marker--streak-conqueror {
+  --streak-main: #6e294e;
+  --streak-edge: #d75b9d;
 }
 
 .video-timeline .log-timeline__marker--kill:hover:not(:disabled) {
@@ -1494,13 +1529,28 @@ h1 {
   background: #667282;
 }
 
-.video-timeline .log-timeline__marker--killBurst:hover:not(:disabled) {
-  background: linear-gradient(180deg, #d6ffbd, #7bffc0);
+.video-timeline .log-timeline__marker--streak:hover:not(:disabled) {
+  filter: brightness(1.2);
 }
 
 .log-timeline__marker span {
   font-size: 0.54rem;
   font-weight: 850;
+}
+
+.log-timeline__marker span.log-timeline__streak-label {
+  position: relative;
+  z-index: 1;
+  display: block;
+  overflow: hidden;
+  padding-inline: 0.25rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.66rem;
+  font-style: italic;
+  line-height: 1.45rem;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px #1a0d08;
+  white-space: nowrap;
 }
 
 .log-timeline__marker[aria-pressed='true'] {

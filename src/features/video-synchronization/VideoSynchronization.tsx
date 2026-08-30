@@ -1521,9 +1521,10 @@ function SynchronizedVideoPlayer({
                       ? events.find((event) => event.id === marker.eventIds[0])
                       : undefined;
                   const label =
-                    marker.type === 'killBurst'
-                      ? t('synchronization.killBurst', {
-                          count: marker.killCount,
+                    marker.killStreakTier !== null
+                      ? t('synchronization.killStreakAnnouncement', {
+                          count: marker.killStreakCount,
+                          title: t(`synchronization.killStreakTitles.${marker.killStreakTier}`),
                           time: formatTime(marker.videoTimeSeconds),
                         })
                       : onlyEvent === undefined
@@ -1538,7 +1539,7 @@ function SynchronizedVideoPlayer({
                       aria-pressed={
                         selectedEvent !== undefined && marker.eventIds.includes(selectedEvent.id)
                       }
-                      className={`log-timeline__marker log-timeline__marker--${marker.type}`}
+                      className={`log-timeline__marker log-timeline__marker--${marker.type}${marker.killStreakTier === null ? '' : ` log-timeline__marker--streak log-timeline__marker--streak-${marker.killStreakTier}`}`}
                       key={marker.id}
                       onClick={() => activateLogMarker(marker)}
                       onDoubleClick={(event) => event.stopPropagation()}
@@ -1546,10 +1547,12 @@ function SynchronizedVideoPlayer({
                       title={label}
                       type="button"
                     >
-                      {marker.eventCount > 1 && (
-                        <span>
-                          {marker.type === 'killBurst' ? marker.killCount : marker.eventCount}
+                      {marker.killStreakTier !== null ? (
+                        <span className="log-timeline__streak-label">
+                          {t(`synchronization.killStreakTitles.${marker.killStreakTier}`)}
                         </span>
+                      ) : (
+                        marker.eventCount > 1 && <span>{marker.eventCount}</span>
                       )}
                     </button>
                   );
@@ -1702,9 +1705,10 @@ function EventTimelineLane({
                 ? events.find((event) => event.id === marker.eventIds[0])
                 : undefined;
             const markerLabel =
-              marker.type === 'killBurst'
-                ? t('synchronization.killBurst', {
-                    count: marker.killCount,
+              marker.killStreakTier !== null
+                ? t('synchronization.killStreakAnnouncement', {
+                    count: marker.killStreakCount,
+                    title: t(`synchronization.killStreakTitles.${marker.killStreakTier}`),
                     time: formatTime(marker.videoTimeSeconds),
                   })
                 : onlyEvent === undefined
@@ -1719,7 +1723,7 @@ function EventTimelineLane({
                 aria-pressed={
                   selectedEvent !== undefined && marker.eventIds.includes(selectedEvent.id)
                 }
-                className={`log-timeline__marker log-timeline__marker--${marker.type}`}
+                className={`log-timeline__marker log-timeline__marker--${marker.type}${marker.killStreakTier === null ? '' : ` log-timeline__marker--streak log-timeline__marker--streak-${marker.killStreakTier}`}`}
                 key={marker.id}
                 onClick={() => onActivate(marker)}
                 onDoubleClick={(event) => event.stopPropagation()}
@@ -1727,8 +1731,12 @@ function EventTimelineLane({
                 title={markerLabel}
                 type="button"
               >
-                {marker.eventCount > 1 && (
-                  <span>{marker.type === 'killBurst' ? marker.killCount : marker.eventCount}</span>
+                {marker.killStreakTier !== null ? (
+                  <span className="log-timeline__streak-label">
+                    {t(`synchronization.killStreakTitles.${marker.killStreakTier}`)}
+                  </span>
+                ) : (
+                  marker.eventCount > 1 && <span>{marker.eventCount}</span>
                 )}
               </button>
             );

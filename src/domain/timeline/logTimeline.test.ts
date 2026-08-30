@@ -35,18 +35,25 @@ describe('log timeline markers', () => {
       eventCount: 2,
       eventIds: ['kill', 'death'],
       killCount: 1,
+      killStreakTier: null,
       type: 'bundle',
     });
   });
 
-  it('highlights at least five kills within ten seconds as a kill burst', () => {
-    const killBurstEvents = Array.from({ length: 5 }, (_, index) => ({
+  it.each([
+    [2, 'challenger'],
+    [3, 'invader'],
+    [4, 'slayer'],
+    [5, 'conqueror'],
+    [6, 'conqueror'],
+  ] as const)('maps %s kills within fifteen seconds to %s', (killCount, expectedTier) => {
+    const killStreakEvents = Array.from({ length: killCount }, (_, index) => ({
       id: `kill-${index}`,
-      sessionTimeSeconds: 30 + index * 2,
+      sessionTimeSeconds: 30 + index,
       verb: 'killed' as const,
     }));
     const markers = buildLogTimelineMarkers(
-      killBurstEvents,
+      killStreakEvents,
       (sessionTime) => sessionTime,
       { startSeconds: 0, endSeconds: 100, durationSeconds: 100 },
       1,
@@ -54,12 +61,28 @@ describe('log timeline markers', () => {
 
     expect(markers).toHaveLength(1);
     expect(markers[0]).toMatchObject({
-      eventCount: 5,
-      killCount: 5,
-      representativeEventId: 'kill-2',
-      type: 'killBurst',
-      videoTimeSeconds: 34,
+      eventCount: killCount,
+      killCount,
+      killStreakCount: killCount,
+      killStreakTier: expectedTier,
+      representativeEventId: `kill-${killCount - 1}`,
+      type: 'bundle',
+      videoTimeSeconds: 30 + killCount - 1,
     });
+  });
+
+  it('does not combine kills that are more than fifteen seconds apart', () => {
+    const markers = buildLogTimelineMarkers(
+      [
+        { id: 'first', sessionTimeSeconds: 10, verb: 'killed' },
+        { id: 'second', sessionTimeSeconds: 26, verb: 'killed' },
+      ],
+      (sessionTime) => sessionTime,
+      { startSeconds: 0, endSeconds: 100, durationSeconds: 100 },
+      1,
+    );
+
+    expect(markers[0]).toMatchObject({ killStreakCount: 1, killStreakTier: null });
   });
 
   it('returns no markers for an invalid visible range', () => {
