@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, event search, project schema, IndexedDB repository, project management, local source import, native playback, per-VOD synchronization, synchronized timelines, and coordinated multi-perspective playback exist; remaining domain features and adapters are implemented incrementally by milestone.
+This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, per-VOD event search and navigation, project schema, IndexedDB repository, project management, local source import, native playback, per-VOD synchronization, synchronized timelines, and coordinated multi-perspective playback exist; remaining domain features and adapters are implemented incrementally by milestone.
 
 ## Architectural style
 
@@ -113,6 +113,8 @@ Hidden perspectives are unmounted and therefore do not keep an active player, ob
 The main synchronization timeline uses a native range control for accessible dragging and keyboard operation. Wheel zoom and middle-button panning update only the timeline time window. The video viewport stores separate image scale and translation values, with pointer-centered wheel zoom and bounded image panning. Both surfaces provide visible controls and double-click reset behavior.
 
 The log-event track maps session times through the stored VOD anchor onto the same visible video-time window. Before synchronization, the selected event and current video position provide a provisional preview anchor. At most 48 marker bins are rendered: individual kills and deaths retain their semantic colors, while multiple events in one bin become a neutral bundle that zooms into its region. The searchable event list remains the complete semantic keyboard-operable representation.
+
+Each VOD persists up to 50 independent search terms. Matching uses case-insensitive partial OR semantics across all supported name fields. Previous/next navigation preserves source order, including distinct events with equal timestamps. Once the active VOD is synchronized, event selection maps the event session time into the main VOD, pauses playback, and lets visible synchronized miniplayers follow the resulting shared session time. Events outside the active VOD's known source range are excluded from jump navigation.
 
 ## State and persistence
 

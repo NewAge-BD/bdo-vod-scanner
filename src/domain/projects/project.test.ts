@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { createProject, getProjectExportFileName, renameProject } from './project';
+import {
+  createProject,
+  getProjectExportFileName,
+  renameProject,
+  setVodSearchTerms,
+} from './project';
 import { portableProjectSchema } from './schema';
 import { parseProjectFile, ProjectImportError, serializeProject } from './serialization';
 
@@ -30,6 +35,43 @@ describe('project domain', () => {
     expect(project.name).toBe('Draft');
     expect(renamed.name).toBe('Siege review');
     expect(renamed.updatedAt).toBe('2026-08-30T13:00:00.000Z');
+  });
+
+  it('stores normalized independent search terms on one VOD', () => {
+    const project = createProject('Searches', new Date('2026-08-30T12:00:00.000Z'));
+    const vodId = crypto.randomUUID();
+    const projectWithVod = portableProjectSchema.parse({
+      ...project,
+      vods: [
+        {
+          id: vodId,
+          displayName: 'Perspective',
+          fileName: 'Perspective.mp4',
+          fileSizeBytes: 12,
+          lastModifiedMs: 100,
+          durationSeconds: 60,
+          width: 1920,
+          height: 1080,
+          nominalFrameRate: 60,
+          variableFrameRate: false,
+          videoCodec: null,
+          audioCodec: null,
+          synchronizationAnchor: null,
+          searchTerms: [],
+        },
+      ],
+    });
+
+    const updated = setVodSearchTerms(
+      projectWithVod,
+      vodId,
+      [' EmberVale ', 'rivERwarden', 'embervale'],
+      new Date('2026-08-30T13:00:00.000Z'),
+    );
+
+    expect(projectWithVod.vods[0]?.searchTerms).toEqual([]);
+    expect(updated.vods[0]?.searchTerms).toEqual(['EmberVale', 'rivERwarden']);
+    expect(updated.updatedAt).toBe('2026-08-30T13:00:00.000Z');
   });
 
   it('round-trips a portable project', () => {

@@ -40,6 +40,35 @@ export function renameProject(
   });
 }
 
+export function setVodSearchTerms(
+  project: PortableProject,
+  vodId: string,
+  searchTerms: readonly string[],
+  now = new Date(),
+): PortableProject {
+  if (!project.vods.some((vod) => vod.id === vodId)) {
+    throw new Error('The selected VOD does not exist in this project.');
+  }
+  const normalizedTerms = searchTerms
+    .map((term) => term.trim())
+    .filter((term, index, terms) => {
+      return (
+        term.length > 0 &&
+        terms.findIndex(
+          (candidate) => candidate.toLocaleLowerCase() === term.toLocaleLowerCase(),
+        ) === index
+      );
+    });
+
+  return portableProjectSchema.parse({
+    ...project,
+    updatedAt: now.toISOString(),
+    vods: project.vods.map((vod) =>
+      vod.id === vodId ? { ...vod, searchTerms: normalizedTerms } : vod,
+    ),
+  });
+}
+
 export function getProjectExportFileName(project: PortableProject): string {
   const nameWithoutReservedCharacters = project.name
     .normalize('NFKC')

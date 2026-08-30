@@ -164,6 +164,28 @@ describe('App', () => {
     await user.click(await screen.findByRole('button', { name: 'Set synchronization point' }));
     expect(await screen.findByText('Synchronization point saved locally.')).toBeInTheDocument();
     expect(screen.getByText('SYNCED')).toBeInTheDocument();
+
+    const searchInput = screen.getByLabelText('Add a family, character, or guild name');
+    await user.type(searchInput, 'EmberVale');
+    await user.click(screen.getByRole('button', { name: 'Add name' }));
+    expect(await screen.findByText('1 matching event')).toBeInTheDocument();
+    expect(screen.getByText('EmberVale')).toBeInTheDocument();
+
+    await user.type(searchInput, 'RiverWarden{Enter}');
+    expect(await screen.findByText('2 matching events')).toBeInTheDocument();
+    expect(screen.getByText('RiverWarden')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Previous matching event' }));
+    expect(
+      screen.getByText(
+        '[23:59:58] FrostCairn died to RiverWarden from DawnKeep (TideCaller, IcePetal)',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('00:00:55.000')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Remove EmberVale' }));
+    expect(await screen.findByText('1 matching event')).toBeInTheDocument();
+    expect(screen.queryByText('EmberVale')).not.toBeInTheDocument();
   });
 
   it('coordinates, promotes, hides, and restores synchronized perspectives', async () => {
@@ -200,6 +222,11 @@ describe('App', () => {
     fireEvent.loadedMetadata(screen.getByLabelText('Perspective B video perspective'));
     await user.click(screen.getByRole('button', { name: 'Set synchronization point' }));
     await screen.findByText('Synchronization point saved locally.');
+    await user.type(
+      screen.getByLabelText('Add a family, character, or guild name'),
+      'FrostCairn{Enter}',
+    );
+    expect(await screen.findByText('FrostCairn')).toBeInTheDocument();
 
     expect(
       await screen.findByLabelText('Perspective A synchronized muted mini player'),
@@ -212,6 +239,7 @@ describe('App', () => {
     );
 
     expect(screen.getByLabelText('Perspective A video perspective')).toBeInTheDocument();
+    expect(screen.queryByText('FrostCairn')).not.toBeInTheDocument();
     expect(screen.getByText('00:01:00.000')).toBeInTheDocument();
     expect(
       await screen.findByLabelText('Perspective B synchronized muted mini player'),
@@ -225,5 +253,7 @@ describe('App', () => {
     expect(
       await screen.findByLabelText('Perspective B synchronized muted mini player'),
     ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Perspective B, Synchronized' }));
+    expect(await screen.findByText('FrostCairn')).toBeInTheDocument();
   });
 });

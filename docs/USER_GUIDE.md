@@ -1,7 +1,7 @@
 # User Guide
 
 > [!NOTE]
-> Local project management, source-file import, one sync point per perspective, synchronized timelines, and coordinated multi-perspective playback are available now. Event navigation after synchronization, clip editing, and export remain planned MVP work.
+> Local project management, source-file import, one sync point per perspective, synchronized timelines, coordinated multi-perspective playback, and event-name navigation are available now. Clip editing and export remain planned MVP work.
 
 ## What BDO VOD Scanner does
 
@@ -61,9 +61,9 @@ Use **Hide mini** beside a perspective to remove it from the grid and stop its a
 
 ### 5. Search events
 
-Search across family names, character names, and guild names. Searches ignore case and support partial matches. Multiple terms use OR matching.
+Add one or more family, character, or guild names. Searches ignore case and support partial matches. Multiple active names use OR matching and can be removed individually.
 
-Every VOD may keep its own search terms. Use the previous/next controls to move between matching events. Selecting an event seeks synchronized videos to that moment and pauses.
+Every VOD keeps its own active names and saves them automatically in the project. Use **Previous matching event** and **Next matching event** to move between matches inside the active VOD's available time range. Selecting a result directly has the same effect. The main and visible synchronized videos seek to that shared moment and pause.
 
 ### 6. Mark clips
 

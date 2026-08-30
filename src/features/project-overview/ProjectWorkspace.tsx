@@ -34,6 +34,7 @@ export function ProjectWorkspace({
   const vodFiles = useProjectStore((state) => state.vodFiles);
   const saveSourceImport = useProjectStore((state) => state.saveSourceImport);
   const saveSynchronization = useProjectStore((state) => state.saveSynchronization);
+  const saveVodSearchTerms = useProjectStore((state) => state.saveVodSearchTerms);
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<
     SourceImportErrorCode | 'saveFailed' | 'unexpected'
@@ -110,6 +111,9 @@ export function ProjectWorkspace({
       <FileDropZone disabled={isImporting} onFiles={handleFiles} />
       <SourceOverview linkedVodIds={linkedVodIds} project={project} />
       <VideoSynchronization
+        onSearchTermsChange={(vodId, searchTerms) =>
+          saveVodSearchTerms(project.id, vodId, searchTerms)
+        }
         onSynchronize={(vodId, anchor) => saveSynchronization(project.id, vodId, anchor)}
         project={project}
         vodFiles={vodFiles}

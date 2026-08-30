@@ -26,16 +26,19 @@ import { useObjectUrl } from './useObjectUrl';
 
 const MAX_VISIBLE_EVENTS = 50;
 const MAX_VIDEO_ZOOM = 8;
+const EMPTY_EVENTS: readonly BdoEvent[] = [];
 
 interface VideoSynchronizationProps {
   readonly project: PortableProject;
   readonly vodFiles: ReadonlyMap<string, File>;
+  readonly onSearchTermsChange: (vodId: string, searchTerms: readonly string[]) => Promise<boolean>;
   readonly onSynchronize: (vodId: string, anchor: SynchronizationAnchorInput) => Promise<boolean>;
 }
 
 export function VideoSynchronization({
   project,
   vodFiles,
+  onSearchTermsChange,
   onSynchronize,
 }: VideoSynchronizationProps) {
   const { t } = useTranslation();
@@ -45,10 +48,13 @@ export function VideoSynchronization({
     }
     return parseBdoLog(`${project.sessionDate}.log`, project.rawLog);
   }, [project.rawLog, project.sessionDate]);
+  const events = parsedLog?.events ?? EMPTY_EVENTS;
   const [activeVodId, setActiveVodId] = useState(project.vods[0]?.id);
   const activeVod = project.vods.find((vod) => vod.id === activeVodId) ?? project.vods[0];
   const [selectedEventId, setSelectedEventId] = useState<string>();
-  const [query, setQuery] = useState('');
+  const [searchDraft, setSearchDraft] = useState('');
+  const [searchSaveState, setSearchSaveState] = useState<'idle' | 'saving' | 'error'>('idle');
+  const [eventSeekRequest, setEventSeekRequest] = useState<EventSeekRequest>();
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [videoTime, setVideoTime] = useState(
@@ -58,20 +64,55 @@ export function VideoSynchronization({
   const [hiddenVodIds, setHiddenVodIds] = useState<ReadonlySet<string>>(() => new Set());
   const [performanceWarningDismissed, setPerformanceWarningDismissed] = useState(false);
 
+  const file = activeVod === undefined ? undefined : vodFiles.get(activeVod.id);
+  const firstEventId = events[0]?.id;
+  const defaultEventId = activeVod?.synchronizationAnchor?.eventId ?? firstEventId;
+  const selectedEvent =
+    events.find((event) => event.id === (selectedEventId ?? defaultEventId)) ?? events[0];
+  const matchingEvents = useMemo(
+    () =>
+      searchEvents(events, activeVod?.searchTerms ?? []).filter((event) => {
+        if (
+          activeVod?.synchronizationAnchor === null ||
+          activeVod?.synchronizationAnchor === undefined ||
+          activeVod.durationSeconds === null
+        ) {
+          return true;
+        }
+        const mappedTime = mapSessionTimeToVideoTime(
+          activeVod.synchronizationAnchor,
+          event.sessionTimeSeconds,
+        );
+        return mappedTime >= 0 && mappedTime <= activeVod.durationSeconds;
+      }),
+    [activeVod, events],
+  );
+  const eventIndexById = useMemo(
+    () => new Map(events.map((event, index) => [event.id, index])),
+    [events],
+  );
+  const visibleMatchingEvents = matchingEvents.slice(0, MAX_VISIBLE_EVENTS);
+  const previousMatchingEvent = findAdjacentMatchingEvent(
+    matchingEvents,
+    eventIndexById,
+    selectedEvent?.id,
+    -1,
+  );
+  const nextMatchingEvent = findAdjacentMatchingEvent(
+    matchingEvents,
+    eventIndexById,
+    selectedEvent?.id,
+    1,
+  );
+
   if (parsedLog === undefined || project.vods.length === 0) {
     return null;
   }
-
-  const file = activeVod === undefined ? undefined : vodFiles.get(activeVod.id);
-  const firstEventId = parsedLog.events[0]?.id;
-  const defaultEventId = activeVod?.synchronizationAnchor?.eventId ?? firstEventId;
-  const selectedEvent =
-    parsedLog.events.find((event) => event.id === (selectedEventId ?? defaultEventId)) ??
-    parsedLog.events[0];
-  const matchingEvents = (
-    query.trim().length === 0 ? parsedLog.events : searchEvents(parsedLog.events, [query])
-  ).slice(0, MAX_VISIBLE_EVENTS);
   const estimatedFrameRate = activeVod?.nominalFrameRate ?? 60;
+  const canNavigateMatches =
+    file !== undefined &&
+    activeVod?.synchronizationAnchor !== null &&
+    activeVod?.synchronizationAnchor !== undefined;
   const sharedSessionTime =
     activeVod?.synchronizationAnchor === null || activeVod?.synchronizationAnchor === undefined
       ? undefined
@@ -98,7 +139,9 @@ export function VideoSynchronization({
           : mapSessionTimeToVideoTime(vod.synchronizationAnchor, sharedSessionTime);
     setActiveVodId(vodId);
     setSelectedEventId(vod?.synchronizationAnchor?.eventId ?? firstEventId);
-    setQuery('');
+    setSearchDraft('');
+    setSearchSaveState('idle');
+    setEventSeekRequest(undefined);
     setSaveState('idle');
     setIsVideoReady(false);
     setVideoTime(clampToVod(nextVideoTime, vod));
@@ -107,6 +150,56 @@ export function VideoSynchronization({
       next.delete(vodId);
       return next;
     });
+  }
+
+  async function addSearchTerm() {
+    const term = searchDraft.trim();
+    if (activeVod === undefined || term.length === 0 || activeVod.searchTerms.length >= 50) {
+      return;
+    }
+    const alreadyExists = activeVod.searchTerms.some(
+      (candidate) => candidate.toLocaleLowerCase() === term.toLocaleLowerCase(),
+    );
+    if (alreadyExists) {
+      setSearchDraft('');
+      return;
+    }
+    setSearchSaveState('saving');
+    const saved = await onSearchTermsChange(activeVod.id, [...activeVod.searchTerms, term]);
+    setSearchSaveState(saved ? 'idle' : 'error');
+    if (saved) {
+      setSearchDraft('');
+    }
+  }
+
+  async function removeSearchTerm(term: string) {
+    if (activeVod === undefined) {
+      return;
+    }
+    setSearchSaveState('saving');
+    const saved = await onSearchTermsChange(
+      activeVod.id,
+      activeVod.searchTerms.filter((candidate) => candidate !== term),
+    );
+    setSearchSaveState(saved ? 'idle' : 'error');
+  }
+
+  function selectOrJumpToEvent(event: BdoEvent) {
+    setSelectedEventId(event.id);
+    const anchor = activeVod?.synchronizationAnchor;
+    if (file === undefined || anchor === null || anchor === undefined) {
+      return;
+    }
+    const targetVideoTime = clampToVod(
+      mapSessionTimeToVideoTime(anchor, event.sessionTimeSeconds),
+      activeVod,
+    );
+    setIsMainPlaying(false);
+    setVideoTime(targetVideoTime);
+    setEventSeekRequest((current) => ({
+      sequence: (current?.sequence ?? 0) + 1,
+      videoTimeSeconds: targetVideoTime,
+    }));
   }
 
   function setPerspectiveVisible(vodId: string, visible: boolean) {
@@ -200,10 +293,11 @@ export function VideoSynchronization({
           ) : (
             <SynchronizedVideoPlayer
               estimatedFrameRate={estimatedFrameRate}
-              events={parsedLog.events}
+              events={events}
               file={file}
               initialTime={videoTime}
               isPlaying={isMainPlaying}
+              eventSeekRequest={eventSeekRequest}
               key={`${activeVod.id}-${file.name}-${file.lastModified}-${file.size}`}
               onHidePerspective={(vodId) => setPerspectiveVisible(vodId, false)}
               onPlaybackChange={setIsMainPlaying}
@@ -227,24 +321,94 @@ export function VideoSynchronization({
             </div>
           )}
 
-          <label htmlFor="sync-event-search">{t('synchronization.findEvent')}</label>
-          <input
-            id="sync-event-search"
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t('synchronization.searchPlaceholder')}
-            type="search"
-            value={query}
-          />
+          <p className="sync-event-panel__label">{t('synchronization.searchTerms')}</p>
+          {activeVod !== undefined && activeVod.searchTerms.length > 0 && (
+            <div className="search-term-list" aria-label={t('synchronization.searchTerms')}>
+              {activeVod.searchTerms.map((term) => (
+                <span className="search-term" key={term}>
+                  {term}
+                  <button
+                    aria-label={t('synchronization.removeSearchTerm', { term })}
+                    disabled={searchSaveState === 'saving'}
+                    onClick={() => void removeSearchTerm(term)}
+                    type="button"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="search-term-entry">
+            <label className="search-term-entry__label" htmlFor="sync-event-search">
+              {t('synchronization.addSearchTermLabel')}
+            </label>
+            <input
+              id="sync-event-search"
+              maxLength={120}
+              onChange={(event) => setSearchDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  void addSearchTerm();
+                }
+              }}
+              placeholder={t('synchronization.searchPlaceholder')}
+              type="search"
+              value={searchDraft}
+            />
+            <button
+              disabled={
+                searchDraft.trim().length === 0 ||
+                searchSaveState === 'saving' ||
+                (activeVod?.searchTerms.length ?? 0) >= 50
+              }
+              onClick={() => void addSearchTerm()}
+              type="button"
+            >
+              {t('synchronization.addSearchTerm')}
+            </button>
+          </div>
+          {searchSaveState === 'error' && (
+            <p className="sync-save-state sync-save-state--error">
+              {t('synchronization.searchTermsSaveError')}
+            </p>
+          )}
+          <div className="event-match-navigation">
+            <span aria-live="polite">
+              {t('synchronization.matchCount', { count: matchingEvents.length })}
+            </span>
+            <div>
+              <button
+                disabled={!canNavigateMatches || previousMatchingEvent === undefined}
+                onClick={() =>
+                  previousMatchingEvent !== undefined && selectOrJumpToEvent(previousMatchingEvent)
+                }
+                type="button"
+              >
+                {t('synchronization.previousMatch')}
+              </button>
+              <button
+                disabled={!canNavigateMatches || nextMatchingEvent === undefined}
+                onClick={() =>
+                  nextMatchingEvent !== undefined && selectOrJumpToEvent(nextMatchingEvent)
+                }
+                type="button"
+              >
+                {t('synchronization.nextMatch')}
+              </button>
+            </div>
+          </div>
           <div
             className="sync-event-list"
             role="list"
             aria-label={t('synchronization.eventResults')}
           >
-            {matchingEvents.map((event) => (
+            {visibleMatchingEvents.map((event) => (
               <div key={event.id} role="listitem">
                 <button
                   aria-pressed={event.id === selectedEvent?.id}
-                  onClick={() => setSelectedEventId(event.id)}
+                  onClick={() => selectOrJumpToEvent(event)}
                   type="button"
                 >
                   <time>{event.clockTime}</time>
@@ -291,6 +455,7 @@ function SynchronizedVideoPlayer({
   vod,
   initialTime,
   estimatedFrameRate,
+  eventSeekRequest,
   events,
   isPlaying: playbackIntent,
   secondaryPerspectives,
@@ -306,6 +471,7 @@ function SynchronizedVideoPlayer({
   readonly vod: VodReference;
   readonly initialTime: number;
   readonly estimatedFrameRate: number;
+  readonly eventSeekRequest: EventSeekRequest | undefined;
   readonly events: readonly BdoEvent[];
   readonly isPlaying: boolean;
   readonly secondaryPerspectives: readonly SecondaryPerspective[];
@@ -360,6 +526,21 @@ function SynchronizedVideoPlayer({
       timelineWindow,
     );
   }, [alignmentEventId, alignmentEventTime, alignmentVideoTime, events, timelineWindow]);
+
+  useEffect(() => {
+    if (eventSeekRequest === undefined) {
+      return;
+    }
+    const video = videoRef.current;
+    if (video === null) {
+      return;
+    }
+    const safeTime = Math.min(mediaDuration, Math.max(0, eventSeekRequest.videoTimeSeconds));
+    video.pause();
+    video.currentTime = safeTime;
+    setDisplayTime(safeTime);
+    setTimelineCenter(safeTime);
+  }, [eventSeekRequest, mediaDuration]);
 
   useEffect(() => {
     const viewport = videoViewportRef.current;
@@ -937,4 +1118,37 @@ interface SecondaryPerspective {
   readonly file: File | undefined;
   readonly targetVideoTime: number | undefined;
   readonly vod: VodReference;
+}
+
+interface EventSeekRequest {
+  readonly sequence: number;
+  readonly videoTimeSeconds: number;
+}
+
+function findAdjacentMatchingEvent(
+  matchingEvents: readonly BdoEvent[],
+  eventIndexById: ReadonlyMap<string, number>,
+  selectedEventId: string | undefined,
+  direction: -1 | 1,
+): BdoEvent | undefined {
+  if (matchingEvents.length === 0) {
+    return undefined;
+  }
+  if (selectedEventId === undefined) {
+    return direction === 1 ? matchingEvents[0] : undefined;
+  }
+  const selectedIndex = eventIndexById.get(selectedEventId) ?? -1;
+  if (direction === 1) {
+    return matchingEvents.find((event) => (eventIndexById.get(event.id) ?? -1) > selectedIndex);
+  }
+  for (let index = matchingEvents.length - 1; index >= 0; index -= 1) {
+    const event = matchingEvents[index];
+    if (
+      event !== undefined &&
+      (eventIndexById.get(event.id) ?? Number.POSITIVE_INFINITY) < selectedIndex
+    ) {
+      return event;
+    }
+  }
+  return undefined;
 }

@@ -4,6 +4,7 @@ import {
   createProject,
   parseProjectFile,
   renameProject,
+  setVodSearchTerms,
   type PortableProject,
 } from '../../domain/projects';
 import { synchronizeVod, type SynchronizationAnchorInput } from '../../domain/synchronization';
@@ -33,6 +34,11 @@ export interface ProjectStoreState {
     projectId: string,
     vodId: string,
     anchor: SynchronizationAnchorInput,
+  ) => Promise<boolean>;
+  readonly saveVodSearchTerms: (
+    projectId: string,
+    vodId: string,
+    searchTerms: readonly string[],
   ) => Promise<boolean>;
 }
 
@@ -180,6 +186,31 @@ export function createProjectStore(repository: ProjectRepository) {
         return true;
       } catch {
         set({ errorMessage: 'projects.errors.synchronization' });
+        return false;
+      }
+    },
+
+    saveVodSearchTerms: async (projectId, vodId, searchTerms) => {
+      const project = get().projects.find((candidate) => candidate.id === projectId);
+      if (project === undefined) {
+        set({ errorMessage: 'projects.errors.missing' });
+        return false;
+      }
+
+      try {
+        const updatedProject = setVodSearchTerms(project, vodId, searchTerms);
+        await repository.save(updatedProject);
+        set({
+          projects: sortProjects(
+            get().projects.map((candidate) =>
+              candidate.id === projectId ? updatedProject : candidate,
+            ),
+          ),
+          errorMessage: undefined,
+        });
+        return true;
+      } catch {
+        set({ errorMessage: 'projects.errors.searchTerms' });
         return false;
       }
     },

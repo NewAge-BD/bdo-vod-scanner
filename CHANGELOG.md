@@ -37,6 +37,9 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added perspective promotion that preserves shared session time, plus per-perspective show and hide controls.
 - Added placeholders for unsynchronized, unlinked, and out-of-range perspectives without decoding hidden video.
 - Added a dismissible performance warning when more than four perspectives are visible.
+- Added persistent independent search-name filters for every VOD with case-insensitive OR matching.
+- Added previous/next matching-event controls that seek and pause synchronized perspectives.
+- Limited synchronized search results to events inside the active VOD's available source range.
 
 ### Documentation
 
