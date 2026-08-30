@@ -154,7 +154,9 @@ Do not introduce a worker solely for architectural symmetry. Define typed messag
 
 The browser exporter is experimental. It must stream or read targeted ranges, preserve source quality, align cuts to safe keyframes, report progress, support cancellation, and allow partial success.
 
-The exact media library is intentionally undecided. A focused spike and dependency approval are required before selection.
+The completed [browser clip-export spike](./CLIP_EXPORT_SPIKE.md) recommends Mediabunny, pending explicit dependency approval and a successful prototype. The lossless implementation must use encoded packet sinks and sources rather than Mediabunny's high-level non-default start trim, which currently forces transcoding. A worker will copy verified keyframe-aligned video and matching audio packets in decode order, rebase their timestamps, and stream MP4 output directly to a user-approved writable file.
+
+The output picker must be opened by the initiating user gesture. When direct writable-file access is unavailable or denied, the application disables large media export with an actionable explanation; it must not buffer a large fallback Blob. MP4Box.js remains a fallback candidate for focused MP4 diagnostics or recorder-compatibility problems.
 
 ### DaVinci Resolve
 
