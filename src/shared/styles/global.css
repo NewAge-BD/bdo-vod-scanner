@@ -1472,6 +1472,16 @@ h1 {
   border-color: #778394;
 }
 
+.video-timeline .log-timeline__marker--killBurst {
+  width: 1.55rem;
+  color: #071109;
+  background: linear-gradient(180deg, #baff8d, var(--kill));
+  border-color: #d5ffc0;
+  box-shadow:
+    0 0 0 1px rgb(111 244 174 / 35%),
+    0 0 0.9rem rgb(111 244 174 / 65%);
+}
+
 .video-timeline .log-timeline__marker--kill:hover:not(:disabled) {
   background: var(--kill);
 }
@@ -1482,6 +1492,10 @@ h1 {
 
 .video-timeline .log-timeline__marker--bundle:hover:not(:disabled) {
   background: #667282;
+}
+
+.video-timeline .log-timeline__marker--killBurst:hover:not(:disabled) {
+  background: linear-gradient(180deg, #d6ffbd, #7bffc0);
 }
 
 .log-timeline__marker span {

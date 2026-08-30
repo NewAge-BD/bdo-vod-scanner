@@ -34,7 +34,31 @@ describe('log timeline markers', () => {
     expect(markers[0]).toMatchObject({
       eventCount: 2,
       eventIds: ['kill', 'death'],
+      killCount: 1,
       type: 'bundle',
+    });
+  });
+
+  it('highlights at least five kills within ten seconds as a kill burst', () => {
+    const killBurstEvents = Array.from({ length: 5 }, (_, index) => ({
+      id: `kill-${index}`,
+      sessionTimeSeconds: 30 + index * 2,
+      verb: 'killed' as const,
+    }));
+    const markers = buildLogTimelineMarkers(
+      killBurstEvents,
+      (sessionTime) => sessionTime,
+      { startSeconds: 0, endSeconds: 100, durationSeconds: 100 },
+      1,
+    );
+
+    expect(markers).toHaveLength(1);
+    expect(markers[0]).toMatchObject({
+      eventCount: 5,
+      killCount: 5,
+      representativeEventId: 'kill-2',
+      type: 'killBurst',
+      videoTimeSeconds: 34,
     });
   });
 

@@ -264,6 +264,7 @@ export const en = {
       'Find the selected event in the video, pause on the matching frame, then save the anchor.',
     estimatedFps: 'Approx. {{fps}} FPS stepping',
     eventBundle: '{{count}} log events around video time {{time}}',
+    killBurst: 'Kill burst: {{count}} kills around video time {{time}}',
     eventResults: 'Matching log events',
     matchCount_one: '{{count}} matching event',
     matchCount_other: '{{count}} matching events',

@@ -33,6 +33,7 @@ import { useObjectUrl } from './useObjectUrl';
 
 const MAX_VISIBLE_EVENTS = 50;
 const MAX_VIDEO_ZOOM = 8;
+const FRAME_REPEAT_INTERVAL_MS = 80;
 const EMPTY_EVENTS: readonly BdoEvent[] = [];
 
 interface VideoSynchronizationProps {
@@ -739,6 +740,7 @@ function SynchronizedVideoPlayer({
   const videoDragRef = useRef<DragState | null>(null);
   const timelineDragRef = useRef<TimelineDragState | null>(null);
   const clipHandleDragRef = useRef<{ pointerId: number; returnTime: number } | null>(null);
+  const lastFrameStepAtRef = useRef(0);
   const [displayTime, setDisplayTime] = useState(initialTime);
   const [mediaDuration, setMediaDuration] = useState(vod.durationSeconds ?? 0);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -850,7 +852,11 @@ function SynchronizedVideoPlayer({
     }
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
       event.preventDefault();
-      stepFrame(event.key === 'ArrowLeft' ? -1 : 1);
+      const now = performance.now();
+      if (!event.repeat || now - lastFrameStepAtRef.current >= FRAME_REPEAT_INTERVAL_MS) {
+        lastFrameStepAtRef.current = now;
+        stepFrame(event.key === 'ArrowLeft' ? -1 : 1);
+      }
       return;
     }
     if (clippingMode && event.key.toLocaleLowerCase() === 'i') {
@@ -1158,16 +1164,8 @@ function SynchronizedVideoPlayer({
   }
 
   function activateLogMarker(marker: LogTimelineMarker) {
-    if (marker.eventCount > 1) {
-      setTimelineCenter(marker.videoTimeSeconds);
-      setZoomLevel(Math.min(120, zoomLevel + 12));
-      return;
-    }
-    const eventId = marker.eventIds[0];
-    if (eventId === undefined) {
-      return;
-    }
-    onSelectEvent(eventId);
+    onSelectEvent(marker.representativeEventId);
+    setTimelineCenter(marker.videoTimeSeconds);
     seekTo(marker.videoTimeSeconds);
   }
 
@@ -1523,12 +1521,17 @@ function SynchronizedVideoPlayer({
                       ? events.find((event) => event.id === marker.eventIds[0])
                       : undefined;
                   const label =
-                    onlyEvent === undefined
-                      ? t('synchronization.eventBundle', {
-                          count: marker.eventCount,
+                    marker.type === 'killBurst'
+                      ? t('synchronization.killBurst', {
+                          count: marker.killCount,
                           time: formatTime(marker.videoTimeSeconds),
                         })
-                      : `${onlyEvent.clockTime}: ${describeEvent(onlyEvent)}`;
+                      : onlyEvent === undefined
+                        ? t('synchronization.eventBundle', {
+                            count: marker.eventCount,
+                            time: formatTime(marker.videoTimeSeconds),
+                          })
+                        : `${onlyEvent.clockTime}: ${describeEvent(onlyEvent)}`;
                   return (
                     <button
                       aria-label={label}
@@ -1543,7 +1546,11 @@ function SynchronizedVideoPlayer({
                       title={label}
                       type="button"
                     >
-                      {marker.eventCount > 1 && <span>{marker.eventCount}</span>}
+                      {marker.eventCount > 1 && (
+                        <span>
+                          {marker.type === 'killBurst' ? marker.killCount : marker.eventCount}
+                        </span>
+                      )}
                     </button>
                   );
                 })
@@ -1695,12 +1702,17 @@ function EventTimelineLane({
                 ? events.find((event) => event.id === marker.eventIds[0])
                 : undefined;
             const markerLabel =
-              onlyEvent === undefined
-                ? t('synchronization.eventBundle', {
-                    count: marker.eventCount,
+              marker.type === 'killBurst'
+                ? t('synchronization.killBurst', {
+                    count: marker.killCount,
                     time: formatTime(marker.videoTimeSeconds),
                   })
-                : `${onlyEvent.clockTime}: ${describeEvent(onlyEvent)}`;
+                : onlyEvent === undefined
+                  ? t('synchronization.eventBundle', {
+                      count: marker.eventCount,
+                      time: formatTime(marker.videoTimeSeconds),
+                    })
+                  : `${onlyEvent.clockTime}: ${describeEvent(onlyEvent)}`;
             return (
               <button
                 aria-label={markerLabel}
@@ -1715,7 +1727,9 @@ function EventTimelineLane({
                 title={markerLabel}
                 type="button"
               >
-                {marker.eventCount > 1 && <span>{marker.eventCount}</span>}
+                {marker.eventCount > 1 && (
+                  <span>{marker.type === 'killBurst' ? marker.killCount : marker.eventCount}</span>
+                )}
               </button>
             );
           })

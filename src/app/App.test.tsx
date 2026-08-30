@@ -85,6 +85,14 @@ describe('App', () => {
     const shortcutSearchInput = screen.getByLabelText('Find a family, character, or guild name');
     fireEvent.keyDown(shortcutSearchInput, { code: 'Space', key: ' ' });
     expect(playSpy).toHaveBeenCalledTimes(1);
+    videoElement.currentTime = 10;
+    fireEvent.keyDown(window, { key: 'ArrowRight', repeat: false });
+    const firstFrameStep = videoElement.currentTime;
+    fireEvent.keyDown(window, { key: 'ArrowRight', repeat: true });
+    expect(firstFrameStep).toBeCloseTo(10 + 1 / 60, 6);
+    expect(videoElement.currentTime).toBe(firstFrameStep);
+    videoElement.currentTime = 0;
+    fireEvent.timeUpdate(videoElement);
     const videoViewport = screen.getByLabelText('Zoomable video viewport');
     vi.spyOn(videoViewport, 'getBoundingClientRect').mockReturnValue({
       bottom: 450,
@@ -166,7 +174,13 @@ describe('App', () => {
     expect(screen.getByText('Zoom ×1.0')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /3 log events around video time/ }));
-    expect(screen.getByText('Zoom ×2.0')).toBeInTheDocument();
+    expect(screen.getByText('Zoom ×1.0')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        '[23:59:58] EmberVale killed NightHarbor from MoonGuard (ShadeLance, SolarBloom)',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('00:00:00.000', { selector: 'output' })).toBeInTheDocument();
     fireEvent.doubleClick(timeline);
 
     fireEvent.change(zoom, { target: { value: '49' } });

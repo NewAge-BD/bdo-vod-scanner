@@ -47,7 +47,7 @@ Use the video timeline below the player to find the matching frame:
 
 To inspect a small visual detail such as the kill feed or chat, scroll the mouse wheel over the video image. While zoomed in, hold the middle mouse button and drag to move the image. Double-click the image or choose **Reset view** to return to the complete frame. Video-image zoom and timeline time zoom are independent.
 
-The **Log events** track shares the visible video-time scale. Kills are green, deaths are red, and dense areas are combined into neutral numbered bundles. Choose an individual marker to select that event, seek the video to its calculated position, and pause. Choose a bundle to zoom into that group. Before the first synchronization point is saved, the selected event and current video frame form a clearly labelled preview alignment; afterward the track uses the stored alignment.
+The **Log events** track shares the visible video-time scale. Kills are green, deaths are red, and dense areas are combined into numbered bundles. Five or more kills occurring within ten seconds receive a brighter green **Kill burst** marker. Choose any marker, including a bundle, to select its representative event, seek the video to that calculated position, center the visible timeline, and pause. Use timeline zoom when the bundled events need to be separated. Before the first synchronization point is saved, the selected event and current video frame form a clearly labelled preview alignment; afterward the track uses the stored alignment.
 
 Stop on the matching event and choose **Set synchronization point**.
 
@@ -92,7 +92,7 @@ Projects autosave locally in the current browser. Use **Export** on a project ca
 ## Keyboard controls
 
 - Space: play/pause from anywhere in the synchronization or clipping workspace
-- Left/right arrow: approximate previous/next frame and pause
+- Left/right arrow: approximate previous/next frame and pause; held-key repeats are rate-limited to avoid queuing expensive large-file seeks
 - `I`: set the clip in-point in the clipping workspace
 - `O`: set the clip out-point in the clipping workspace
 - Shortcuts are suspended while typing in a text field, text area, or editable text element.
