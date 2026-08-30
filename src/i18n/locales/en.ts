@@ -155,8 +155,10 @@ export const en = {
     },
     experimental: 'EXPERIMENTAL',
     folder: {
-      cancelled: 'No output folder was granted. Choose Export all clips to try again.',
-      error: 'The output folder could not be opened. Check browser permission and try again.',
+      cancelled:
+        'No writable folder access was granted. The selection was cancelled or blocked by an embedded browser. Open this app in Chrome, Brave, or Edge and try again.',
+      error:
+        'The output folder could not be opened. Check browser permission, or open this app in Chrome, Brave, or Edge and try again.',
     },
     exportAll: 'Export all clips',
     exporting: 'Exporting clips…',

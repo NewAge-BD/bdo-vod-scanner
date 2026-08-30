@@ -64,7 +64,7 @@ Direct browser export is experimental.
 - Support progress, cancellation, partial success, and per-clip errors.
 - Keep finished outputs when a later clip fails or the batch is cancelled.
 
-The user selects an output directory when the browser capability is available. Directory access requires explicit permission and may not be available in every browser context; provide an actionable fallback message.
+The user selects an output directory when the browser capability is available. Directory access requires explicit permission and may not be available in embedded preview browsers even when they display a folder dialog. Direct users to open the local URL in Chrome, Brave, or Edge and provide an actionable DaVinci Resolve fallback.
 
 The approved [technical spike](./CLIP_EXPORT_SPIKE.md) selected Mediabunny 1.55.4. The experimental implementation uses its low-level encoded-packet APIs in a Web Worker and streams each MP4 directly to the selected folder. The high-level `Conversion` trim API is not used for a non-zero lossless start because that path currently forces transcoding. MP4Box.js remains a fallback candidate for focused MP4 diagnostics.
 

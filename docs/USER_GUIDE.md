@@ -79,7 +79,7 @@ The clip is saved locally with its source perspective, exact range, duration, ac
 
 ### 7. Export
 
-**Export all clips** writes every marked clip to a chosen folder in the saved manual order. The source VOD for each clip must be reselected in the current browser session. Current Chrome, Edge, and compatible Chromium browsers provide the required direct folder access; if that capability is unavailable, use the DaVinci Resolve export instead.
+**Export all clips** writes every marked clip to a chosen folder in the saved manual order. The source VOD for each clip must be reselected in the current browser session. Open the local app directly in current Chrome, Brave, or Edge for the required writable-folder access. Embedded preview browsers may display the folder dialog but still refuse to grant the resulting handle. If folder access is unavailable, use the DaVinci Resolve export instead.
 
 This browser export is experimental and prioritizes losslessness. It copies the original encoded video and audio without re-encoding, so the effective start may move to the preceding safe video keyframe and the end may extend to the following keyframe. The completed result shows the effective range. When one clip fails or the batch is cancelled, completed earlier clips remain in the chosen folder and a newly created incomplete file is removed.
 

@@ -62,7 +62,7 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ### Fixed
 
-- Made direct clip export show folder selection, MP4 analysis, preparation, and writing progress instead of appearing idle during long keyframe scans.
+- Made direct clip export show folder selection, MP4 analysis, preparation, and writing progress instead of appearing idle during long keyframe scans, with an actionable message when an embedded browser blocks writable-folder access.
 - Aligned the clipping playhead track and every event lane to the same horizontal time scale.
 - Corrected clip handles so both use the same visible timeline scale at every zoom level.
 - Prevented mouse-wheel zoom over the video or timeline from scrolling the surrounding page.
