@@ -40,6 +40,9 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added persistent independent search-name filters for every VOD with case-insensitive OR matching.
 - Added previous/next matching-event controls that seek and pause synchronized perspectives.
 - Limited synchronized search results to events inside the active VOD's available source range.
+- Added locally persisted clip creation with button and `I`/`O` keyboard in/out marking.
+- Added draggable in/out handles, automatic search snapshots, matching-event counts, and editable clip titles.
+- Added an accessible collapsible clip list with source perspective, range, duration, and deletion.
 
 ### Documentation
 
@@ -48,6 +51,7 @@ The project intends to follow Semantic Versioning once releases begin.
 ### Fixed
 
 - Prevented mouse-wheel zoom over the video or timeline from scrolling the surrounding page.
+- Kept synchronized and sync-required status colors stable when selecting another perspective.
 
 ## [0.1.0] - Planned
 

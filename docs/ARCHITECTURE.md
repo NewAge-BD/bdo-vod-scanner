@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, per-VOD event search and navigation, project schema, IndexedDB repository, project management, local source import, native playback, per-VOD synchronization, synchronized timelines, and coordinated multi-perspective playback exist; remaining domain features and adapters are implemented incrementally by milestone.
+This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, per-VOD event search and navigation, project schema, IndexedDB repository, project management, local source import, native playback, per-VOD synchronization, synchronized timelines, coordinated multi-perspective playback, and basic clip editing exist; remaining domain features and adapters are implemented incrementally by milestone.
 
 ## Architectural style
 
@@ -115,6 +115,10 @@ The main synchronization timeline uses a native range control for accessible dra
 The log-event track maps session times through the stored VOD anchor onto the same visible video-time window. Before synchronization, the selected event and current video position provide a provisional preview anchor. At most 48 marker bins are rendered: individual kills and deaths retain their semantic colors, while multiple events in one bin become a neutral bundle that zooms into its region. The searchable event list remains the complete semantic keyboard-operable representation.
 
 Each VOD persists up to 50 independent search terms. Matching uses case-insensitive partial OR semantics across all supported name fields. Previous/next navigation preserves source order, including distinct events with equal timestamps. Once the active VOD is synchronized, event selection maps the event session time into the main VOD, pauses playback, and lets visible synchronized miniplayers follow the resulting shared session time. Events outside the active VOD's known source range are excluded from jump navigation.
+
+## Clip editing
+
+Clip creation, range validation, title updates, deletion, and clip-panel state are immutable domain operations validated through the portable project schema. The active player owns only the transient draft range. Saving snapshots the active VOD's search terms and the IDs of matching events whose mapped video times fall inside the inclusive range. Timeline range handles use the same visible video-time window and estimated frame step as the playhead. The persistent clip panel follows `clipOrder`; manual reordering is intentionally deferred to the next milestone.
 
 ## State and persistence
 

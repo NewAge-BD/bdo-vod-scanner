@@ -1,7 +1,7 @@
 # User Guide
 
 > [!NOTE]
-> Local project management, source-file import, one sync point per perspective, synchronized timelines, coordinated multi-perspective playback, and event-name navigation are available now. Clip editing and export remain planned MVP work.
+> Local project management, source-file import, one sync point per perspective, synchronized timelines, coordinated multi-perspective playback, event-name navigation, and clip marking are available now. Manual clip ordering and export remain planned MVP work.
 
 ## What BDO VOD Scanner does
 
@@ -67,9 +67,9 @@ Every VOD keeps its own active names and saves them automatically in the project
 
 ### 6. Mark clips
 
-Use the in/out buttons or keyboard shortcuts to mark a range on the selected perspective. Refine the range with timeline handles, add a title, and place it in the clip list.
+Pause on the desired start and choose **Set in (I)**, then move to the desired end and choose **Set out (O)**. The `I` and `O` keys perform the same actions while the video is focused. Refine both boundaries with the bright timeline handles and choose **Add clip**.
 
-The clip keeps a snapshot of the active search terms and matching events even if the perspective's search later changes.
+The clip is saved locally with its source perspective, exact range, duration, active-name snapshot, and matching events inside the range. Its generated title uses the active names when available and can be edited in **Marked clips**. Clips can be deleted and the panel can be collapsed. Later search changes do not modify existing clip snapshots. New clips currently remain in creation order; manual ordering is planned.
 
 ### 7. Export
 
@@ -81,12 +81,12 @@ The clip keeps a snapshot of the active search terms and matching events even if
 
 Projects autosave locally in the current browser. Use **Export** on a project card to create a portable `.bdo-vod-project.json` file containing the embedded log, synchronization data, searches, clips, ordering, and relevant UI state. VOD contents are never embedded and must be selected again on another session or computer.
 
-## Planned keyboard controls
+## Keyboard controls
 
 - Space: play/pause
 - Left/right arrow while the video is focused: approximate previous/next frame and pause
-- `I`: set clip in-point
-- `O`: set clip out-point
+- `I` while the video is focused: set clip in-point
+- `O` while the video is focused: set clip out-point
 - Documented shortcuts will be provided for previous/next matching event and perspective switching.
 
 All keyboard actions will also have accessible buttons.

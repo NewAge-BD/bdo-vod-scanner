@@ -35,6 +35,10 @@ export function ProjectWorkspace({
   const saveSourceImport = useProjectStore((state) => state.saveSourceImport);
   const saveSynchronization = useProjectStore((state) => state.saveSynchronization);
   const saveVodSearchTerms = useProjectStore((state) => state.saveVodSearchTerms);
+  const createClip = useProjectStore((state) => state.createClip);
+  const updateClip = useProjectStore((state) => state.updateClip);
+  const deleteClip = useProjectStore((state) => state.deleteClip);
+  const setClipPanelCollapsed = useProjectStore((state) => state.setClipPanelCollapsed);
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<
     SourceImportErrorCode | 'saveFailed' | 'unexpected'
@@ -111,10 +115,14 @@ export function ProjectWorkspace({
       <FileDropZone disabled={isImporting} onFiles={handleFiles} />
       <SourceOverview linkedVodIds={linkedVodIds} project={project} />
       <VideoSynchronization
+        onClipPanelCollapsedChange={(collapsed) => setClipPanelCollapsed(project.id, collapsed)}
+        onCreateClip={(vodId, input) => createClip(project.id, vodId, input)}
+        onDeleteClip={(clipId) => deleteClip(project.id, clipId)}
         onSearchTermsChange={(vodId, searchTerms) =>
           saveVodSearchTerms(project.id, vodId, searchTerms)
         }
         onSynchronize={(vodId, anchor) => saveSynchronization(project.id, vodId, anchor)}
+        onUpdateClip={(clipId, input) => updateClip(project.id, clipId, input)}
         project={project}
         vodFiles={vodFiles}
       />

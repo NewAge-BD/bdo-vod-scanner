@@ -750,8 +750,15 @@ h1 {
 
 .perspective-tab small {
   margin-top: 0.25rem;
-  color: #ffd08a;
   font-size: 0.62rem;
+}
+
+.perspective-tab--sync-required small {
+  color: #ffd08a;
+}
+
+.perspective-tab--synchronized small {
+  color: var(--kill);
 }
 
 .perspective-tab--active {
@@ -761,10 +768,6 @@ h1 {
 
 .perspective-tab-group:has(.perspective-tab--active) {
   border-color: var(--accent);
-}
-
-.perspective-tab--active small {
-  color: var(--accent);
 }
 
 .perspective-visibility {
@@ -1199,6 +1202,91 @@ h1 {
   box-shadow: 0 0 0 0.25rem rgb(216 254 69 / 11%);
 }
 
+.video-timeline__scrubber .clip-range-editor {
+  position: absolute;
+  z-index: 2;
+  inset: 0 0.35rem;
+  pointer-events: none;
+}
+
+.clip-range-editor__selection {
+  position: absolute;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  min-width: 2px;
+  background: rgb(216 254 69 / 16%);
+  border: 1px solid rgb(216 254 69 / 60%);
+  border-radius: 0.25rem;
+}
+
+.video-timeline__scrubber .clip-range-editor__handle {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.video-timeline__scrubber .clip-range-editor__handle::-webkit-slider-runnable-track {
+  background: transparent;
+  border: 0;
+}
+
+.video-timeline__scrubber .clip-range-editor__handle::-webkit-slider-thumb {
+  width: 0.72rem;
+  height: 2.25rem;
+  margin-top: -0.88rem;
+  pointer-events: auto;
+  background: var(--accent);
+  border: 2px solid #10141a;
+  border-radius: 0.22rem;
+  box-shadow: 0 0 0 1px rgb(216 254 69 / 45%);
+}
+
+.video-timeline__scrubber .clip-range-editor__handle::-moz-range-track {
+  background: transparent;
+  border: 0;
+}
+
+.video-timeline__scrubber .clip-range-editor__handle::-moz-range-thumb {
+  width: 0.72rem;
+  height: 2.25rem;
+  pointer-events: auto;
+  background: var(--accent);
+  border: 2px solid #10141a;
+  border-radius: 0.22rem;
+}
+
+.clip-mark-controls {
+  display: grid;
+  grid-template-columns: auto minmax(7.5rem, 1fr) auto minmax(7.5rem, 1fr) auto;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+}
+
+.clip-mark-controls span {
+  color: var(--muted);
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.65rem;
+}
+
+.clip-mark-controls__add {
+  color: var(--accent-ink) !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+.clip-save-state {
+  margin: 0.45rem 0 0;
+  color: var(--kill);
+  font-size: 0.68rem;
+  text-align: right;
+}
+
+.clip-save-state--error {
+  color: var(--death);
+}
+
 .log-timeline {
   margin-top: 0.55rem;
 }
@@ -1527,6 +1615,122 @@ h1 {
   font-family: 'Cascadia Mono', Consolas, monospace;
 }
 
+.clip-panel {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+}
+
+.clip-panel__heading,
+.clip-panel__heading-actions,
+.clip-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.clip-panel__heading h3 {
+  margin: 0.15rem 0 0;
+  font-size: 1.05rem;
+}
+
+.clip-panel__heading-actions {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.clip-panel button,
+.clip-card input {
+  min-height: 2rem;
+  color: var(--text);
+  background: #141922;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.35rem;
+}
+
+.clip-panel button {
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+}
+
+.clip-panel__empty {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.clip-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.9rem;
+}
+
+.clip-card {
+  padding: 0.75rem;
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.clip-card__title-row label {
+  flex: 1;
+  min-width: 0;
+}
+
+.clip-card__title-row label span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--quiet);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clip-card input {
+  width: 100%;
+  padding: 0.38rem 0.5rem;
+  font-weight: 750;
+}
+
+.clip-card__delete {
+  align-self: flex-end;
+  color: #ff9aab !important;
+}
+
+.clip-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0.75rem 0 0;
+}
+
+.clip-card dl div {
+  min-width: 0;
+}
+
+.clip-card dt {
+  color: var(--quiet);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clip-card dd {
+  margin: 0.2rem 0 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .empty-state {
   display: grid;
   grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
@@ -1718,6 +1922,14 @@ h1 {
     grid-row: 1;
     margin-left: 0;
     text-align: center;
+  }
+
+  .clip-mark-controls {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .clip-mark-controls__add {
+    grid-column: 1 / -1;
   }
 }
 

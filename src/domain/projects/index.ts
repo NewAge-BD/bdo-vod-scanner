@@ -11,5 +11,5 @@ export {
   synchronizationAnchorSchema,
   vodReferenceSchema,
 } from './schema';
-export type { PortableProject, VodReference } from './schema';
+export type { Clip, PortableProject, VodReference } from './schema';
 export { parseProjectFile, ProjectImportError, serializeProject } from './serialization';

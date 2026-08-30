@@ -186,6 +186,29 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Remove EmberVale' }));
     expect(await screen.findByText('1 matching event')).toBeInTheDocument();
     expect(screen.queryByText('EmberVale')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Set in (I)' }));
+    fireEvent.change(playhead, { target: { value: '65' } });
+    await user.click(screen.getByRole('button', { name: 'Set out (O)' }));
+    const outHandle = screen.getByLabelText('Clip out-point handle');
+    fireEvent.change(outHandle, { target: { value: '70' } });
+    await user.click(screen.getByRole('button', { name: 'Add clip' }));
+
+    expect(await screen.findByText('Clip saved locally.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Marked clips' })).toBeInTheDocument();
+    expect(screen.getByText('1 clip')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('RiverWarden')).toBeInTheDocument();
+    expect(screen.getByText('00:00:55.000 – 00:01:10.000')).toBeInTheDocument();
+    expect(screen.getByText('15.000 s')).toBeInTheDocument();
+
+    const clipTitle = screen.getByLabelText('Clip title');
+    await user.clear(clipTitle);
+    await user.type(clipTitle, 'Opening pick{Enter}');
+    expect(await screen.findByDisplayValue('Opening pick')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Collapse' }));
+    expect(screen.queryByLabelText('Clip title')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Expand' }));
+    expect(await screen.findByDisplayValue('Opening pick')).toBeInTheDocument();
   });
 
   it('coordinates, promotes, hides, and restores synchronized perspectives', async () => {
@@ -219,9 +242,20 @@ describe('App', () => {
     await screen.findByText('Synchronization point saved locally.');
 
     await user.click(screen.getByRole('button', { name: 'Perspective B, Sync required' }));
+    expect(screen.getByRole('button', { name: 'Perspective B, Sync required' })).toHaveClass(
+      'perspective-tab--sync-required',
+      'perspective-tab--active',
+    );
+    expect(screen.getByRole('button', { name: 'Perspective A, Synchronized' })).toHaveClass(
+      'perspective-tab--synchronized',
+    );
     fireEvent.loadedMetadata(screen.getByLabelText('Perspective B video perspective'));
     await user.click(screen.getByRole('button', { name: 'Set synchronization point' }));
     await screen.findByText('Synchronization point saved locally.');
+    expect(screen.getByRole('button', { name: 'Perspective B, Synchronized' })).toHaveClass(
+      'perspective-tab--synchronized',
+      'perspective-tab--active',
+    );
     await user.type(
       screen.getByLabelText('Add a family, character, or guild name'),
       'FrostCairn{Enter}',

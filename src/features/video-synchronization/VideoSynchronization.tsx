@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { CreateClipInput, UpdateClipInput } from '../../domain/clips';
 import { parseBdoLog, searchEvents, type BdoEvent } from '../../domain/events';
 import type { PortableProject, VodReference } from '../../domain/projects';
 import {
@@ -21,6 +22,7 @@ import {
   type LogTimelineMarker,
 } from '../../domain/timeline';
 import { clampVideoPan, zoomVideoAtPoint, type ViewportPoint } from '../../domain/viewport';
+import { ClipPanel } from '../clip-editor';
 import { SynchronizedMiniPlayer } from './SynchronizedMiniPlayer';
 import { useObjectUrl } from './useObjectUrl';
 
@@ -31,15 +33,23 @@ const EMPTY_EVENTS: readonly BdoEvent[] = [];
 interface VideoSynchronizationProps {
   readonly project: PortableProject;
   readonly vodFiles: ReadonlyMap<string, File>;
+  readonly onClipPanelCollapsedChange: (collapsed: boolean) => Promise<boolean>;
+  readonly onCreateClip: (vodId: string, input: CreateClipInput) => Promise<boolean>;
+  readonly onDeleteClip: (clipId: string) => Promise<boolean>;
   readonly onSearchTermsChange: (vodId: string, searchTerms: readonly string[]) => Promise<boolean>;
   readonly onSynchronize: (vodId: string, anchor: SynchronizationAnchorInput) => Promise<boolean>;
+  readonly onUpdateClip: (clipId: string, input: UpdateClipInput) => Promise<boolean>;
 }
 
 export function VideoSynchronization({
   project,
   vodFiles,
+  onClipPanelCollapsedChange,
+  onCreateClip,
+  onDeleteClip,
   onSearchTermsChange,
   onSynchronize,
+  onUpdateClip,
 }: VideoSynchronizationProps) {
   const { t } = useTranslation();
   const parsedLog = useMemo(() => {
@@ -63,6 +73,8 @@ export function VideoSynchronization({
   const [isMainPlaying, setIsMainPlaying] = useState(false);
   const [hiddenVodIds, setHiddenVodIds] = useState<ReadonlySet<string>>(() => new Set());
   const [performanceWarningDismissed, setPerformanceWarningDismissed] = useState(false);
+  const [clipDraft, setClipDraft] = useState<ClipDraftRange>({});
+  const [clipSaveState, setClipSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const file = activeVod === undefined ? undefined : vodFiles.get(activeVod.id);
   const firstEventId = events[0]?.id;
@@ -142,6 +154,8 @@ export function VideoSynchronization({
     setSearchDraft('');
     setSearchSaveState('idle');
     setEventSeekRequest(undefined);
+    setClipDraft({});
+    setClipSaveState('idle');
     setSaveState('idle');
     setIsVideoReady(false);
     setVideoTime(clampToVod(nextVideoTime, vod));
@@ -202,6 +216,62 @@ export function VideoSynchronization({
     }));
   }
 
+  function markClipBoundary(boundary: 'in' | 'out', time: number) {
+    setIsMainPlaying(false);
+    setClipSaveState('idle');
+    setClipDraft((current) =>
+      boundary === 'in'
+        ? {
+            ...current,
+            inPointSeconds: time,
+            outPointSeconds:
+              current.outPointSeconds !== undefined && current.outPointSeconds < time
+                ? time
+                : current.outPointSeconds,
+          }
+        : {
+            ...current,
+            inPointSeconds:
+              current.inPointSeconds !== undefined && current.inPointSeconds > time
+                ? time
+                : current.inPointSeconds,
+            outPointSeconds: time,
+          },
+    );
+  }
+
+  async function saveMarkedClip() {
+    const inPointSeconds = clipDraft.inPointSeconds;
+    const outPointSeconds = clipDraft.outPointSeconds;
+    const anchor = activeVod?.synchronizationAnchor;
+    if (
+      activeVod === undefined ||
+      anchor === null ||
+      anchor === undefined ||
+      inPointSeconds === undefined ||
+      outPointSeconds === undefined ||
+      outPointSeconds <= inPointSeconds
+    ) {
+      return;
+    }
+    const matchingEventIds = matchingEvents
+      .filter((event) => {
+        const eventVideoTime = mapSessionTimeToVideoTime(anchor, event.sessionTimeSeconds);
+        return eventVideoTime >= inPointSeconds && eventVideoTime <= outPointSeconds;
+      })
+      .map((event) => event.id);
+    setClipSaveState('saving');
+    const saved = await onCreateClip(activeVod.id, {
+      inPointSeconds,
+      outPointSeconds,
+      matchingEventIds,
+    });
+    setClipSaveState(saved ? 'saved' : 'error');
+    if (saved) {
+      setClipDraft({});
+    }
+  }
+
   function setPerspectiveVisible(vodId: string, visible: boolean) {
     setHiddenVodIds((current) => {
       const next = new Set(current);
@@ -251,7 +321,7 @@ export function VideoSynchronization({
               <button
                 aria-label={`${vod.displayName}, ${synchronizationStatus}`}
                 aria-pressed={isActive}
-                className={isActive ? 'perspective-tab perspective-tab--active' : 'perspective-tab'}
+                className={`perspective-tab perspective-tab--${vod.synchronizationAnchor === null ? 'sync-required' : 'synchronized'}${isActive ? ' perspective-tab--active' : ''}`}
                 onClick={() => selectPerspective(vod.id)}
                 type="button"
               >
@@ -298,13 +368,21 @@ export function VideoSynchronization({
               initialTime={videoTime}
               isPlaying={isMainPlaying}
               eventSeekRequest={eventSeekRequest}
+              clipDraft={clipDraft}
+              clipSaveState={clipSaveState}
               key={`${activeVod.id}-${file.name}-${file.lastModified}-${file.size}`}
               onHidePerspective={(vodId) => setPerspectiveVisible(vodId, false)}
+              onClipRangeChange={(range) => {
+                setClipDraft(range);
+                setClipSaveState('idle');
+              }}
+              onMarkClipBoundary={markClipBoundary}
               onPlaybackChange={setIsMainPlaying}
               onPromotePerspective={selectPerspective}
               onReady={setIsVideoReady}
               onSelectEvent={setSelectedEventId}
               onTimeChange={setVideoTime}
+              onSaveClip={() => void saveMarkedClip()}
               secondaryPerspectives={secondaryPerspectives}
               selectedEvent={selectedEvent}
               vod={activeVod}
@@ -446,6 +524,12 @@ export function VideoSynchronization({
             )}
         </div>
       </div>
+      <ClipPanel
+        onCollapsedChange={onClipPanelCollapsedChange}
+        onDeleteClip={onDeleteClip}
+        onRenameClip={(clipId, title) => onUpdateClip(clipId, { title })}
+        project={project}
+      />
     </section>
   );
 }
@@ -456,32 +540,42 @@ function SynchronizedVideoPlayer({
   initialTime,
   estimatedFrameRate,
   eventSeekRequest,
+  clipDraft,
+  clipSaveState,
   events,
   isPlaying: playbackIntent,
   secondaryPerspectives,
   selectedEvent,
   onHidePerspective,
+  onClipRangeChange,
+  onMarkClipBoundary,
   onPlaybackChange,
   onPromotePerspective,
   onReady,
   onSelectEvent,
   onTimeChange,
+  onSaveClip,
 }: {
   readonly file: File;
   readonly vod: VodReference;
   readonly initialTime: number;
   readonly estimatedFrameRate: number;
   readonly eventSeekRequest: EventSeekRequest | undefined;
+  readonly clipDraft: ClipDraftRange;
+  readonly clipSaveState: 'idle' | 'saving' | 'saved' | 'error';
   readonly events: readonly BdoEvent[];
   readonly isPlaying: boolean;
   readonly secondaryPerspectives: readonly SecondaryPerspective[];
   readonly selectedEvent: BdoEvent | undefined;
   readonly onHidePerspective: (vodId: string) => void;
+  readonly onClipRangeChange: (range: ClipDraftRange) => void;
+  readonly onMarkClipBoundary: (boundary: 'in' | 'out', time: number) => void;
   readonly onPlaybackChange: (isPlaying: boolean) => void;
   readonly onPromotePerspective: (vodId: string) => void;
   readonly onReady: (ready: boolean) => void;
   readonly onSelectEvent: (eventId: string) => void;
   readonly onTimeChange: (time: number) => void;
+  readonly onSaveClip: () => void;
 }) {
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -654,6 +748,11 @@ function SynchronizedVideoPlayer({
     }
   }
 
+  function markClipBoundary(boundary: 'in' | 'out') {
+    videoRef.current?.pause();
+    onMarkClipBoundary(boundary, displayTime);
+  }
+
   function resetVideoViewport() {
     setVideoZoom(1);
     setVideoPan({ x: 0, y: 0 });
@@ -787,6 +886,12 @@ function SynchronizedVideoPlayer({
               } else if (event.key === ' ') {
                 event.preventDefault();
                 togglePlayback();
+              } else if (event.key.toLocaleLowerCase() === 'i') {
+                event.preventDefault();
+                markClipBoundary('in');
+              } else if (event.key.toLocaleLowerCase() === 'o') {
+                event.preventDefault();
+                markClipBoundary('out');
               }
             }}
             onLoadedMetadata={(event) => {
@@ -913,7 +1018,90 @@ function SynchronizedVideoPlayer({
               Math.max(timelineWindow.startSeconds, displayTime),
             )}
           />
+          {clipDraft.inPointSeconds !== undefined &&
+            clipDraft.outPointSeconds !== undefined &&
+            clipDraft.inPointSeconds >= timelineWindow.startSeconds &&
+            clipDraft.outPointSeconds <= timelineWindow.endSeconds && (
+              <div className="clip-range-editor">
+                <span
+                  className="clip-range-editor__selection"
+                  style={{
+                    left: `${((clipDraft.inPointSeconds - timelineWindow.startSeconds) / timelineWindow.durationSeconds) * 100}%`,
+                    width: `${((clipDraft.outPointSeconds - clipDraft.inPointSeconds) / timelineWindow.durationSeconds) * 100}%`,
+                  }}
+                />
+                <input
+                  aria-label={t('clips.rangeHandleIn')}
+                  className="clip-range-editor__handle clip-range-editor__handle--in"
+                  max={Math.max(
+                    timelineWindow.startSeconds,
+                    clipDraft.outPointSeconds - frameDuration,
+                  )}
+                  min={timelineWindow.startSeconds}
+                  onChange={(event) =>
+                    onClipRangeChange({
+                      ...clipDraft,
+                      inPointSeconds: Number(event.target.value),
+                    })
+                  }
+                  step={frameDuration}
+                  type="range"
+                  value={clipDraft.inPointSeconds}
+                />
+                <input
+                  aria-label={t('clips.rangeHandleOut')}
+                  className="clip-range-editor__handle clip-range-editor__handle--out"
+                  max={timelineWindow.endSeconds}
+                  min={Math.min(
+                    timelineWindow.endSeconds,
+                    clipDraft.inPointSeconds + frameDuration,
+                  )}
+                  onChange={(event) =>
+                    onClipRangeChange({
+                      ...clipDraft,
+                      outPointSeconds: Number(event.target.value),
+                    })
+                  }
+                  step={frameDuration}
+                  type="range"
+                  value={clipDraft.outPointSeconds}
+                />
+              </div>
+            )}
         </div>
+
+        <div className="clip-mark-controls" aria-label={t('clips.kicker')}>
+          <button onClick={() => markClipBoundary('in')} type="button">
+            {t('clips.markIn')}
+          </button>
+          <span>
+            {t('clips.inPoint')}: {formatOptionalTime(clipDraft.inPointSeconds)}
+          </span>
+          <button onClick={() => markClipBoundary('out')} type="button">
+            {t('clips.markOut')}
+          </button>
+          <span>
+            {t('clips.outPoint')}: {formatOptionalTime(clipDraft.outPointSeconds)}
+          </span>
+          <button
+            className="clip-mark-controls__add"
+            disabled={
+              storedAnchor === null ||
+              clipDraft.inPointSeconds === undefined ||
+              clipDraft.outPointSeconds === undefined ||
+              clipDraft.outPointSeconds <= clipDraft.inPointSeconds ||
+              clipSaveState === 'saving'
+            }
+            onClick={onSaveClip}
+            type="button"
+          >
+            {t('clips.add')}
+          </button>
+        </div>
+        {clipSaveState === 'saved' && <p className="clip-save-state">{t('clips.saved')}</p>}
+        {clipSaveState === 'error' && (
+          <p className="clip-save-state clip-save-state--error">{t('clips.saveError')}</p>
+        )}
 
         <div className="log-timeline" aria-label={t('synchronization.logTimeline')}>
           <div className="log-timeline__heading">
@@ -1025,6 +1213,10 @@ function formatTime(seconds: number): string {
     .padStart(6, '0')}`;
 }
 
+function formatOptionalTime(seconds: number | undefined): string {
+  return seconds === undefined ? '—' : formatTime(seconds);
+}
+
 function formatSignedTime(seconds: number): string {
   return `${seconds < 0 ? '−' : '+'}${formatTime(Math.abs(seconds))}`;
 }
@@ -1123,6 +1315,11 @@ interface SecondaryPerspective {
 interface EventSeekRequest {
   readonly sequence: number;
   readonly videoTimeSeconds: number;
+}
+
+interface ClipDraftRange {
+  readonly inPointSeconds?: number;
+  readonly outPointSeconds?: number;
 }
 
 function findAdjacentMatchingEvent(

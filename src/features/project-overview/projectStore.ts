@@ -1,6 +1,14 @@
 import { createStore } from 'zustand/vanilla';
 
 import {
+  createProjectClip,
+  deleteProjectClip,
+  setClipPanelCollapsed,
+  updateProjectClip,
+  type CreateClipInput,
+  type UpdateClipInput,
+} from '../../domain/clips';
+import {
   createProject,
   parseProjectFile,
   renameProject,
@@ -40,6 +48,18 @@ export interface ProjectStoreState {
     vodId: string,
     searchTerms: readonly string[],
   ) => Promise<boolean>;
+  readonly createClip: (
+    projectId: string,
+    vodId: string,
+    input: CreateClipInput,
+  ) => Promise<boolean>;
+  readonly updateClip: (
+    projectId: string,
+    clipId: string,
+    input: UpdateClipInput,
+  ) => Promise<boolean>;
+  readonly deleteClip: (projectId: string, clipId: string) => Promise<boolean>;
+  readonly setClipPanelCollapsed: (projectId: string, collapsed: boolean) => Promise<boolean>;
 }
 
 export function createProjectStore(repository: ProjectRepository) {
@@ -214,7 +234,61 @@ export function createProjectStore(repository: ProjectRepository) {
         return false;
       }
     },
+
+    createClip: async (projectId, vodId, input) => {
+      return saveProjectUpdate(set, get, repository, projectId, (project) =>
+        createProjectClip(project, vodId, input),
+      );
+    },
+
+    updateClip: async (projectId, clipId, input) => {
+      return saveProjectUpdate(set, get, repository, projectId, (project) =>
+        updateProjectClip(project, clipId, input),
+      );
+    },
+
+    deleteClip: async (projectId, clipId) => {
+      return saveProjectUpdate(set, get, repository, projectId, (project) =>
+        deleteProjectClip(project, clipId),
+      );
+    },
+
+    setClipPanelCollapsed: async (projectId, collapsed) => {
+      return saveProjectUpdate(set, get, repository, projectId, (project) =>
+        setClipPanelCollapsed(project, collapsed),
+      );
+    },
   }));
+}
+
+async function saveProjectUpdate(
+  set: (partial: Partial<ProjectStoreState>) => void,
+  get: () => ProjectStoreState,
+  repository: ProjectRepository,
+  projectId: string,
+  update: (project: PortableProject) => PortableProject,
+): Promise<boolean> {
+  const project = get().projects.find((candidate) => candidate.id === projectId);
+  if (project === undefined) {
+    set({ errorMessage: 'projects.errors.missing' });
+    return false;
+  }
+  try {
+    const updatedProject = update(project);
+    await repository.save(updatedProject);
+    set({
+      projects: sortProjects(
+        get().projects.map((candidate) =>
+          candidate.id === projectId ? updatedProject : candidate,
+        ),
+      ),
+      errorMessage: undefined,
+    });
+    return true;
+  } catch {
+    set({ errorMessage: 'projects.errors.clips' });
+    return false;
+  }
 }
 
 function sortProjects(projects: readonly PortableProject[]): readonly PortableProject[] {

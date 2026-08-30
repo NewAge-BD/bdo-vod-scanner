@@ -1,0 +1,1 @@
+export { ClipPanel } from './ClipPanel';
