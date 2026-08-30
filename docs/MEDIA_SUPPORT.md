@@ -66,9 +66,9 @@ Direct browser export is experimental.
 
 The user selects an output directory when the browser capability is available. Directory access requires explicit permission and may not be available in every browser context; provide an actionable fallback message.
 
-The completed [technical spike](./CLIP_EXPORT_SPIKE.md) recommends Mediabunny's low-level encoded-packet APIs, subject to explicit dependency approval and prototype validation. The high-level `Conversion` trim API must not be used for a non-zero lossless start because that path currently forces transcoding. MP4Box.js remains a fallback candidate for focused MP4 diagnostics.
+The approved [technical spike](./CLIP_EXPORT_SPIKE.md) selected Mediabunny 1.55.4. The experimental implementation uses its low-level encoded-packet APIs in a Web Worker and streams each MP4 directly to the selected folder. The high-level `Conversion` trim API is not used for a non-zero lossless start because that path currently forces transcoding. MP4Box.js remains a fallback candidate for focused MP4 diagnostics.
 
-Large browser exports require direct writable-file access. Detect `showSaveFilePicker` at runtime, obtain the destination during the initiating user gesture, and stream to its writable file. When this capability is unavailable or permission is denied, keep DaVinci Resolve export available and explain that direct clip export requires a compatible browser; never buffer a large whole-file download as a fallback.
+Large browser exports require direct writable-directory access. Detect `showDirectoryPicker` at runtime, obtain the destination during the initiating user gesture, and stream to a writable file handle. When this capability is unavailable or permission is denied, keep DaVinci Resolve export available and explain that direct clip export requires a compatible browser; never buffer a large whole-file download as a fallback.
 
 ## DaVinci Resolve export
 

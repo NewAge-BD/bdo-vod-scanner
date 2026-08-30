@@ -3,7 +3,7 @@
 BDO VOD Scanner is a planned local-first editor tool for synchronizing a Black Desert Online event log with one or more MP4 VOD perspectives. It is intended to help players and video editors find relevant moments, compare perspectives, mark clips, and prepare exports for DaVinci Resolve.
 
 > [!IMPORTANT]
-> This project is in private, early development. The application runs locally; direct media-clip export is not implemented yet.
+> This project is in private, early development. The application runs locally; direct lossless media-clip export is available as an experimental Chromium-only prototype.
 
 All logs and videos are intended to remain on the user's computer. The application must not upload imported media or event data.
 

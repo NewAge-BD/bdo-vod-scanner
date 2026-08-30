@@ -139,6 +139,34 @@ export const en = {
     saveError: 'The clip could not be saved.',
     title: 'Marked clips',
   },
+  clipExport: {
+    boundaryNote:
+      'Requested cuts may expand to safe keyframes. The exported range is shown after each clip finishes.',
+    completedItem: '{{fileName}} · effective range {{effectiveIn}}–{{effectiveOut}}',
+    errors: {
+      cancelled: 'Export cancelled. The incomplete output was removed.',
+      missingKeyframe: 'No safe keyframe range could be found.',
+      missingVideoTrack: 'The MP4 does not contain a usable video track.',
+      sourceMissing: 'Reselect this clip’s source VOD before exporting.',
+      unexpected: 'The clip could not be exported from this recording.',
+      unsupportedCodec: 'This recording uses an unsupported video or audio codec.',
+      unsupportedFormat: 'This source is not a supported MP4 file.',
+      writeFailed: 'The output file could not be written. Check permission and free disk space.',
+    },
+    experimental: 'EXPERIMENTAL',
+    exportAll: 'Export all clips',
+    exporting: 'Exporting clips…',
+    kicker: 'LOSSLESS MEDIA',
+    progress: '{{completed}} of {{count}} complete · {{title}}',
+    resultSummary: '{{successful}} exported · {{failed}} failed or cancelled · {{count}} total',
+    setupError:
+      'The output folder could not be opened. Check browser permission and choose the folder again.',
+    summary:
+      'Copies original encoded video and audio into separate MP4 clips in the saved clip order. No media is uploaded.',
+    title: 'Direct clip export',
+    unsupported:
+      'Direct large-file export is unavailable in this browser. Use Chrome/Edge with local file access or export a DaVinci Resolve timeline instead.',
+  },
   clipping: {
     addNameTimeline: 'Add name timeline',
     back: 'Back to synchronization',

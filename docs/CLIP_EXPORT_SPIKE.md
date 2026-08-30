@@ -2,11 +2,11 @@
 
 ## Status
 
-Recommendation complete on 2026-08-30. No dependency has been installed and no exporter has been implemented. Adding the recommended library still requires explicit approval.
+Recommendation approved on 2026-08-30. Mediabunny 1.55.4 is installed and the first experimental packet-copy exporter is being validated. The feature remains experimental until the prototype acceptance criteria are satisfied with synthetic and real recorder fixtures.
 
 ## Decision
 
-Use **Mediabunny** for the first experimental browser exporter, subject to dependency approval and a successful synthetic-media prototype. Keep MP4Box.js as a fallback candidate for MP4 diagnostics if recorder compatibility problems appear.
+Use approved **Mediabunny 1.55.4** for the first experimental browser exporter while prototype validation continues. Keep MP4Box.js as an unapproved fallback candidate for MP4 diagnostics if recorder compatibility problems appear.
 
 The exporter must use Mediabunny's low-level encoded-packet APIs. Its convenient `Conversion` trimming API is not suitable for the lossless path because setting a non-default trim start currently forces video and audio transcoding.
 
@@ -82,7 +82,7 @@ Packets with B-frames require special care: presentation timestamps may be out o
 
 ## Browser capability policy
 
-The large-file path requires `showSaveFilePicker` and a writable file stream. Both availability and permission must be checked at runtime.
+The large-file path requires `showDirectoryPicker` and writable file streams created inside the selected folder. Both availability and permission must be checked at runtime.
 
 - Supported: stream output directly to the chosen destination.
 - Missing or denied capability: disable experimental media export with an actionable explanation; DaVinci Resolve export remains available.

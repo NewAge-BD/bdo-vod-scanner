@@ -1,7 +1,7 @@
 # User Guide
 
 > [!NOTE]
-> Local project management, source-file import, one sync point per perspective, synchronized timelines, coordinated multi-perspective playback, event-name navigation, clip marking, manual clip ordering, and DaVinci Resolve timeline export are available now. Direct media export remains planned MVP work.
+> Local project management, source-file import, one sync point per perspective, synchronized timelines, coordinated multi-perspective playback, event-name navigation, clip marking, manual clip ordering, DaVinci Resolve timeline export, and an experimental direct lossless clip exporter are available now.
 
 ## What BDO VOD Scanner does
 
@@ -79,7 +79,9 @@ The clip is saved locally with its source perspective, exact range, duration, ac
 
 ### 7. Export
 
-**Export all clips** writes the selected-perspective clips to a chosen folder. This browser export is experimental and prioritizes losslessness, so clip boundaries may expand to safe keyframes.
+**Export all clips** writes every marked clip to a chosen folder in the saved manual order. The source VOD for each clip must be reselected in the current browser session. Current Chrome, Edge, and compatible Chromium browsers provide the required direct folder access; if that capability is unavailable, use the DaVinci Resolve export instead.
+
+This browser export is experimental and prioritizes losslessness. It copies the original encoded video and audio without re-encoding, so the effective start may move to the preceding safe video keyframe and the end may extend to the following keyframe. The completed result shows the effective range. When one clip fails or the batch is cancelled, completed earlier clips remain in the chosen folder and a newly created incomplete file is removed.
 
 **Export to DaVinci Resolve** creates an FCPXML file with one gapless edit timeline. It follows the saved manual clip order, keeps every clip attached to its original VOD time range, and includes video and source audio. Adjust timeline frame rate, width, and height before exporting; these values are saved with the project. The default is 60 FPS and the largest detected VOD resolution.
 

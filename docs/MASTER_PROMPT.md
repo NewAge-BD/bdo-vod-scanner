@@ -179,7 +179,7 @@ YYYY-MM-DD_Name1+Name2_<matching-count>-Events.mp4
 
 Use the log date and stored search snapshot. Count matching events within the clip. Sanitize invalid characters and suffix collisions with `_2`, `_3`, etc.
 
-Before choosing a media library, perform a technical spike and request approval explaining purpose, alternatives, license, maintenance, size, streaming behavior, supported media, and risk. Mediabunny and MP4Box.js may be evaluated but are not pre-approved.
+Mediabunny 1.55.4 is approved for the isolated experimental browser clip exporter after a documented technical spike. Use its low-level encoded-packet APIs for lossless remuxing; do not silently replace it or add another media dependency. Future media dependency additions, major upgrades, or architecture changes require a new approval explaining purpose, alternatives, license, maintenance, size, streaming behavior, supported media, and risk. MP4Box.js remains an unapproved fallback candidate for diagnostics.
 
 ### DaVinci Resolve export
 

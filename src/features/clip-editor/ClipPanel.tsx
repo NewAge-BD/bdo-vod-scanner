@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 import type { DaVinciTimelineSettings } from '../../domain/davinci-export';
 import type { Clip, PortableProject } from '../../domain/projects';
+import { LosslessClipExportPanel } from '../clip-export';
 import { DavinciExportPanel } from '../davinci-export';
 
 interface ClipPanelProps {
-  readonly linkedVodIds: ReadonlySet<string>;
+  readonly vodFiles: ReadonlyMap<string, File>;
   readonly project: PortableProject;
   readonly onCollapsedChange: (collapsed: boolean) => Promise<boolean>;
   readonly onDavinciDefaultsChange: (settings: DaVinciTimelineSettings) => Promise<boolean>;
@@ -17,7 +18,7 @@ interface ClipPanelProps {
 }
 
 export function ClipPanel({
-  linkedVodIds,
+  vodFiles,
   project,
   onCollapsedChange,
   onDavinciDefaultsChange,
@@ -138,13 +139,16 @@ export function ClipPanel({
                   project.vods.find((vod) => vod.id === clip.vodId)?.displayName ??
                   t('clips.missingPerspective')
                 }
-                previewDisabled={!linkedVodIds.has(clip.vodId)}
+                previewDisabled={!vodFiles.has(clip.vodId)}
               />
             ))}
           </div>
         ))}
       {!collapsed && (
-        <DavinciExportPanel onDefaultsChange={onDavinciDefaultsChange} project={project} />
+        <>
+          <LosslessClipExportPanel project={project} vodFiles={vodFiles} />
+          <DavinciExportPanel onDefaultsChange={onDavinciDefaultsChange} project={project} />
+        </>
       )}
     </section>
   );

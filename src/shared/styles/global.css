@@ -2052,6 +2052,104 @@ h1 {
   border-top: 1px solid var(--border);
 }
 
+.lossless-export {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid rgb(216 254 69 / 18%);
+  border-radius: 0.55rem;
+  background: rgb(216 254 69 / 3%);
+}
+
+.lossless-export__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.lossless-export__heading h3 {
+  margin: 0.15rem 0 0;
+  font-size: 1.05rem;
+}
+
+.lossless-export__badge {
+  padding: 0.28rem 0.45rem;
+  color: var(--sync-required);
+  border: 1px solid rgb(255 194 102 / 35%);
+  border-radius: 0.3rem;
+  font-size: 0.58rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.lossless-export__summary,
+.lossless-export__boundary-note,
+.lossless-export__unsupported,
+.lossless-export__result-summary {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.lossless-export__boundary-note {
+  color: var(--quiet);
+}
+
+.lossless-export__unsupported,
+.lossless-export__item-error {
+  color: var(--sync-required);
+}
+
+.lossless-export__actions {
+  display: flex;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.lossless-export__button {
+  min-width: 15rem;
+  color: var(--accent-ink) !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  font-weight: 850;
+}
+
+.lossless-export__progress {
+  margin-top: 0.75rem;
+}
+
+.lossless-export__progress label,
+.lossless-export__progress progress {
+  display: block;
+  width: 100%;
+}
+
+.lossless-export__progress span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.lossless-export__results {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lossless-export__results li {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.35fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  padding-top: 0.35rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  font-size: 0.66rem;
+}
+
 .davinci-export__heading {
   display: flex;
   align-items: flex-start;

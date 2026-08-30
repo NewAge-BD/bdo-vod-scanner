@@ -557,7 +557,6 @@ export function VideoSynchronization({
           {renderPlayer(true)}
         </div>
         <ClipPanel
-          linkedVodIds={new Set(vodFiles.keys())}
           onCollapsedChange={onClipPanelCollapsedChange}
           onDavinciDefaultsChange={onDavinciDefaultsChange}
           onDeleteClip={onDeleteClip}
@@ -565,6 +564,7 @@ export function VideoSynchronization({
           onReorderClips={onReorderClips}
           onRenameClip={(clipId, title) => onUpdateClip(clipId, { title })}
           project={project}
+          vodFiles={vodFiles}
         />
       </section>
     );

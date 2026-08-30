@@ -14,7 +14,6 @@ describe('ClipPanel', () => {
     const onPreviewClip = vi.fn();
     render(
       <ClipPanel
-        linkedVodIds={new Set(project.vods.map((vod) => vod.id))}
         onCollapsedChange={vi.fn().mockResolvedValue(true)}
         onDavinciDefaultsChange={vi.fn().mockResolvedValue(true)}
         onDeleteClip={vi.fn().mockResolvedValue(true)}
@@ -22,6 +21,7 @@ describe('ClipPanel', () => {
         onRenameClip={vi.fn().mockResolvedValue(true)}
         onReorderClips={onReorderClips}
         project={project}
+        vodFiles={new Map([[project.vods[0]!.id, new File(['vod'], 'Perspective.mp4')]])}
       />,
     );
 
