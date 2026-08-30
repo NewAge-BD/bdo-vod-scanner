@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { parseBdoLog, searchEvents, type BdoEvent } from '../../domain/events';
 import type { PortableProject, VodReference } from '../../domain/projects';
 import type { SynchronizationAnchorInput } from '../../domain/synchronization';
+import { calculateTimelineWindow, zoomLevelToFactor } from '../../domain/timeline';
 import { useObjectUrl } from './useObjectUrl';
 
 const MAX_VISIBLE_EVENTS = 50;
@@ -212,11 +213,34 @@ function SynchronizedVideoPlayer({
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [displayTime, setDisplayTime] = useState(initialTime);
+  const [mediaDuration, setMediaDuration] = useState(vod.durationSeconds ?? 0);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [timelineCenter, setTimelineCenter] = useState(initialTime);
   const objectUrl = useObjectUrl(file);
+  const zoomFactor = zoomLevelToFactor(zoomLevel);
+  const timelineWindow = calculateTimelineWindow(mediaDuration, timelineCenter, zoomFactor);
+  const frameDuration = 1 / estimatedFrameRate;
 
-  function updateTime(time: number) {
+  function updateTime(time: number, followPlayhead = false) {
     setDisplayTime(time);
     onTimeChange(time);
+    if (
+      followPlayhead &&
+      (time < timelineWindow.startSeconds || time > timelineWindow.endSeconds)
+    ) {
+      setTimelineCenter(time);
+    }
+  }
+
+  function seekTo(time: number) {
+    const video = videoRef.current;
+    if (video === null) {
+      return;
+    }
+    const safeTime = Math.min(mediaDuration, Math.max(0, time));
+    video.pause();
+    video.currentTime = safeTime;
+    updateTime(safeTime);
   }
 
   function stepFrame(direction: -1 | 1) {
@@ -230,7 +254,21 @@ function SynchronizedVideoPlayer({
       maximum,
       Math.max(0, video.currentTime + direction / estimatedFrameRate),
     );
-    updateTime(video.currentTime);
+    updateTime(video.currentTime, true);
+  }
+
+  function changeZoom(nextLevel: number) {
+    setTimelineCenter(displayTime);
+    setZoomLevel(Math.min(120, Math.max(1, nextLevel)));
+  }
+
+  function panTimeline(direction: -1 | 1) {
+    const targetTime = Math.min(
+      mediaDuration,
+      Math.max(0, displayTime + timelineWindow.durationSeconds * 0.8 * direction),
+    );
+    setTimelineCenter(targetTime);
+    seekTo(targetTime);
   }
 
   return (
@@ -248,26 +286,88 @@ function SynchronizedVideoPlayer({
         onLoadedMetadata={(event) => {
           const duration = Number.isFinite(event.currentTarget.duration)
             ? event.currentTarget.duration
-            : initialTime;
+            : (vod.durationSeconds ?? Math.max(initialTime, 0));
           const safeInitialTime = Math.min(initialTime, duration);
+          setMediaDuration(duration);
+          setTimelineCenter(safeInitialTime);
           event.currentTarget.currentTime = safeInitialTime;
           updateTime(safeInitialTime);
           onReady(true);
         }}
-        onPause={(event) => updateTime(event.currentTarget.currentTime)}
-        onTimeUpdate={(event) => updateTime(event.currentTarget.currentTime)}
+        onPause={(event) => updateTime(event.currentTarget.currentTime, true)}
+        onTimeUpdate={(event) => updateTime(event.currentTarget.currentTime, true)}
         ref={videoRef}
         src={objectUrl}
       />
-      <div className="frame-controls" aria-label={t('synchronization.frameControls')}>
-        <button onClick={() => stepFrame(-1)} type="button">
-          {t('synchronization.previousFrame')}
-        </button>
-        <output aria-live="off">{formatTime(displayTime)}</output>
-        <button onClick={() => stepFrame(1)} type="button">
-          {t('synchronization.nextFrame')}
-        </button>
-        <span>{t('synchronization.estimatedFps', { fps: estimatedFrameRate })}</span>
+      <div className="video-timeline" aria-label={t('synchronization.timelineControls')}>
+        <div className="video-timeline__transport">
+          <button onClick={() => stepFrame(-1)} type="button">
+            {t('synchronization.previousFrame')}
+          </button>
+          <output aria-live="off">{formatTime(displayTime)}</output>
+          <button onClick={() => stepFrame(1)} type="button">
+            {t('synchronization.nextFrame')}
+          </button>
+          <span>{t('synchronization.estimatedFps', { fps: estimatedFrameRate })}</span>
+        </div>
+
+        <div className="video-timeline__ruler" aria-hidden="true">
+          <time>{formatTime(timelineWindow.startSeconds)}</time>
+          <span>{t('synchronization.visibleRange')}</span>
+          <time>{formatTime(timelineWindow.endSeconds)}</time>
+        </div>
+        <div className="video-timeline__scrubber">
+          <input
+            aria-label={t('synchronization.videoTimeline')}
+            max={timelineWindow.endSeconds}
+            min={timelineWindow.startSeconds}
+            onChange={(event) => seekTo(Number(event.target.value))}
+            onPointerDown={() => videoRef.current?.pause()}
+            step={frameDuration}
+            type="range"
+            value={Math.min(
+              timelineWindow.endSeconds,
+              Math.max(timelineWindow.startSeconds, displayTime),
+            )}
+          />
+        </div>
+
+        <div className="video-timeline__zoom">
+          <button disabled={zoomLevel === 1} onClick={() => panTimeline(-1)} type="button">
+            {t('synchronization.panEarlier')}
+          </button>
+          <button
+            disabled={zoomLevel === 1}
+            onClick={() => changeZoom(zoomLevel - 12)}
+            type="button"
+          >
+            {t('synchronization.zoomOut')}
+          </button>
+          <label htmlFor={`video-timeline-zoom-${vod.id}`}>
+            {t('synchronization.zoom', { factor: formatZoom(zoomFactor) })}
+          </label>
+          <input
+            aria-label={t('synchronization.timelineZoom')}
+            id={`video-timeline-zoom-${vod.id}`}
+            max="120"
+            min="1"
+            onChange={(event) => changeZoom(Number(event.target.value))}
+            step="1"
+            type="range"
+            value={zoomLevel}
+          />
+          <button
+            disabled={zoomLevel === 120}
+            onClick={() => changeZoom(zoomLevel + 12)}
+            type="button"
+          >
+            {t('synchronization.zoomIn')}
+          </button>
+          <button disabled={zoomLevel === 1} onClick={() => panTimeline(1)} type="button">
+            {t('synchronization.panLater')}
+          </button>
+        </div>
+        <p className="video-timeline__hint">{t('synchronization.timelineHint')}</p>
       </div>
     </>
   );
@@ -289,4 +389,8 @@ function formatTime(seconds: number): string {
 
 function formatSignedTime(seconds: number): string {
   return `${seconds < 0 ? '−' : '+'}${formatTime(Math.abs(seconds))}`;
+}
+
+function formatZoom(factor: number): string {
+  return factor < 10 ? factor.toFixed(1) : factor.toFixed(0);
 }

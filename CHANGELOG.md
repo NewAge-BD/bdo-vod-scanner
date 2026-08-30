@@ -27,6 +27,7 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added the supplied character artwork as a privacy-safe website/header icon without HUD names.
 - Added native local VOD playback with automatic object-URL cleanup.
 - Added approximate previous/next-frame navigation using detected FPS or a 60 FPS fallback.
+- Added a draggable video playhead with an exponentially zoomable and pannable visible time range.
 - Added searchable log-event selection and one persistent synchronization anchor per VOD.
 - Added independent sync status and calculated offset display for every perspective.
 

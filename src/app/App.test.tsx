@@ -74,6 +74,16 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Synchronize VODs' })).toBeInTheDocument();
 
     fireEvent.loadedMetadata(screen.getByLabelText('Synthetic Perspective video perspective'));
+    const playhead = screen.getByLabelText('Video timeline playhead');
+    const zoom = screen.getByLabelText('Timeline zoom level');
+    expect(playhead).toHaveAttribute('max', '3600');
+    expect(zoom).toHaveValue('1');
+
+    fireEvent.change(zoom, { target: { value: '13' } });
+    expect(screen.getByText('Zoom ×2.0')).toBeInTheDocument();
+    fireEvent.change(playhead, { target: { value: '60' } });
+    expect(screen.getByText('00:01:00.000')).toBeInTheDocument();
+
     await user.click(await screen.findByRole('button', { name: 'Set synchronization point' }));
     expect(await screen.findByText('Synchronization point saved locally.')).toBeInTheDocument();
     expect(screen.getByText('SYNCED')).toBeInTheDocument();

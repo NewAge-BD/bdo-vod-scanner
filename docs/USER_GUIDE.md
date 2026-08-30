@@ -31,7 +31,16 @@ Only metadata is saved for VODs. After reloading the app, **Reselect required** 
 
 Each unsynchronized VOD is highlighted as **Sync required**. Open it in **Synchronize VODs**.
 
-The first log event is proposed by default. If it is difficult to locate in the kill feed, chat, or notifications, search a family, character, or guild name and select a different event. Navigate the local video with its controls and the approximate previous/next-frame buttons, stop on the matching event, and choose **Set synchronization point**.
+The first log event is proposed by default. If it is difficult to locate in the kill feed, chat, or notifications, search a family, character, or guild name and select a different event.
+
+Use the video timeline below the player to find the matching frame:
+
+- Drag the bright playhead to scrub through the visible time range. The player pauses while seeking.
+- Use **Zoom in** or the zoom slider to enlarge a short section around the current frame.
+- Use **Earlier** and **Later** to move through the recording while zoomed in.
+- Use **Previous frame** and **Next frame** for the final approximate frame adjustment.
+
+Stop on the matching event and choose **Set synchronization point**.
 
 Every VOD has its own synchronization offset. Select another perspective above the player to synchronize it independently. Existing points can be updated. The current browser implementation uses detected FPS when available and otherwise visibly estimates 60 FPS; it does not promise a professional frame index.
 

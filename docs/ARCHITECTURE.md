@@ -98,7 +98,7 @@ videoTime = anchorVideoTime + (eventSessionTime - anchorEventSessionTime)
 
 Multiple events may share one second and therefore initially map to the same video time. Every VOD has an independent anchor and offset.
 
-The implemented synchronization workspace proposes the first valid event, supports searching and selecting another event, and records the paused video's fractional time. Updating a sync point replaces only that VOD's anchor. Secondary anchors and drift correction remain intentionally unsupported.
+The implemented synchronization workspace proposes the first valid event, supports searching and selecting another event, and records the paused video's fractional time. Its video timeline derives a bounded visible window from media duration, current center, and exponential zoom level; these calculations remain independent of React and browser APIs. Updating a sync point replaces only that VOD's anchor. Secondary anchors and drift correction remain intentionally unsupported.
 
 If the log clock crosses from late night to an earlier time, increment the day offset. A second synchronization point and drift correction remain future work.
 
@@ -113,7 +113,7 @@ If the log clock crosses from late night to an earlier time, increment the day o
 
 ## Timeline rendering
 
-Use an efficient graphical layer for dense event markers and bundling. Keep interaction and calculations separate from drawing. Provide a semantic keyboard-operable event list so the graphical timeline is not the only way to access events.
+The current single-VOD synchronization timeline uses a native range control for accessible dragging, keyboard operation, zoom, and panning. Use an efficient graphical layer for the future dense shared log-event markers and bundling. Keep interaction and calculations separate from drawing. Provide a semantic keyboard-operable event list so the graphical timeline is not the only way to access events.
 
 ## State and persistence
 

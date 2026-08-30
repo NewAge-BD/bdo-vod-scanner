@@ -68,6 +68,8 @@ test('manages a portable private local project', async ({ page }) => {
       '[20:00:56] FrostCairn died to RiverWarden from DawnKeep (TideCaller, IcePetal)',
     ),
   ).toBeVisible();
+  await expect(page.getByLabel('Video timeline playhead')).toBeVisible();
+  await expect(page.getByLabel('Timeline zoom level')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Set synchronization point' })).toBeDisabled();
 
   await page.reload();
