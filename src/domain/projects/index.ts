@@ -5,6 +5,7 @@ export {
   getProjectExportFileName,
   renameProject,
   setVodSearchTerms,
+  setVodSplitSearchTerms,
 } from './project';
 export {
   clipSchema,

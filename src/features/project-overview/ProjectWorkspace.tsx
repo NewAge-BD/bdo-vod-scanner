@@ -35,6 +35,7 @@ export function ProjectWorkspace({
   const saveSourceImport = useProjectStore((state) => state.saveSourceImport);
   const saveSynchronization = useProjectStore((state) => state.saveSynchronization);
   const saveVodSearchTerms = useProjectStore((state) => state.saveVodSearchTerms);
+  const saveVodSplitSearchTerms = useProjectStore((state) => state.saveVodSplitSearchTerms);
   const createClip = useProjectStore((state) => state.createClip);
   const updateClip = useProjectStore((state) => state.updateClip);
   const deleteClip = useProjectStore((state) => state.deleteClip);
@@ -159,6 +160,9 @@ export function ProjectWorkspace({
         onClippingModeChange={handleClippingModeChange}
         onSearchTermsChange={(vodId, searchTerms) =>
           saveVodSearchTerms(project.id, vodId, searchTerms)
+        }
+        onSplitSearchTermsChange={(vodId, splitSearchTerms) =>
+          saveVodSplitSearchTerms(project.id, vodId, splitSearchTerms)
         }
         onSynchronize={(vodId, anchor) => saveSynchronization(project.id, vodId, anchor)}
         onUpdateClip={(clipId, input) => updateClip(project.id, clipId, input)}

@@ -43,6 +43,10 @@ interface VideoSynchronizationProps {
   readonly onDeleteVod: (vodId: string) => Promise<boolean>;
   readonly onClippingModeChange: (isClipping: boolean) => void;
   readonly onSearchTermsChange: (vodId: string, searchTerms: readonly string[]) => Promise<boolean>;
+  readonly onSplitSearchTermsChange: (
+    vodId: string,
+    splitSearchTerms: readonly string[],
+  ) => Promise<boolean>;
   readonly onSynchronize: (vodId: string, anchor: SynchronizationAnchorInput) => Promise<boolean>;
   readonly onUpdateClip: (clipId: string, input: UpdateClipInput) => Promise<boolean>;
 }
@@ -56,6 +60,7 @@ export function VideoSynchronization({
   onDeleteVod,
   onClippingModeChange,
   onSearchTermsChange,
+  onSplitSearchTermsChange,
   onSynchronize,
   onUpdateClip,
 }: VideoSynchronizationProps) {
@@ -253,6 +258,24 @@ export function VideoSynchronization({
       activeVod.id,
       activeVod.searchTerms.filter((candidate) => candidate !== term),
     );
+    setClipSearchSaveState(saved ? 'idle' : 'error');
+  }
+
+  async function toggleClipSearchTermSplit(term: string) {
+    if (activeVod === undefined) {
+      return;
+    }
+    const storedSplitSearchTerms = activeVod.splitSearchTerms ?? [];
+    const isSplit = storedSplitSearchTerms.some(
+      (candidate) => candidate.toLocaleLowerCase() === term.toLocaleLowerCase(),
+    );
+    const nextSplitSearchTerms = isSplit
+      ? storedSplitSearchTerms.filter(
+          (candidate) => candidate.toLocaleLowerCase() !== term.toLocaleLowerCase(),
+        )
+      : [...storedSplitSearchTerms, term];
+    setClipSearchSaveState('saving');
+    const saved = await onSplitSearchTermsChange(activeVod.id, nextSplitSearchTerms);
     setClipSearchSaveState(saved ? 'idle' : 'error');
   }
 
@@ -465,6 +488,7 @@ export function VideoSynchronization({
         onRemoveSearchTerm={(term) => void removeClipSearchTerm(term)}
         onSearchDraftChange={setClipSearchDraft}
         onAddSearchTerm={() => void addClipSearchTerm()}
+        onToggleSearchTermSplit={(term) => void toggleClipSearchTermSplit(term)}
         onSelectEvent={setSelectedEventId}
         onTimeChange={setVideoTime}
         onSaveClip={() => void saveMarkedClip()}
@@ -472,6 +496,7 @@ export function VideoSynchronization({
         searchDraft={clipSearchDraft}
         searchSaveState={clipSearchSaveState}
         searchTerms={activeVod.searchTerms}
+        splitSearchTerms={activeVod.splitSearchTerms ?? []}
         selectedEvent={selectedEvent}
         vod={activeVod}
       />
@@ -690,6 +715,7 @@ function SynchronizedVideoPlayer({
   searchDraft,
   searchSaveState,
   searchTerms,
+  splitSearchTerms,
   selectedEvent,
   onHidePerspective,
   onClipRangeChange,
@@ -700,6 +726,7 @@ function SynchronizedVideoPlayer({
   onRemoveSearchTerm,
   onSearchDraftChange,
   onAddSearchTerm,
+  onToggleSearchTermSplit,
   onSelectEvent,
   onTimeChange,
   onSaveClip,
@@ -718,6 +745,7 @@ function SynchronizedVideoPlayer({
   readonly searchDraft: string;
   readonly searchSaveState: 'idle' | 'saving' | 'error';
   readonly searchTerms: readonly string[];
+  readonly splitSearchTerms: readonly string[];
   readonly selectedEvent: BdoEvent | undefined;
   readonly onHidePerspective: (vodId: string) => void;
   readonly onClipRangeChange: (range: ClipDraftRange) => void;
@@ -728,6 +756,7 @@ function SynchronizedVideoPlayer({
   readonly onRemoveSearchTerm: (term: string) => void;
   readonly onSearchDraftChange: (value: string) => void;
   readonly onAddSearchTerm: () => void;
+  readonly onToggleSearchTermSplit: (term: string) => void;
   readonly onSelectEvent: (eventId: string) => void;
   readonly onTimeChange: (time: number) => void;
   readonly onSaveClip: () => void;
@@ -749,9 +778,6 @@ function SynchronizedVideoPlayer({
   const [isTimelinePanning, setIsTimelinePanning] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [splitNameTimelines, setSplitNameTimelines] = useState<ReadonlySet<string>>(
-    () => new Set(),
-  );
   const objectUrl = useObjectUrl(file);
   const zoomFactor = zoomLevelToFactor(zoomLevel);
   const timelineWindow = useMemo(
@@ -832,19 +858,6 @@ function SynchronizedVideoPlayer({
       }),
     [alignmentEventId, alignmentEventTime, alignmentVideoTime, events, searchTerms, timelineWindow],
   );
-
-  function toggleNameTimelineSplit(term: string) {
-    setSplitNameTimelines((current) => {
-      const next = new Set(current);
-      const key = term.toLocaleLowerCase();
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-      return next;
-    });
-  }
 
   useEffect(() => {
     if (eventSeekRequest === undefined) {
@@ -1393,7 +1406,9 @@ function SynchronizedVideoPlayer({
             {nameMarkerGroups.map(
               ({ deathMarkers: nameDeaths, killMarkers: nameKills, markers, term }) => {
                 const timelineKey = term.toLocaleLowerCase();
-                const isSplit = splitNameTimelines.has(timelineKey);
+                const isSplit = splitSearchTerms.some(
+                  (candidate) => candidate.toLocaleLowerCase() === timelineKey,
+                );
                 if (!isSplit) {
                   return (
                     <EventTimelineLane
@@ -1404,9 +1419,10 @@ function SynchronizedVideoPlayer({
                       markers={markers}
                       onActivate={activateLogMarker}
                       onRemove={() => onRemoveSearchTerm(term)}
-                      onToggleSplit={() => toggleNameTimelineSplit(term)}
+                      onToggleSplit={() => onToggleSearchTermSplit(term)}
                       selectedEvent={selectedEvent}
                       split={false}
+                      splitDisabled={searchSaveState === 'saving'}
                     />
                   );
                 }
@@ -1420,9 +1436,10 @@ function SynchronizedVideoPlayer({
                       markers={nameKills}
                       onActivate={activateLogMarker}
                       onRemove={() => onRemoveSearchTerm(term)}
-                      onToggleSplit={() => toggleNameTimelineSplit(term)}
+                      onToggleSplit={() => onToggleSearchTermSplit(term)}
                       selectedEvent={selectedEvent}
                       split
+                      splitDisabled={searchSaveState === 'saving'}
                     />
                     <EventTimelineLane
                       emptyLabel={t('clipping.noVisibleNameDeaths', { name: term })}
@@ -1568,6 +1585,7 @@ function EventTimelineLane({
   onToggleSplit,
   selectedEvent,
   split,
+  splitDisabled,
 }: {
   readonly actionLabel?: string;
   readonly emptyLabel: string;
@@ -1579,6 +1597,7 @@ function EventTimelineLane({
   readonly onToggleSplit?: () => void;
   readonly selectedEvent: BdoEvent | undefined;
   readonly split?: boolean;
+  readonly splitDisabled?: boolean;
 }) {
   const { t } = useTranslation();
   const accessibleLabel = actionLabel ?? label;
@@ -1597,6 +1616,7 @@ function EventTimelineLane({
             }
             aria-pressed={split}
             className="timeline-split-toggle"
+            disabled={splitDisabled}
             onClick={onToggleSplit}
             title={split ? t('clipping.mergeTimelineTooltip') : t('clipping.splitTimelineTooltip')}
             type="button"

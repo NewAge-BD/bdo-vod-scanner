@@ -31,6 +31,7 @@ export const vodReferenceSchema = z.strictObject({
   audioCodec: z.string().max(120).nullable(),
   synchronizationAnchor: synchronizationAnchorSchema.nullable(),
   searchTerms: z.array(z.string().trim().min(1).max(120)).max(50),
+  splitSearchTerms: z.array(z.string().trim().min(1).max(120)).max(50).default([]),
 });
 
 export const clipSchema = z.strictObject({

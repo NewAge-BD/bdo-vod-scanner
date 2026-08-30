@@ -6,6 +6,7 @@ import {
   getProjectExportFileName,
   renameProject,
   setVodSearchTerms,
+  setVodSplitSearchTerms,
 } from './project';
 import { portableProjectSchema } from './schema';
 import { parseProjectFile, ProjectImportError, serializeProject } from './serialization';
@@ -71,8 +72,51 @@ describe('project domain', () => {
     );
 
     expect(projectWithVod.vods[0]?.searchTerms).toEqual([]);
+    expect(projectWithVod.vods[0]?.splitSearchTerms).toEqual([]);
     expect(updated.vods[0]?.searchTerms).toEqual(['EmberVale', 'rivERwarden']);
     expect(updated.updatedAt).toBe('2026-08-30T13:00:00.000Z');
+  });
+
+  it('stores split name timelines per VOD and prunes removed names', () => {
+    const project = createProject('Timeline layout', new Date('2026-08-30T12:00:00.000Z'));
+    const vodId = crypto.randomUUID();
+    const projectWithVod = portableProjectSchema.parse({
+      ...project,
+      vods: [
+        {
+          id: vodId,
+          displayName: 'Perspective',
+          fileName: 'Perspective.mp4',
+          fileSizeBytes: 12,
+          lastModifiedMs: 100,
+          durationSeconds: 60,
+          width: 1920,
+          height: 1080,
+          nominalFrameRate: 60,
+          variableFrameRate: false,
+          videoCodec: null,
+          audioCodec: null,
+          synchronizationAnchor: null,
+          searchTerms: ['NewAge', 'RiverWarden'],
+        },
+      ],
+    });
+
+    const split = setVodSplitSearchTerms(
+      projectWithVod,
+      vodId,
+      [' NewAge ', 'newage', 'Unknown'],
+      new Date('2026-08-30T13:00:00.000Z'),
+    );
+    expect(split.vods[0]?.splitSearchTerms).toEqual(['NewAge']);
+
+    const removed = setVodSearchTerms(
+      split,
+      vodId,
+      ['RiverWarden'],
+      new Date('2026-08-30T14:00:00.000Z'),
+    );
+    expect(removed.vods[0]?.splitSearchTerms).toEqual([]);
   });
 
   it('deletes one VOD and only the clips owned by that perspective', () => {

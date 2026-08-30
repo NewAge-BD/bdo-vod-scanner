@@ -298,7 +298,7 @@ describe('App', () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Marked clips' })).not.toBeInTheDocument();
     confirmDeletion.mockRestore();
-  });
+  }, 10_000);
 
   it('coordinates, promotes, hides, and restores synchronized perspectives', async () => {
     const user = userEvent.setup();

@@ -49,7 +49,50 @@ export function setVodSearchTerms(
   if (!project.vods.some((vod) => vod.id === vodId)) {
     throw new Error('The selected VOD does not exist in this project.');
   }
-  const normalizedTerms = searchTerms
+  const normalizedTerms = normalizeSearchTerms(searchTerms);
+
+  return portableProjectSchema.parse({
+    ...project,
+    updatedAt: now.toISOString(),
+    vods: project.vods.map((vod) =>
+      vod.id === vodId
+        ? {
+            ...vod,
+            searchTerms: normalizedTerms,
+            splitSearchTerms: (vod.splitSearchTerms ?? []).filter((term) =>
+              includesSearchTerm(normalizedTerms, term),
+            ),
+          }
+        : vod,
+    ),
+  });
+}
+
+export function setVodSplitSearchTerms(
+  project: PortableProject,
+  vodId: string,
+  splitSearchTerms: readonly string[],
+  now = new Date(),
+): PortableProject {
+  const vod = project.vods.find((candidate) => candidate.id === vodId);
+  if (vod === undefined) {
+    throw new Error('The selected VOD does not exist in this project.');
+  }
+  const normalizedTerms = normalizeSearchTerms(splitSearchTerms).filter((term) =>
+    includesSearchTerm(vod.searchTerms, term),
+  );
+
+  return portableProjectSchema.parse({
+    ...project,
+    updatedAt: now.toISOString(),
+    vods: project.vods.map((candidate) =>
+      candidate.id === vodId ? { ...candidate, splitSearchTerms: normalizedTerms } : candidate,
+    ),
+  });
+}
+
+function normalizeSearchTerms(searchTerms: readonly string[]): readonly string[] {
+  return searchTerms
     .map((term) => term.trim())
     .filter((term, index, terms) => {
       return (
@@ -59,14 +102,12 @@ export function setVodSearchTerms(
         ) === index
       );
     });
+}
 
-  return portableProjectSchema.parse({
-    ...project,
-    updatedAt: now.toISOString(),
-    vods: project.vods.map((vod) =>
-      vod.id === vodId ? { ...vod, searchTerms: normalizedTerms } : vod,
-    ),
-  });
+function includesSearchTerm(searchTerms: readonly string[], term: string): boolean {
+  return searchTerms.some(
+    (candidate) => candidate.toLocaleLowerCase() === term.toLocaleLowerCase(),
+  );
 }
 
 export function deleteProjectVod(

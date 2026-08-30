@@ -32,6 +32,7 @@ The format must contain:
 - VOD references and metadata
 - Synchronization anchors
 - Per-VOD search terms
+- Per-VOD split/merged state for selected-name timelines
 - Clips and their manual order
 - DaVinci defaults
 - Relevant portable UI state
@@ -72,6 +73,7 @@ Store metadata, never media bytes:
 - Codec metadata
 - Synchronization state and anchor
 - Per-VOD search terms
+- Names whose per-VOD timelines are split into separate kill and death lanes
 - Optional desktop-only full path
 
 Browser project files cannot rely on full local paths. When a project is reopened, ask the user to select matching VODs again and verify them using filename and metadata.

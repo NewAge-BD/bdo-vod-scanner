@@ -14,6 +14,7 @@ import {
   parseProjectFile,
   renameProject,
   setVodSearchTerms,
+  setVodSplitSearchTerms,
   type PortableProject,
 } from '../../domain/projects';
 import { synchronizeVod, type SynchronizationAnchorInput } from '../../domain/synchronization';
@@ -48,6 +49,11 @@ export interface ProjectStoreState {
     projectId: string,
     vodId: string,
     searchTerms: readonly string[],
+  ) => Promise<boolean>;
+  readonly saveVodSplitSearchTerms: (
+    projectId: string,
+    vodId: string,
+    splitSearchTerms: readonly string[],
   ) => Promise<boolean>;
   readonly deleteVod: (projectId: string, vodId: string) => Promise<boolean>;
   readonly createClip: (
@@ -221,6 +227,31 @@ export function createProjectStore(repository: ProjectRepository) {
 
       try {
         const updatedProject = setVodSearchTerms(project, vodId, searchTerms);
+        await repository.save(updatedProject);
+        set({
+          projects: sortProjects(
+            get().projects.map((candidate) =>
+              candidate.id === projectId ? updatedProject : candidate,
+            ),
+          ),
+          errorMessage: undefined,
+        });
+        return true;
+      } catch {
+        set({ errorMessage: 'projects.errors.searchTerms' });
+        return false;
+      }
+    },
+
+    saveVodSplitSearchTerms: async (projectId, vodId, splitSearchTerms) => {
+      const project = get().projects.find((candidate) => candidate.id === projectId);
+      if (project === undefined) {
+        set({ errorMessage: 'projects.errors.missing' });
+        return false;
+      }
+
+      try {
+        const updatedProject = setVodSplitSearchTerms(project, vodId, splitSearchTerms);
         await repository.save(updatedProject);
         set({
           projects: sortProjects(

@@ -159,6 +159,7 @@ function createVodReference(file: File, metadata: InspectedVideoMetadata): VodRe
     audioCodec: metadata.audioCodec,
     synchronizationAnchor: null,
     searchTerms: [],
+    splitSearchTerms: [],
   };
 }
 
