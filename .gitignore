@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+
+# Build and test output
+dist/
+coverage/
+playwright-report/
+test-results/
+.vite/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and diagnostics
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+diagnostics/
+
+# Local databases and application state
+*.db
+*.sqlite
+*.sqlite3
+.local-data/
+
+# Imported and generated media
+*.mp4
+*.mkv
+*.mov
+*.avi
+*.webm
+*.wav
+*.mp3
+exports/
+
+# Permit deliberately reviewed synthetic media fixtures later
+!src/test/fixtures/*.mp4
+!test/fixtures/*.mp4
+
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# TypeScript caches
+*.tsbuildinfo

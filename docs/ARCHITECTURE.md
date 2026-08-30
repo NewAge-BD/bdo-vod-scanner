@@ -1,0 +1,153 @@
+# Architecture
+
+## Status
+
+This document describes the approved target architecture for the MVP. No application code exists yet.
+
+## Architectural style
+
+BDO VOD Scanner is a client-only modular monolith. It has no backend, cloud database, account system, network API, queue, scheduler, or real-time server connection.
+
+The architecture must remain reusable by a later Windows desktop shell without rewriting the domain model or main interface.
+
+## Core principles
+
+- All user data and processing remain local.
+- Large VODs are accessed as files or streams and are never copied wholesale into memory or browser storage.
+- Domain calculations stay independent of React and browser APIs where practical.
+- Persistence, file access, media inspection, and export use explicit interfaces and adapters.
+- Experimental media export is isolated from stable project, log, search, and timeline behavior.
+- Expensive parsing and media operations must not block the UI thread.
+- The simplest architecture satisfying the requirements is preferred.
+
+## Feature boundaries
+
+- Application shell and routing
+- Project overview
+- File import
+- Exact log parsing
+- Video metadata inspection
+- Per-VOD synchronization
+- Coordinated playback
+- Video and event timelines
+- Per-VOD search
+- Clip editing and ordering
+- Portable project import/export
+- Experimental media export
+- DaVinci Resolve export
+- Local diagnostics
+- Settings and internationalization
+
+## Recommended source layout
+
+```text
+src/
+  app/
+    providers/
+    routing/
+    shell/
+  domain/
+    events/
+    projects/
+    synchronization/
+    clips/
+    time/
+  features/
+    project-overview/
+    file-import/
+    log-timeline/
+    video-grid/
+    video-sync/
+    search/
+    clip-editor/
+    clip-export/
+    davinci-export/
+    diagnostics/
+    settings/
+  infrastructure/
+    indexeddb/
+    file-access/
+    media/
+    project-format/
+    diagnostics/
+  workers/
+  shared/
+    components/
+    hooks/
+    utilities/
+    styles/
+    types/
+  i18n/
+    locales/
+  test/
+    fixtures/
+    helpers/
+e2e/
+docs/
+```
+
+## Time model
+
+The log defines the shared session timeline. Every event receives a session-relative time in seconds and a unique ID independent of its timestamp.
+
+Each VOD stores one synchronization anchor:
+
+```text
+videoTime = anchorVideoTime + (eventSessionTime - anchorEventSessionTime)
+```
+
+Multiple events may share one second and therefore initially map to the same video time. Every VOD has an independent anchor and offset.
+
+If the log clock crosses from late night to an earlier time, increment the day offset. A second synchronization point and drift correction remain future work.
+
+## Playback coordination
+
+- A shared coordinator owns the global session position and play/pause intent.
+- The main and visible mini-players follow that position.
+- Hidden VODs retain logical position but do not actively decode or play.
+- Only the main video is audible.
+- Promoting another perspective preserves the global time.
+- Clip ranges remain attached to their source VOD.
+
+## Timeline rendering
+
+Use an efficient graphical layer for dense event markers and bundling. Keep interaction and calculations separate from drawing. Provide a semantic keyboard-operable event list so the graphical timeline is not the only way to access events.
+
+## State and persistence
+
+- Zustand is the approved state-management family.
+- Store multiple named projects in IndexedDB through a repository abstraction.
+- Keep transient playback updates from causing unnecessary application-wide React renders.
+- Store portable domain data separately from browser-only runtime objects.
+- Do not depend on persisted browser file handles for portable project recovery.
+- Version local storage and portable formats independently where needed, with explicit migrations.
+
+## Worker boundaries
+
+Consider Web Workers for:
+
+- Log parsing if it measurably benefits responsiveness
+- MP4 inspection
+- Sample/keyframe indexing
+- Clip extraction/remuxing
+- Large project serialization
+
+Do not introduce a worker solely for architectural symmetry. Define typed messages and cancellation behavior for long-running work.
+
+## Export adapters
+
+### Direct clips
+
+The browser exporter is experimental. It must stream or read targeted ranges, preserve source quality, align cuts to safe keyframes, report progress, support cancellation, and allow partial success.
+
+The exact media library is intentionally undecided. A focused spike and dependency approval are required before selection.
+
+### DaVinci Resolve
+
+The exporter converts clip-domain data into one supported interchange timeline. It defaults to 60 FPS and the largest imported VOD resolution, includes source audio, and preserves manual clip order.
+
+The exact interchange format is selected only after a compatibility test with the free Resolve version.
+
+## Desktop evolution
+
+The future Windows application should reuse the domain, features, state rules, project schema, and most UI code. Desktop-specific adapters may provide full paths, offline operation, FFmpeg integration, stronger relinking, and broader codec support.
