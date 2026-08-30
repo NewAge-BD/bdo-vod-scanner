@@ -71,7 +71,7 @@ Every VOD keeps its own active names and saves them automatically in the project
 
 After saving a synchronization point, choose **Start Clipping** below the synchronization button. This opens a separate workspace with one large active video and a timeline that uses the full page width. Project navigation, source import, and source cards are hidden in this focused view. Use **Back to synchronization** whenever an anchor or name filter needs adjustment; the hidden project sections then return.
 
-The timeline begins with one source row for every imported VOD. Synchronized source coverage and existing clip ranges are shown on the shared scale; unavailable perspectives remain visible as **Sync required**. Three event rows follow: **Kills**, **Deaths**, and **Selected names**. The last row shows the current perspective's saved name filter.
+The timeline contains shared **Kills** and **Deaths** rows. Enter a family, character, or guild name directly beside **Selected names** and choose **Add name timeline** (or press Enter). Every added name receives its own independently filtered event row and can be removed again. Add more names whenever another dedicated timeline is useful. Extra VOD perspectives do not create extra timeline rows; switch the active perspective above the player instead.
 
 Pause on the desired start and choose **Set in (I)**, then move to the desired end and choose **Set out (O)**. The `I` and `O` keys perform the same actions while the video is focused in the clipping workspace. Refine both boundaries with the bright timeline handles and choose **Add clip**.
 

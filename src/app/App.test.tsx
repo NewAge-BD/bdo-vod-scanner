@@ -197,7 +197,21 @@ describe('App', () => {
     expect(within(clippingTimeline).getByText('Kills')).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Deaths')).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Selected names')).toBeInTheDocument();
-    expect(within(clippingTimeline).getByText('Synthetic Perspective')).toBeInTheDocument();
+    expect(within(clippingTimeline).getByText('RiverWarden')).toBeInTheDocument();
+    const clippingNameInput = within(clippingTimeline).getByLabelText('Selected names');
+    await user.type(clippingNameInput, 'CopperGrove{Enter}');
+    expect(
+      await within(clippingTimeline).findByRole('button', {
+        name: 'Remove CopperGrove timeline',
+      }),
+    ).toBeInTheDocument();
+    expect(within(clippingTimeline).queryByText('Synthetic Perspective')).not.toBeInTheDocument();
+    await user.click(
+      within(clippingTimeline).getByRole('button', { name: 'Remove CopperGrove timeline' }),
+    );
+    expect(
+      within(clippingTimeline).queryByRole('button', { name: 'Remove CopperGrove timeline' }),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Set in (I)' }));
     fireEvent.change(playhead, { target: { value: '65' } });
@@ -276,10 +290,11 @@ describe('App', () => {
     await screen.findByText('Synchronization point saved locally.');
 
     await user.click(screen.getByRole('button', { name: 'Start Clipping' }));
-    const vodRows = screen.getByLabelText('VOD source timelines');
-    expect(within(vodRows).getByText('Perspective A')).toBeInTheDocument();
-    expect(within(vodRows).getByText('Perspective B')).toBeInTheDocument();
-    expect(within(vodRows).getByText('Sync required')).toBeInTheDocument();
+    const clippingTimeline = screen.getByLabelText('Full-width clipping timeline');
+    expect(within(clippingTimeline).getByText('Kills')).toBeInTheDocument();
+    expect(within(clippingTimeline).getByText('Deaths')).toBeInTheDocument();
+    expect(within(clippingTimeline).queryByText('Perspective A')).not.toBeInTheDocument();
+    expect(within(clippingTimeline).queryByText('Perspective B')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Back to synchronization' }));
 
     await user.click(screen.getByRole('button', { name: 'Perspective B, Sync required' }));

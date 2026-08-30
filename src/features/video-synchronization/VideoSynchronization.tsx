@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { CreateClipInput, UpdateClipInput } from '../../domain/clips';
 import { parseBdoLog, searchEvents, type BdoEvent } from '../../domain/events';
-import type { Clip, PortableProject, VodReference } from '../../domain/projects';
+import type { PortableProject, VodReference } from '../../domain/projects';
 import {
   mapSessionTimeToVideoTime,
   mapVideoTimeToSessionTime,
@@ -395,7 +395,6 @@ export function VideoSynchronization({
     return (
       <SynchronizedVideoPlayer
         clippingMode={clippingMode}
-        clips={project.clips}
         estimatedFrameRate={estimatedFrameRate}
         events={events}
         file={file}
@@ -414,14 +413,18 @@ export function VideoSynchronization({
         onPlaybackChange={setIsMainPlaying}
         onPromotePerspective={selectPerspective}
         onReady={setIsVideoReady}
+        onRemoveSearchTerm={(term) => void removeSearchTerm(term)}
+        onSearchDraftChange={setSearchDraft}
+        onAddSearchTerm={() => void addSearchTerm()}
         onSelectEvent={setSelectedEventId}
         onTimeChange={setVideoTime}
         onSaveClip={() => void saveMarkedClip()}
         secondaryPerspectives={clippingMode ? [] : secondaryPerspectives}
+        searchDraft={searchDraft}
+        searchSaveState={searchSaveState}
+        searchTerms={activeVod.searchTerms}
         selectedEvent={selectedEvent}
-        selectedNameEvents={activeVod.searchTerms.length === 0 ? [] : matchingEvents}
         vod={activeVod}
-        vods={project.vods}
       />
     );
   }
@@ -634,7 +637,6 @@ export function VideoSynchronization({
 
 function SynchronizedVideoPlayer({
   clippingMode,
-  clips,
   file,
   vod,
   initialTime,
@@ -645,21 +647,24 @@ function SynchronizedVideoPlayer({
   events,
   isPlaying: playbackIntent,
   secondaryPerspectives,
+  searchDraft,
+  searchSaveState,
+  searchTerms,
   selectedEvent,
-  selectedNameEvents,
-  vods,
   onHidePerspective,
   onClipRangeChange,
   onMarkClipBoundary,
   onPlaybackChange,
   onPromotePerspective,
   onReady,
+  onRemoveSearchTerm,
+  onSearchDraftChange,
+  onAddSearchTerm,
   onSelectEvent,
   onTimeChange,
   onSaveClip,
 }: {
   readonly clippingMode: boolean;
-  readonly clips: readonly Clip[];
   readonly file: File;
   readonly vod: VodReference;
   readonly initialTime: number;
@@ -670,15 +675,19 @@ function SynchronizedVideoPlayer({
   readonly events: readonly BdoEvent[];
   readonly isPlaying: boolean;
   readonly secondaryPerspectives: readonly SecondaryPerspective[];
+  readonly searchDraft: string;
+  readonly searchSaveState: 'idle' | 'saving' | 'error';
+  readonly searchTerms: readonly string[];
   readonly selectedEvent: BdoEvent | undefined;
-  readonly selectedNameEvents: readonly BdoEvent[];
-  readonly vods: readonly VodReference[];
   readonly onHidePerspective: (vodId: string) => void;
   readonly onClipRangeChange: (range: ClipDraftRange) => void;
   readonly onMarkClipBoundary: (boundary: 'in' | 'out', time: number) => void;
   readonly onPlaybackChange: (isPlaying: boolean) => void;
   readonly onPromotePerspective: (vodId: string) => void;
   readonly onReady: (ready: boolean) => void;
+  readonly onRemoveSearchTerm: (term: string) => void;
+  readonly onSearchDraftChange: (value: string) => void;
+  readonly onAddSearchTerm: () => void;
   readonly onSelectEvent: (eventId: string) => void;
   readonly onTimeChange: (time: number) => void;
   readonly onSaveClip: () => void;
@@ -748,16 +757,19 @@ function SynchronizedVideoPlayer({
       ),
     [alignmentEventId, alignmentEventTime, alignmentVideoTime, events, timelineWindow],
   );
-  const selectedNameMarkers = useMemo(
+  const nameMarkerGroups = useMemo(
     () =>
-      buildAlignedMarkers(
-        selectedNameEvents,
-        alignmentEventId,
-        alignmentEventTime,
-        alignmentVideoTime,
-        timelineWindow,
-      ),
-    [alignmentEventId, alignmentEventTime, alignmentVideoTime, selectedNameEvents, timelineWindow],
+      searchTerms.map((term) => ({
+        markers: buildAlignedMarkers(
+          searchEvents(events, [term]),
+          alignmentEventId,
+          alignmentEventTime,
+          alignmentVideoTime,
+          timelineWindow,
+        ),
+        term,
+      })),
+    [alignmentEventId, alignmentEventTime, alignmentVideoTime, events, searchTerms, timelineWindow],
   );
 
   useEffect(() => {
@@ -1249,17 +1261,6 @@ function SynchronizedVideoPlayer({
 
         {clippingMode ? (
           <div className="clipping-timeline" aria-label={t('clipping.timeline')}>
-            <div className="clipping-timeline__group" aria-label={t('clipping.vodRows')}>
-              {vods.map((timelineVod) => (
-                <VodTimelineLane
-                  activeVod={vod}
-                  clips={clips.filter((clip) => clip.vodId === timelineVod.id)}
-                  key={timelineVod.id}
-                  timelineVod={timelineVod}
-                  timelineWindow={timelineWindow}
-                />
-              ))}
-            </div>
             <EventTimelineLane
               emptyLabel={t('synchronization.noVisibleEvents')}
               events={events}
@@ -1276,14 +1277,53 @@ function SynchronizedVideoPlayer({
               onActivate={activateLogMarker}
               selectedEvent={selectedEvent}
             />
-            <EventTimelineLane
-              emptyLabel={t('clipping.noSelectedNames')}
-              events={events}
-              label={t('clipping.selectedNames')}
-              markers={selectedNameMarkers}
-              onActivate={activateLogMarker}
-              selectedEvent={selectedEvent}
-            />
+            <div className="clipping-timeline__lane clipping-timeline__lane--name-entry">
+              <label className="clipping-timeline__label" htmlFor={`clip-name-search-${vod.id}`}>
+                {t('clipping.selectedNames')}
+              </label>
+              <div className="name-timeline-entry">
+                <input
+                  id={`clip-name-search-${vod.id}`}
+                  maxLength={120}
+                  onChange={(event) => onSearchDraftChange(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      onAddSearchTerm();
+                    }
+                  }}
+                  placeholder={t('clipping.namePlaceholder')}
+                  type="search"
+                  value={searchDraft}
+                />
+                <button
+                  disabled={
+                    searchDraft.trim().length === 0 ||
+                    searchSaveState === 'saving' ||
+                    searchTerms.length >= 50
+                  }
+                  onClick={onAddSearchTerm}
+                  type="button"
+                >
+                  {t('clipping.addNameTimeline')}
+                </button>
+              </div>
+            </div>
+            {searchSaveState === 'error' && (
+              <p className="name-timeline-error">{t('clipping.nameSaveError')}</p>
+            )}
+            {nameMarkerGroups.map(({ markers, term }) => (
+              <EventTimelineLane
+                emptyLabel={t('clipping.noVisibleNameEvents', { name: term })}
+                events={events}
+                key={term.toLocaleLowerCase()}
+                label={term}
+                markers={markers}
+                onActivate={activateLogMarker}
+                onRemove={() => onRemoveSearchTerm(term)}
+                selectedEvent={selectedEvent}
+              />
+            ))}
           </div>
         ) : (
           <div className="log-timeline" aria-label={t('synchronization.logTimeline')}>
@@ -1411,6 +1451,7 @@ function EventTimelineLane({
   label,
   markers,
   onActivate,
+  onRemove,
   selectedEvent,
 }: {
   readonly emptyLabel: string;
@@ -1418,12 +1459,27 @@ function EventTimelineLane({
   readonly label: string;
   readonly markers: readonly LogTimelineMarker[];
   readonly onActivate: (marker: LogTimelineMarker) => void;
+  readonly onRemove?: () => void;
   readonly selectedEvent: BdoEvent | undefined;
 }) {
   const { t } = useTranslation();
   return (
     <div className="clipping-timeline__lane">
-      <span className="clipping-timeline__label">{label}</span>
+      <div className="clipping-timeline__name-label">
+        <span className="clipping-timeline__label" title={label}>
+          {label}
+        </span>
+        {onRemove !== undefined && (
+          <button
+            aria-label={t('clipping.removeNameTimeline', { name: label })}
+            onClick={onRemove}
+            title={t('clipping.removeNameTimeline', { name: label })}
+            type="button"
+          >
+            ×
+          </button>
+        )}
+      </div>
       <div className="log-timeline__track">
         {markers.length === 0 ? (
           <span className="log-timeline__empty">{emptyLabel}</span>
@@ -1462,87 +1518,6 @@ function EventTimelineLane({
       </div>
     </div>
   );
-}
-
-function VodTimelineLane({
-  activeVod,
-  clips,
-  timelineVod,
-  timelineWindow,
-}: {
-  readonly activeVod: VodReference;
-  readonly clips: readonly Clip[];
-  readonly timelineVod: VodReference;
-  readonly timelineWindow: TimelineWindow;
-}) {
-  const { t } = useTranslation();
-  const activeAnchor = activeVod.synchronizationAnchor;
-  const timelineAnchor = timelineVod.synchronizationAnchor;
-  const duration = timelineVod.durationSeconds;
-  const sourceRange =
-    activeAnchor === null || timelineAnchor === null || duration === null
-      ? undefined
-      : rangeOnActiveTimeline(0, duration, timelineAnchor, activeAnchor, timelineWindow);
-  return (
-    <div className="clipping-timeline__lane clipping-timeline__lane--vod">
-      <span className="clipping-timeline__label" title={timelineVod.displayName}>
-        {timelineVod.displayName}
-      </span>
-      <div className="clipping-timeline__vod-track">
-        {sourceRange === undefined ? (
-          <span className="clipping-timeline__status">{t('clipping.syncRequired')}</span>
-        ) : (
-          <span
-            className={`clipping-timeline__source${timelineVod.id === activeVod.id ? ' clipping-timeline__source--active' : ''}`}
-            style={{ left: `${sourceRange.left}%`, width: `${sourceRange.width}%` }}
-          />
-        )}
-        {clips.map((clip) => {
-          if (activeAnchor === null || timelineAnchor === null) {
-            return null;
-          }
-          const range = rangeOnActiveTimeline(
-            clip.inPointSeconds,
-            clip.outPointSeconds,
-            timelineAnchor,
-            activeAnchor,
-            timelineWindow,
-          );
-          return range === undefined ? null : (
-            <span
-              aria-label={clip.title}
-              className="clipping-timeline__clip"
-              key={clip.id}
-              style={{ left: `${range.left}%`, width: `${range.width}%` }}
-              title={clip.title}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function rangeOnActiveTimeline(
-  startSeconds: number,
-  endSeconds: number,
-  sourceAnchor: NonNullable<VodReference['synchronizationAnchor']>,
-  activeAnchor: NonNullable<VodReference['synchronizationAnchor']>,
-  timelineWindow: TimelineWindow,
-): { readonly left: number; readonly width: number } | undefined {
-  const startSessionTime = mapVideoTimeToSessionTime(sourceAnchor, startSeconds);
-  const endSessionTime = mapVideoTimeToSessionTime(sourceAnchor, endSeconds);
-  const activeStart = mapSessionTimeToVideoTime(activeAnchor, startSessionTime);
-  const activeEnd = mapSessionTimeToVideoTime(activeAnchor, endSessionTime);
-  const visibleStart = Math.max(timelineWindow.startSeconds, activeStart);
-  const visibleEnd = Math.min(timelineWindow.endSeconds, activeEnd);
-  if (visibleEnd <= visibleStart) {
-    return undefined;
-  }
-  return {
-    left: ((visibleStart - timelineWindow.startSeconds) / timelineWindow.durationSeconds) * 100,
-    width: ((visibleEnd - visibleStart) / timelineWindow.durationSeconds) * 100,
-  };
 }
 
 function describeEvent(event: BdoEvent): string {
