@@ -45,6 +45,8 @@ Use the video timeline below the player to find the matching frame:
 
 To inspect a small visual detail such as the kill feed or chat, scroll the mouse wheel over the video image. While zoomed in, hold the middle mouse button and drag to move the image. Double-click the image or choose **Reset view** to return to the complete frame. Video-image zoom and timeline time zoom are independent.
 
+The **Log events** track shares the visible video-time scale. Kills are green, deaths are red, and dense areas are combined into neutral numbered bundles. Choose an individual marker to select that event, seek the video to its calculated position, and pause. Choose a bundle to zoom into that group. Before the first synchronization point is saved, the selected event and current video frame form a clearly labelled preview alignment; afterward the track uses the stored alignment.
+
 Stop on the matching event and choose **Set synchronization point**.
 
 Every VOD has its own synchronization offset. Select another perspective above the player to synchronize it independently. Existing points can be updated. The current browser implementation uses detected FPS when available and otherwise visibly estimates 60 FPS; it does not promise a professional frame index.

@@ -1037,6 +1037,104 @@ h1 {
   box-shadow: 0 0 0 0.25rem rgb(216 254 69 / 11%);
 }
 
+.log-timeline {
+  margin-top: 0.55rem;
+}
+
+.log-timeline__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  color: var(--quiet);
+  font-size: 0.59rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.log-timeline__heading small {
+  color: #d2a95f;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: normal;
+}
+
+.log-timeline__track {
+  position: relative;
+  height: 2.65rem;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 31px,
+      rgb(255 255 255 / 6%) 32px,
+      transparent 33px
+    ),
+    #10141a;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.4rem;
+}
+
+.log-timeline__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--quiet);
+  font-size: 0.6rem;
+}
+
+.log-timeline__marker {
+  position: absolute;
+  top: 50%;
+  width: 0.56rem;
+  min-width: 0;
+  height: 1.65rem;
+  padding: 0;
+  border: 1px solid #080a0d;
+  border-radius: 0.18rem;
+  box-shadow: 0 0.15rem 0.45rem rgb(0 0 0 / 40%);
+  transform: translate(-50%, -50%);
+}
+
+.video-timeline .log-timeline__marker--kill {
+  background: var(--kill);
+}
+
+.video-timeline .log-timeline__marker--death {
+  background: var(--death);
+}
+
+.video-timeline .log-timeline__marker--bundle {
+  width: 1.1rem;
+  color: #eef2f7;
+  background: #566170;
+  border-color: #778394;
+}
+
+.video-timeline .log-timeline__marker--kill:hover:not(:disabled) {
+  background: var(--kill);
+}
+
+.video-timeline .log-timeline__marker--death:hover:not(:disabled) {
+  background: var(--death);
+}
+
+.video-timeline .log-timeline__marker--bundle:hover:not(:disabled) {
+  background: #667282;
+}
+
+.log-timeline__marker span {
+  font-size: 0.48rem;
+  font-weight: 850;
+}
+
+.log-timeline__marker[aria-pressed='true'] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .video-timeline__zoom {
   display: grid;
   grid-template-columns: auto auto auto minmax(7rem, 1fr) auto auto;

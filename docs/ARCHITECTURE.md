@@ -113,7 +113,9 @@ If the log clock crosses from late night to an earlier time, increment the day o
 
 ## Timeline rendering
 
-The current single-VOD synchronization timeline uses a native range control for accessible dragging and keyboard operation. Wheel zoom and middle-button panning update only the timeline time window. The video viewport stores separate image scale and translation values, with pointer-centered wheel zoom and bounded image panning. Both surfaces provide visible controls and double-click reset behavior. Use an efficient graphical layer for the future dense shared log-event markers and bundling. Keep interaction and calculations separate from drawing. Provide a semantic keyboard-operable event list so the graphical timeline is not the only way to access events.
+The current single-VOD synchronization timeline uses a native range control for accessible dragging and keyboard operation. Wheel zoom and middle-button panning update only the timeline time window. The video viewport stores separate image scale and translation values, with pointer-centered wheel zoom and bounded image panning. Both surfaces provide visible controls and double-click reset behavior.
+
+The log-event track maps session times through the stored VOD anchor onto the same visible video-time window. Before synchronization, the selected event and current video position provide a provisional preview anchor. At most 48 marker bins are rendered: individual kills and deaths retain their semantic colors, while multiple events in one bin become a neutral bundle that zooms into its region. The searchable event list remains the complete semantic keyboard-operable representation.
 
 ## State and persistence
 

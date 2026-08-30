@@ -70,6 +70,7 @@ test('manages a portable private local project', async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByLabel('Video timeline playhead')).toBeVisible();
   await expect(page.getByLabel('Timeline zoom level')).toBeVisible();
+  await expect(page.getByLabel('Shared log event timeline')).toBeVisible();
   const videoViewport = page.getByLabel('Zoomable video viewport');
   await expect(videoViewport).toBeVisible();
   await videoViewport.hover({ position: { x: 200, y: 120 } });

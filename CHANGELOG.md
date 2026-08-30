@@ -30,6 +30,7 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added a draggable video playhead with an exponentially zoomable and pannable visible time range.
 - Added mouse-wheel zoom, middle-button panning, and double-click reset for both the video image and timeline time window.
 - Added lightweight custom playback, mute, view-reset, and fullscreen controls so video-image zoom never displaces its controls.
+- Added a shared log-event track on the visible video-time scale with green kills, red deaths, neutral dense-event bundles, and marker navigation.
 - Added searchable log-event selection and one persistent synchronization anchor per VOD.
 - Added independent sync status and calculated offset display for every perspective.
 

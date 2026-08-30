@@ -74,6 +74,8 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Synchronize VODs' })).toBeInTheDocument();
 
     fireEvent.loadedMetadata(screen.getByLabelText('Synthetic Perspective video perspective'));
+    expect(screen.getByLabelText('Shared log event timeline')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /3 log events around video time/ })).toBeVisible();
     const videoViewport = screen.getByLabelText('Zoomable video viewport');
     vi.spyOn(videoViewport, 'getBoundingClientRect').mockReturnValue({
       bottom: 450,
@@ -137,6 +139,22 @@ describe('App', () => {
     expect(playhead.getAttribute('min')).not.toBe(rangeStartBeforePan);
     fireEvent.doubleClick(timeline);
     expect(screen.getByText('Zoom ×1.0')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /3 log events around video time/ }));
+    expect(screen.getByText('Zoom ×2.0')).toBeInTheDocument();
+    fireEvent.doubleClick(timeline);
+
+    fireEvent.change(zoom, { target: { value: '49' } });
+    await user.click(
+      screen.getByRole('button', { name: '00:00:03: CopperGrove killed MistRunner' }),
+    );
+    expect(
+      screen.getByText(
+        '[00:00:03] CopperGrove killed MistRunner from StarFoundry (CloudStep, BronzeLeaf)',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('00:00:05.000')).toBeInTheDocument();
+    fireEvent.doubleClick(timeline);
 
     fireEvent.change(zoom, { target: { value: '13' } });
     expect(screen.getByText('Zoom ×2.0')).toBeInTheDocument();

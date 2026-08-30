@@ -9,8 +9,16 @@ import { useTranslation } from 'react-i18next';
 
 import { parseBdoLog, searchEvents, type BdoEvent } from '../../domain/events';
 import type { PortableProject, VodReference } from '../../domain/projects';
-import type { SynchronizationAnchorInput } from '../../domain/synchronization';
-import { calculateTimelineWindow, zoomLevelToFactor } from '../../domain/timeline';
+import {
+  mapSessionTimeToVideoTime,
+  type SynchronizationAnchorInput,
+} from '../../domain/synchronization';
+import {
+  buildLogTimelineMarkers,
+  calculateTimelineWindow,
+  zoomLevelToFactor,
+  type LogTimelineMarker,
+} from '../../domain/timeline';
 import { clampVideoPan, zoomVideoAtPoint, type ViewportPoint } from '../../domain/viewport';
 import { useObjectUrl } from './useObjectUrl';
 
@@ -125,11 +133,14 @@ export function VideoSynchronization({
           ) : (
             <SynchronizedVideoPlayer
               estimatedFrameRate={estimatedFrameRate}
+              events={parsedLog.events}
               file={file}
               initialTime={activeVod.synchronizationAnchor?.videoTimeSeconds ?? 0}
               key={`${activeVod.id}-${file.name}-${file.lastModified}-${file.size}`}
               onReady={setIsVideoReady}
+              onSelectEvent={setSelectedEventId}
               onTimeChange={setVideoTime}
+              selectedEvent={selectedEvent}
               vod={activeVod}
             />
           )}
@@ -208,14 +219,20 @@ function SynchronizedVideoPlayer({
   vod,
   initialTime,
   estimatedFrameRate,
+  events,
+  selectedEvent,
   onReady,
+  onSelectEvent,
   onTimeChange,
 }: {
   readonly file: File;
   readonly vod: VodReference;
   readonly initialTime: number;
   readonly estimatedFrameRate: number;
+  readonly events: readonly BdoEvent[];
+  readonly selectedEvent: BdoEvent | undefined;
   readonly onReady: (ready: boolean) => void;
+  readonly onSelectEvent: (eventId: string) => void;
   readonly onTimeChange: (time: number) => void;
 }) {
   const { t } = useTranslation();
@@ -236,8 +253,31 @@ function SynchronizedVideoPlayer({
   const [isMuted, setIsMuted] = useState(false);
   const objectUrl = useObjectUrl(file);
   const zoomFactor = zoomLevelToFactor(zoomLevel);
-  const timelineWindow = calculateTimelineWindow(mediaDuration, timelineCenter, zoomFactor);
+  const timelineWindow = useMemo(
+    () => calculateTimelineWindow(mediaDuration, timelineCenter, zoomFactor),
+    [mediaDuration, timelineCenter, zoomFactor],
+  );
   const frameDuration = 1 / estimatedFrameRate;
+  const storedAnchor = vod.synchronizationAnchor;
+  const alignmentEventId = storedAnchor?.eventId ?? selectedEvent?.id;
+  const alignmentEventTime =
+    storedAnchor?.eventSessionTimeSeconds ?? selectedEvent?.sessionTimeSeconds;
+  const alignmentVideoTime = storedAnchor?.videoTimeSeconds ?? displayTime;
+  const logMarkers = useMemo(() => {
+    if (alignmentEventId === undefined || alignmentEventTime === undefined) {
+      return [];
+    }
+    const anchor: SynchronizationAnchorInput = {
+      eventId: alignmentEventId,
+      eventSessionTimeSeconds: alignmentEventTime,
+      videoTimeSeconds: alignmentVideoTime,
+    };
+    return buildLogTimelineMarkers(
+      events,
+      (sessionTime) => mapSessionTimeToVideoTime(anchor, sessionTime),
+      timelineWindow,
+    );
+  }, [alignmentEventId, alignmentEventTime, alignmentVideoTime, events, timelineWindow]);
 
   useEffect(() => {
     const viewport = videoViewportRef.current;
@@ -444,6 +484,20 @@ function SynchronizedVideoPlayer({
     }
   }
 
+  function activateLogMarker(marker: LogTimelineMarker) {
+    if (marker.eventCount > 1) {
+      setTimelineCenter(marker.videoTimeSeconds);
+      setZoomLevel(Math.min(120, zoomLevel + 12));
+      return;
+    }
+    const eventId = marker.eventIds[0];
+    if (eventId === undefined) {
+      return;
+    }
+    onSelectEvent(eventId);
+    seekTo(marker.videoTimeSeconds);
+  }
+
   return (
     <>
       <div
@@ -572,6 +626,53 @@ function SynchronizedVideoPlayer({
               Math.max(timelineWindow.startSeconds, displayTime),
             )}
           />
+        </div>
+
+        <div className="log-timeline" aria-label={t('synchronization.logTimeline')}>
+          <div className="log-timeline__heading">
+            <span>{t('synchronization.logEvents')}</span>
+            <small>
+              {storedAnchor === null
+                ? t('synchronization.previewAlignment')
+                : t('synchronization.storedAlignment')}
+            </small>
+          </div>
+          <div className="log-timeline__track">
+            {logMarkers.length === 0 ? (
+              <span className="log-timeline__empty">{t('synchronization.noVisibleEvents')}</span>
+            ) : (
+              logMarkers.map((marker) => {
+                const onlyEvent =
+                  marker.eventCount === 1
+                    ? events.find((event) => event.id === marker.eventIds[0])
+                    : undefined;
+                const label =
+                  onlyEvent === undefined
+                    ? t('synchronization.eventBundle', {
+                        count: marker.eventCount,
+                        time: formatTime(marker.videoTimeSeconds),
+                      })
+                    : `${onlyEvent.clockTime}: ${describeEvent(onlyEvent)}`;
+                return (
+                  <button
+                    aria-label={label}
+                    aria-pressed={
+                      selectedEvent !== undefined && marker.eventIds.includes(selectedEvent.id)
+                    }
+                    className={`log-timeline__marker log-timeline__marker--${marker.type}`}
+                    key={marker.id}
+                    onClick={() => activateLogMarker(marker)}
+                    onDoubleClick={(event) => event.stopPropagation()}
+                    style={{ left: `${marker.positionRatio * 100}%` }}
+                    title={label}
+                    type="button"
+                  >
+                    {marker.eventCount > 1 && <span>{marker.eventCount}</span>}
+                  </button>
+                );
+              })
+            )}
+          </div>
         </div>
 
         <div className="video-timeline__zoom">
