@@ -139,7 +139,7 @@ Do not infer alignment from the VOD filename. Reserve future compatibility for a
 
 Frame accuracy means visual frame-by-frame navigation, not a guaranteed professional frame address. Detect nominal/average FPS, account for fixed and variable rates, use presentation timestamps and `requestVideoFrameCallback` where helpful, and step by the best available estimated frame duration. Support common 30/60/120/144 FPS footage and communicate uncertainty.
 
-Keep synchronization and clip selection as separate workspaces. A **Start Clipping** action below the synchronization confirmation opens the clipping workspace with the active perspective as a large single player and its timeline across the full available width. While clipping, hide the project heading, project navigation, source import, and imported-source cards above the workspace. Restore them when the user returns to synchronization.
+Keep synchronization and clip selection as separate workspaces. A **Start Clipping** action below the synchronization confirmation opens the clipping workspace with the active perspective as a large single player and its timeline across the full available width. Use the wider desktop canvas, a viewport-aware player height, readable event lanes, and pointer-friendly markers and clip handles. While clipping, hide the project heading, project navigation, source import, and imported-source cards above the workspace. Restore them when the user returns to synchronization.
 
 Do not create extra timeline rows for additional VOD perspectives. Show shared **Kills** and **Deaths** rows, followed by a **Selected names** text entry. Adding a family, character, or guild name creates one independently filtered event timeline for that name; users may add or remove as many name timelines as needed within the saved per-perspective limit. Give each name timeline a compact split toggle that changes its combined row into separate kill and death rows and can merge them again. Persist that layout per VOD in the project. Support mouse-wheel zoom anchored to the exact time beneath the pointer and horizontal navigation. Bundle dense events while zoomed out and separate them while zoomed in. Render `killed` green, `died to` red, and bundles neutrally. Use efficient graphics for dense markers plus a semantic keyboard-operable event list. Clicking an event seeks and pauses. Display clip ranges with draggable handles.
 
@@ -156,7 +156,7 @@ Minimum keyboard controls:
 
 Each clip stores ID, project and VOD IDs, source metadata, editable title, in/out points, duration, search-term snapshot, matching event IDs/count, manual order, creation time, and useful export state/error code.
 
-Support button/keyboard in/out marking, draggable refinement, multiple clips per VOD, chronological sorting, and manual drag ordering. Use a collapsible side panel showing title, perspective, range, duration, matching-event count, and export status. Confirm before removing a VOD that owns clips. Later search changes must not mutate existing clips.
+Support button/keyboard in/out marking, draggable refinement on one shared visible time scale, multiple clips per VOD, chronological sorting, and persisted manual drag ordering. Provide accessible move-up/down equivalents. Use a collapsible panel showing title, perspective, range, duration, matching-event count, and export status. Confirm before removing a VOD that owns clips. Later search changes must not mutate existing clips.
 
 ### Experimental direct export
 

@@ -8,6 +8,8 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ### Added
 
+- Added persistent drag-and-drop clip ordering with accessible move-up and move-down controls.
+- Expanded the clipping workspace width and improved player height, event-lane density, marker targets, and differentiated clip handles.
 - Added a persistent per-name split control that separates a selected-name timeline into dedicated kill and death lanes.
 - Added the React, strict TypeScript, Vite, internationalization, and custom-CSS application foundation.
 - Added the initial accessible project-overview shell.
@@ -56,6 +58,7 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ### Fixed
 
+- Corrected clip handles so both use the same visible timeline scale at every zoom level.
 - Prevented mouse-wheel zoom over the video or timeline from scrolling the surrounding page.
 - Kept the timeline time beneath the mouse pointer stationary while zooming at off-center positions.
 - Kept synchronized and sync-required status colors stable when selecting another perspective.

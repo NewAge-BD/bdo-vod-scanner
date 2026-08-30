@@ -4,6 +4,7 @@ import { createProject, portableProjectSchema } from '../projects';
 import {
   createProjectClip,
   deleteProjectClip,
+  reorderProjectClips,
   setClipPanelCollapsed,
   updateProjectClip,
 } from './clip';
@@ -76,6 +77,36 @@ describe('clip domain', () => {
         matchingEventIds: [],
       }),
     ).toThrow('outside the source VOD');
+  });
+
+  it('reorders every clip and updates its stored order', () => {
+    const project = projectWithVod();
+    const vodId = project.vods[0]!.id;
+    const first = createProjectClip(project, vodId, {
+      inPointSeconds: 10,
+      outPointSeconds: 20,
+      matchingEventIds: [],
+    });
+    const second = createProjectClip(first, vodId, {
+      inPointSeconds: 30,
+      outPointSeconds: 40,
+      matchingEventIds: [],
+    });
+    const reversedOrder = [...second.clipOrder].reverse();
+
+    const reordered = reorderProjectClips(
+      second,
+      reversedOrder,
+      new Date('2026-08-30T13:00:00.000Z'),
+    );
+
+    expect(reordered.clipOrder).toEqual(reversedOrder);
+    expect(reordered.clips.find((clip) => clip.id === reversedOrder[0])?.order).toBe(0);
+    expect(reordered.clips.find((clip) => clip.id === reversedOrder[1])?.order).toBe(1);
+    expect(second.clipOrder).not.toEqual(reversedOrder);
+    expect(() => reorderProjectClips(second, [reversedOrder[0]!])).toThrow(
+      'every project clip exactly once',
+    );
   });
 });
 

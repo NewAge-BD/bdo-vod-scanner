@@ -40,6 +40,7 @@ interface VideoSynchronizationProps {
   readonly onClipPanelCollapsedChange: (collapsed: boolean) => Promise<boolean>;
   readonly onCreateClip: (vodId: string, input: CreateClipInput) => Promise<boolean>;
   readonly onDeleteClip: (clipId: string) => Promise<boolean>;
+  readonly onReorderClips: (clipOrder: readonly string[]) => Promise<boolean>;
   readonly onDeleteVod: (vodId: string) => Promise<boolean>;
   readonly onClippingModeChange: (isClipping: boolean) => void;
   readonly onSearchTermsChange: (vodId: string, searchTerms: readonly string[]) => Promise<boolean>;
@@ -57,6 +58,7 @@ export function VideoSynchronization({
   onClipPanelCollapsedChange,
   onCreateClip,
   onDeleteClip,
+  onReorderClips,
   onDeleteVod,
   onClippingModeChange,
   onSearchTermsChange,
@@ -528,6 +530,7 @@ export function VideoSynchronization({
         <ClipPanel
           onCollapsedChange={onClipPanelCollapsedChange}
           onDeleteClip={onDeleteClip}
+          onReorderClips={onReorderClips}
           onRenameClip={(clipId, title) => onUpdateClip(clipId, { title })}
           project={project}
         />
@@ -1276,15 +1279,15 @@ function SynchronizedVideoPlayer({
                 <input
                   aria-label={t('clips.rangeHandleIn')}
                   className="clip-range-editor__handle clip-range-editor__handle--in"
-                  max={Math.max(
-                    timelineWindow.startSeconds,
-                    clipDraft.outPointSeconds - frameDuration,
-                  )}
+                  max={timelineWindow.endSeconds}
                   min={timelineWindow.startSeconds}
                   onChange={(event) =>
                     onClipRangeChange({
                       ...clipDraft,
-                      inPointSeconds: Number(event.target.value),
+                      inPointSeconds: Math.min(
+                        Number(event.target.value),
+                        clipDraft.outPointSeconds! - frameDuration,
+                      ),
                     })
                   }
                   step={frameDuration}
@@ -1295,14 +1298,14 @@ function SynchronizedVideoPlayer({
                   aria-label={t('clips.rangeHandleOut')}
                   className="clip-range-editor__handle clip-range-editor__handle--out"
                   max={timelineWindow.endSeconds}
-                  min={Math.min(
-                    timelineWindow.endSeconds,
-                    clipDraft.inPointSeconds + frameDuration,
-                  )}
+                  min={timelineWindow.startSeconds}
                   onChange={(event) =>
                     onClipRangeChange({
                       ...clipDraft,
-                      outPointSeconds: Number(event.target.value),
+                      outPointSeconds: Math.max(
+                        Number(event.target.value),
+                        clipDraft.inPointSeconds! + frameDuration,
+                      ),
                     })
                   }
                   step={frameDuration}

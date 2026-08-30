@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type DragEvent as ReactDragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { Clip, PortableProject } from '../../domain/projects';
@@ -7,6 +7,7 @@ interface ClipPanelProps {
   readonly project: PortableProject;
   readonly onCollapsedChange: (collapsed: boolean) => Promise<boolean>;
   readonly onDeleteClip: (clipId: string) => Promise<boolean>;
+  readonly onReorderClips: (clipOrder: readonly string[]) => Promise<boolean>;
   readonly onRenameClip: (clipId: string, title: string) => Promise<boolean>;
 }
 
@@ -14,6 +15,7 @@ export function ClipPanel({
   project,
   onCollapsedChange,
   onDeleteClip,
+  onReorderClips,
   onRenameClip,
 }: ClipPanelProps) {
   const { t } = useTranslation();
@@ -21,6 +23,48 @@ export function ClipPanel({
     .map((id) => project.clips.find((clip) => clip.id === id))
     .filter((clip): clip is Clip => clip !== undefined);
   const collapsed = project.uiState.clipPanelCollapsed;
+  const [draggedClipId, setDraggedClipId] = useState<string>();
+  const [dropTargetClipId, setDropTargetClipId] = useState<string>();
+  const [reorderState, setReorderState] = useState<'idle' | 'saving' | 'error'>('idle');
+
+  async function saveOrder(clipOrder: readonly string[]) {
+    setReorderState('saving');
+    const saved = await onReorderClips(clipOrder);
+    setReorderState(saved ? 'idle' : 'error');
+  }
+
+  function moveClip(clipId: string, direction: -1 | 1) {
+    const currentIndex = orderedClips.findIndex((clip) => clip.id === clipId);
+    const targetIndex = currentIndex + direction;
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= orderedClips.length) {
+      return;
+    }
+    const nextOrder = orderedClips.map((clip) => clip.id);
+    [nextOrder[currentIndex], nextOrder[targetIndex]] = [
+      nextOrder[targetIndex]!,
+      nextOrder[currentIndex]!,
+    ];
+    void saveOrder(nextOrder);
+  }
+
+  function dropClip(targetClipId: string) {
+    if (draggedClipId === undefined || draggedClipId === targetClipId) {
+      setDraggedClipId(undefined);
+      setDropTargetClipId(undefined);
+      return;
+    }
+    const nextOrder = orderedClips.map((clip) => clip.id);
+    const sourceIndex = nextOrder.indexOf(draggedClipId);
+    const targetIndex = nextOrder.indexOf(targetClipId);
+    if (sourceIndex < 0 || targetIndex < 0) {
+      return;
+    }
+    nextOrder.splice(sourceIndex, 1);
+    nextOrder.splice(targetIndex, 0, draggedClipId);
+    setDraggedClipId(undefined);
+    setDropTargetClipId(undefined);
+    void saveOrder(nextOrder);
+  }
 
   return (
     <section className="clip-panel" aria-labelledby="clip-panel-title">
@@ -36,17 +80,50 @@ export function ClipPanel({
           </button>
         </div>
       </div>
+      {reorderState === 'saving' && (
+        <p className="clip-panel__reorder-state" role="status">
+          {t('clips.reorderSaving')}
+        </p>
+      )}
+      {reorderState === 'error' && (
+        <p className="clip-panel__reorder-state clip-panel__reorder-state--error" role="alert">
+          {t('clips.reorderError')}
+        </p>
+      )}
 
       {!collapsed &&
         (orderedClips.length === 0 ? (
           <p className="clip-panel__empty">{t('clips.empty')}</p>
         ) : (
-          <div className="clip-list">
-            {orderedClips.map((clip) => (
+          <div className="clip-list" role="list">
+            {orderedClips.map((clip, index) => (
               <ClipCard
                 clip={clip}
+                dragDisabled={reorderState === 'saving'}
+                dragging={clip.id === draggedClipId}
+                dropTarget={clip.id === dropTargetClipId && clip.id !== draggedClipId}
                 key={clip.id}
+                moveDownDisabled={index === orderedClips.length - 1 || reorderState === 'saving'}
+                moveUpDisabled={index === 0 || reorderState === 'saving'}
+                onDragEnd={() => {
+                  setDraggedClipId(undefined);
+                  setDropTargetClipId(undefined);
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = 'move';
+                  setDropTargetClipId(clip.id);
+                }}
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = 'move';
+                  event.dataTransfer.setData('text/plain', clip.id);
+                  setDraggedClipId(clip.id);
+                  setReorderState('idle');
+                }}
                 onDelete={onDeleteClip}
+                onDrop={() => dropClip(clip.id)}
+                onMoveDown={() => moveClip(clip.id, 1)}
+                onMoveUp={() => moveClip(clip.id, -1)}
                 onRename={onRenameClip}
                 perspectiveName={
                   project.vods.find((vod) => vod.id === clip.vodId)?.displayName ??
@@ -63,12 +140,34 @@ export function ClipPanel({
 function ClipCard({
   clip,
   perspectiveName,
+  dragging,
+  dragDisabled,
+  dropTarget,
   onDelete,
+  moveDownDisabled,
+  moveUpDisabled,
+  onDragEnd,
+  onDragOver,
+  onDragStart,
+  onDrop,
+  onMoveDown,
+  onMoveUp,
   onRename,
 }: {
   readonly clip: Clip;
   readonly perspectiveName: string;
+  readonly dragging: boolean;
+  readonly dragDisabled: boolean;
+  readonly dropTarget: boolean;
   readonly onDelete: (clipId: string) => Promise<boolean>;
+  readonly moveDownDisabled: boolean;
+  readonly moveUpDisabled: boolean;
+  readonly onDragEnd: () => void;
+  readonly onDragOver: (event: ReactDragEvent<HTMLElement>) => void;
+  readonly onDragStart: (event: ReactDragEvent<HTMLButtonElement>) => void;
+  readonly onDrop: () => void;
+  readonly onMoveDown: () => void;
+  readonly onMoveUp: () => void;
   readonly onRename: (clipId: string, title: string) => Promise<boolean>;
 }) {
   const { t } = useTranslation();
@@ -86,8 +185,29 @@ function ClipCard({
   }
 
   return (
-    <article className="clip-card">
+    <article
+      aria-label={t('clips.clipCard', { title: clip.title })}
+      className={`clip-card${dragging ? ' clip-card--dragging' : ''}${dropTarget ? ' clip-card--drop-target' : ''}`}
+      onDragOver={onDragOver}
+      onDrop={(event) => {
+        event.preventDefault();
+        onDrop();
+      }}
+      role="listitem"
+    >
       <div className="clip-card__title-row">
+        <button
+          aria-label={t('clips.dragClip', { title: clip.title })}
+          className="clip-card__drag-handle"
+          disabled={dragDisabled}
+          draggable={!dragDisabled}
+          onDragEnd={onDragEnd}
+          onDragStart={onDragStart}
+          title={t('clips.dragClipTooltip')}
+          type="button"
+        >
+          <span aria-hidden="true">⠿</span>
+        </button>
         <label>
           <span>{t('clips.clipTitle')}</span>
           <input
@@ -102,6 +222,26 @@ function ClipCard({
             value={title}
           />
         </label>
+        <div className="clip-card__move-actions">
+          <button
+            aria-label={t('clips.moveClipUp', { title: clip.title })}
+            disabled={moveUpDisabled}
+            onClick={onMoveUp}
+            title={t('clips.moveUp')}
+            type="button"
+          >
+            ↑
+          </button>
+          <button
+            aria-label={t('clips.moveClipDown', { title: clip.title })}
+            disabled={moveDownDisabled}
+            onClick={onMoveDown}
+            title={t('clips.moveDown')}
+            type="button"
+          >
+            ↓
+          </button>
+        </div>
         <button
           className="clip-card__delete"
           onClick={() => {

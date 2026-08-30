@@ -210,6 +210,7 @@ describe('App', () => {
     expect(screen.queryByRole('heading', { name: 'Imported sources' })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Source import' })).not.toBeInTheDocument();
     const clippingTimeline = screen.getByLabelText('Full-width clipping timeline');
+    const clippingPlayhead = screen.getByLabelText('Video timeline playhead');
     expect(within(clippingTimeline).getByText('Kills')).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Deaths')).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Selected names')).toBeInTheDocument();
@@ -255,9 +256,14 @@ describe('App', () => {
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Set in (I)' }));
-    fireEvent.change(playhead, { target: { value: '65' } });
+    fireEvent.change(clippingPlayhead, { target: { value: '65' } });
     await user.click(screen.getByRole('button', { name: 'Set out (O)' }));
+    const inHandle = screen.getByLabelText('Clip in-point handle');
     const outHandle = screen.getByLabelText('Clip out-point handle');
+    expect(inHandle).toHaveAttribute('min', clippingPlayhead.getAttribute('min'));
+    expect(inHandle).toHaveAttribute('max', clippingPlayhead.getAttribute('max'));
+    expect(outHandle).toHaveAttribute('min', clippingPlayhead.getAttribute('min'));
+    expect(outHandle).toHaveAttribute('max', clippingPlayhead.getAttribute('max'));
     fireEvent.change(outHandle, { target: { value: '70' } });
     await user.click(screen.getByRole('button', { name: 'Add clip' }));
 

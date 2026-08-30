@@ -118,7 +118,7 @@ Each VOD persists up to 50 independent search terms. Matching uses case-insensit
 
 ## Clip editing
 
-Clip creation, range validation, title updates, deletion, and clip-panel state are immutable domain operations validated through the portable project schema. The active player owns only the transient draft range. Saving snapshots the active VOD's search terms and the IDs of matching events whose mapped video times fall inside the inclusive range. Timeline range handles use the same visible video-time window and estimated frame step as the playhead. The persistent clip panel follows `clipOrder`; manual reordering is intentionally deferred to the next milestone.
+Clip creation, range validation, title updates, deletion, ordering, and clip-panel state are immutable domain operations validated through the portable project schema. The active player owns only the transient draft range. Saving snapshots the active VOD's search terms and the IDs of matching events whose mapped video times fall inside the inclusive range. Both timeline range handles use the same visible video-time window and estimated frame step as the playhead. The persistent clip panel follows `clipOrder`; drag-and-drop and accessible move buttons update that order and every clip's numeric order together.
 
 ## State and persistence
 

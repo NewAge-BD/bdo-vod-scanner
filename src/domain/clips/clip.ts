@@ -106,6 +106,28 @@ export function deleteProjectClip(
   });
 }
 
+export function reorderProjectClips(
+  project: PortableProject,
+  clipOrder: readonly string[],
+  now = new Date(),
+): PortableProject {
+  if (
+    clipOrder.length !== project.clips.length ||
+    new Set(clipOrder).size !== clipOrder.length ||
+    clipOrder.some((clipId) => !project.clips.some((clip) => clip.id === clipId))
+  ) {
+    throw new Error('The clip order must contain every project clip exactly once.');
+  }
+  const orderById = new Map(clipOrder.map((clipId, index) => [clipId, index]));
+
+  return portableProjectSchema.parse({
+    ...project,
+    updatedAt: now.toISOString(),
+    clipOrder: [...clipOrder],
+    clips: project.clips.map((clip) => ({ ...clip, order: orderById.get(clip.id) })),
+  });
+}
+
 export function setClipPanelCollapsed(
   project: PortableProject,
   collapsed: boolean,

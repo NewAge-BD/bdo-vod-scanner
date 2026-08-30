@@ -3,6 +3,7 @@ import { createStore } from 'zustand/vanilla';
 import {
   createProjectClip,
   deleteProjectClip,
+  reorderProjectClips,
   setClipPanelCollapsed,
   updateProjectClip,
   type CreateClipInput,
@@ -67,6 +68,7 @@ export interface ProjectStoreState {
     input: UpdateClipInput,
   ) => Promise<boolean>;
   readonly deleteClip: (projectId: string, clipId: string) => Promise<boolean>;
+  readonly reorderClips: (projectId: string, clipOrder: readonly string[]) => Promise<boolean>;
   readonly setClipPanelCollapsed: (projectId: string, collapsed: boolean) => Promise<boolean>;
 }
 
@@ -311,6 +313,12 @@ export function createProjectStore(repository: ProjectRepository) {
     deleteClip: async (projectId, clipId) => {
       return saveProjectUpdate(set, get, repository, projectId, (project) =>
         deleteProjectClip(project, clipId),
+      );
+    },
+
+    reorderClips: async (projectId, clipOrder) => {
+      return saveProjectUpdate(set, get, repository, projectId, (project) =>
+        reorderProjectClips(project, clipOrder),
       );
     },
 
