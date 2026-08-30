@@ -267,7 +267,15 @@ describe('App', () => {
     expect(inHandle).toHaveAttribute('max', clippingPlayhead.getAttribute('max'));
     expect(outHandle).toHaveAttribute('min', clippingPlayhead.getAttribute('min'));
     expect(outHandle).toHaveAttribute('max', clippingPlayhead.getAttribute('max'));
+    const clippingVideo = screen.getByLabelText<HTMLVideoElement>(
+      'Synthetic Perspective video perspective',
+    );
+    expect(clippingVideo.currentTime).toBe(65);
+    fireEvent.pointerDown(outHandle, { button: 0, pointerId: 7 });
     fireEvent.change(outHandle, { target: { value: '70' } });
+    expect(clippingVideo.currentTime).toBe(70);
+    fireEvent.pointerUp(outHandle, { button: 0, pointerId: 7 });
+    expect(clippingVideo.currentTime).toBe(65);
     await user.click(screen.getByRole('button', { name: 'Add clip' }));
 
     expect(await screen.findByText('Clip saved locally.')).toBeInTheDocument();
@@ -280,9 +288,6 @@ describe('App', () => {
     expect(screen.getByLabelText('Timeline width')).toHaveValue(1920);
     expect(screen.getByLabelText('Timeline height')).toHaveValue(1080);
     expect(screen.getByRole('button', { name: 'Export to DaVinci Resolve' })).toBeEnabled();
-    const clippingVideo = screen.getByLabelText<HTMLVideoElement>(
-      'Synthetic Perspective video perspective',
-    );
     const previewPlay = vi.spyOn(clippingVideo, 'play');
     const previewPause = vi.spyOn(clippingVideo, 'pause');
     await user.click(screen.getByRole('button', { name: 'Preview' }));

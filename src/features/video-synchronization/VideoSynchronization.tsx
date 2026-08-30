@@ -805,6 +805,7 @@ function SynchronizedVideoPlayer({
   const timelineScaleRef = useRef<HTMLDivElement>(null);
   const videoDragRef = useRef<DragState | null>(null);
   const timelineDragRef = useRef<TimelineDragState | null>(null);
+  const clipHandleDragRef = useRef<{ pointerId: number; returnTime: number } | null>(null);
   const [displayTime, setDisplayTime] = useState(initialTime);
   const [mediaDuration, setMediaDuration] = useState(vod.durationSeconds ?? 0);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -981,6 +982,10 @@ function SynchronizedVideoPlayer({
   }
 
   function handleTimeUpdate(video: HTMLVideoElement) {
+    if (clipHandleDragRef.current !== null) {
+      setDisplayTime(video.currentTime);
+      return;
+    }
     const previewEnd = eventSeekRequest?.playUntilSeconds;
     const previewSequence = eventSeekRequest?.sequence;
     if (
@@ -1050,6 +1055,41 @@ function SynchronizedVideoPlayer({
   function markClipBoundary(boundary: 'in' | 'out') {
     videoRef.current?.pause();
     onMarkClipBoundary(boundary, displayTime);
+  }
+
+  function beginClipHandlePreview(event: ReactPointerEvent<HTMLInputElement>) {
+    if (event.button !== 0) {
+      return;
+    }
+    const video = videoRef.current;
+    if (video === null) {
+      return;
+    }
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    clipHandleDragRef.current = { pointerId: event.pointerId, returnTime: displayTime };
+    video.pause();
+  }
+
+  function previewClipHandle(time: number) {
+    const video = videoRef.current;
+    if (video === null || clipHandleDragRef.current === null) {
+      return;
+    }
+    const safeTime = Math.min(mediaDuration, Math.max(0, time));
+    video.currentTime = safeTime;
+    setDisplayTime(safeTime);
+  }
+
+  function endClipHandlePreview(event: ReactPointerEvent<HTMLInputElement>) {
+    const drag = clipHandleDragRef.current;
+    if (drag === null || drag.pointerId !== event.pointerId) {
+      return;
+    }
+    clipHandleDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    }
+    seekTo(drag.returnTime);
   }
 
   function resetVideoViewport() {
@@ -1335,15 +1375,20 @@ function SynchronizedVideoPlayer({
                   className="clip-range-editor__handle clip-range-editor__handle--in"
                   max={timelineWindow.endSeconds}
                   min={timelineWindow.startSeconds}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const inPointSeconds = Math.min(
+                      Number(event.target.value),
+                      clipDraft.outPointSeconds! - frameDuration,
+                    );
                     onClipRangeChange({
                       ...clipDraft,
-                      inPointSeconds: Math.min(
-                        Number(event.target.value),
-                        clipDraft.outPointSeconds! - frameDuration,
-                      ),
-                    })
-                  }
+                      inPointSeconds,
+                    });
+                    previewClipHandle(inPointSeconds);
+                  }}
+                  onPointerCancel={endClipHandlePreview}
+                  onPointerDown={beginClipHandlePreview}
+                  onPointerUp={endClipHandlePreview}
                   step={frameDuration}
                   type="range"
                   value={clipDraft.inPointSeconds}
@@ -1353,15 +1398,20 @@ function SynchronizedVideoPlayer({
                   className="clip-range-editor__handle clip-range-editor__handle--out"
                   max={timelineWindow.endSeconds}
                   min={timelineWindow.startSeconds}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const outPointSeconds = Math.max(
+                      Number(event.target.value),
+                      clipDraft.inPointSeconds! + frameDuration,
+                    );
                     onClipRangeChange({
                       ...clipDraft,
-                      outPointSeconds: Math.max(
-                        Number(event.target.value),
-                        clipDraft.inPointSeconds! + frameDuration,
-                      ),
-                    })
-                  }
+                      outPointSeconds,
+                    });
+                    previewClipHandle(outPointSeconds);
+                  }}
+                  onPointerCancel={endClipHandlePreview}
+                  onPointerDown={beginClipHandlePreview}
+                  onPointerUp={endClipHandlePreview}
                   step={frameDuration}
                   type="range"
                   value={clipDraft.outPointSeconds}
