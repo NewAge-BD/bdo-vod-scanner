@@ -15,6 +15,7 @@ import {
   type VideoMetadataInspector,
 } from '../../infrastructure/media';
 import { useProjectStore } from './useProjectStore';
+import { VideoSynchronization } from '../video-synchronization';
 
 const defaultMetadataInspector = new NativeVideoMetadataInspector();
 
@@ -32,6 +33,7 @@ export function ProjectWorkspace({
   const { t } = useTranslation();
   const vodFiles = useProjectStore((state) => state.vodFiles);
   const saveSourceImport = useProjectStore((state) => state.saveSourceImport);
+  const saveSynchronization = useProjectStore((state) => state.saveSynchronization);
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<
     SourceImportErrorCode | 'saveFailed' | 'unexpected'
@@ -107,6 +109,11 @@ export function ProjectWorkspace({
 
       <FileDropZone disabled={isImporting} onFiles={handleFiles} />
       <SourceOverview linkedVodIds={linkedVodIds} project={project} />
+      <VideoSynchronization
+        onSynchronize={(vodId, anchor) => saveSynchronization(project.id, vodId, anchor)}
+        project={project}
+        vodFiles={vodFiles}
+      />
     </main>
   );
 }

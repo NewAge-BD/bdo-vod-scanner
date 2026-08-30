@@ -49,6 +49,8 @@ The browser MVP promises visual frame-by-frame navigation, not a professional gu
 
 Expected frame rates include 30, 60, 120, and 144 FPS.
 
+The implemented player provides previous/next-frame buttons and left/right arrow handling while the video is focused. It pauses and steps by `1 / FPS`; when the browser has not exposed an FPS value, the UI clearly labels the 60 FPS estimate. This is visual approximate navigation and not a guaranteed frame index.
+
 ## Direct clip export
 
 Direct browser export is experimental.

@@ -1,7 +1,7 @@
 # User Guide
 
 > [!NOTE]
-> Local project management and source-file import are available now. Synchronization and the workflow after step 2 remain planned MVP work.
+> Local project management, source-file import, native single-VOD playback, and one sync point per perspective are available now. Coordinated multi-perspective playback and the workflow after step 3 remain planned MVP work.
 
 ## What BDO VOD Scanner does
 
@@ -29,11 +29,11 @@ Only metadata is saved for VODs. After reloading the app, **Reselect required** 
 
 ### 3. Synchronize every VOD
 
-Each unsynchronized VOD has a highlighted **Sync** button.
+Each unsynchronized VOD is highlighted as **Sync required**. Open it in **Synchronize VODs**.
 
-The first log event is proposed by default. If it is difficult to locate in the kill feed, chat, or notifications, select a different event. Navigate the video visually frame by frame, stop on the matching event, and confirm.
+The first log event is proposed by default. If it is difficult to locate in the kill feed, chat, or notifications, search a family, character, or guild name and select a different event. Navigate the local video with its controls and the approximate previous/next-frame buttons, stop on the matching event, and choose **Set synchronization point**.
 
-Every VOD has its own synchronization offset.
+Every VOD has its own synchronization offset. Select another perspective above the player to synchronize it independently. Existing points can be updated. The current browser implementation uses detected FPS when available and otherwise visibly estimates 60 FPS; it does not promise a professional frame index.
 
 ### 4. Compare perspectives
 
@@ -66,7 +66,7 @@ Projects autosave locally in the current browser. Use **Export** on a project ca
 ## Planned keyboard controls
 
 - Space: play/pause
-- Left/right arrow: approximate previous/next frame while paused
+- Left/right arrow while the video is focused: approximate previous/next frame and pause
 - `I`: set clip in-point
 - `O`: set clip out-point
 - Documented shortcuts will be provided for previous/next matching event and perspective switching.

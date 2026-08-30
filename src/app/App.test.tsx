@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
@@ -71,5 +71,11 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: '2026-08-29.log' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Synthetic Perspective' })).toBeInTheDocument();
     expect(screen.getByText('Linked for this session')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Synchronize VODs' })).toBeInTheDocument();
+
+    fireEvent.loadedMetadata(screen.getByLabelText('Synthetic Perspective video perspective'));
+    await user.click(await screen.findByRole('button', { name: 'Set synchronization point' }));
+    expect(await screen.findByText('Synchronization point saved locally.')).toBeInTheDocument();
+    expect(screen.getByText('SYNCED')).toBeInTheDocument();
   });
 });

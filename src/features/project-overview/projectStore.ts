@@ -6,6 +6,7 @@ import {
   renameProject,
   type PortableProject,
 } from '../../domain/projects';
+import { synchronizeVod, type SynchronizationAnchorInput } from '../../domain/synchronization';
 import type { ProjectRepository } from '../../infrastructure/projects';
 
 export type ProjectStoreStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -27,6 +28,11 @@ export interface ProjectStoreState {
   readonly saveSourceImport: (
     project: PortableProject,
     vodFiles: ReadonlyMap<string, File>,
+  ) => Promise<boolean>;
+  readonly saveSynchronization: (
+    projectId: string,
+    vodId: string,
+    anchor: SynchronizationAnchorInput,
   ) => Promise<boolean>;
 }
 
@@ -149,6 +155,31 @@ export function createProjectStore(repository: ProjectRepository) {
         return true;
       } catch {
         set({ errorMessage: 'projects.errors.sources' });
+        return false;
+      }
+    },
+
+    saveSynchronization: async (projectId, vodId, anchor) => {
+      const project = get().projects.find((candidate) => candidate.id === projectId);
+      if (project === undefined) {
+        set({ errorMessage: 'projects.errors.missing' });
+        return false;
+      }
+
+      try {
+        const updatedProject = synchronizeVod(project, vodId, anchor);
+        await repository.save(updatedProject);
+        set({
+          projects: sortProjects(
+            get().projects.map((candidate) =>
+              candidate.id === projectId ? updatedProject : candidate,
+            ),
+          ),
+          errorMessage: undefined,
+        });
+        return true;
+      } catch {
+        set({ errorMessage: 'projects.errors.synchronization' });
         return false;
       }
     },

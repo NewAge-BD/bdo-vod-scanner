@@ -22,7 +22,7 @@ BDO VOD Scanner is an unofficial community project and is not affiliated with or
 
 ## Current status
 
-The application now provides named local projects, portable project import/export, drag-and-drop source import, exact BDO log parsing, MP4 signature checks, native browser metadata inspection, and session-safe VOD relinking. Synchronization, coordinated playback, timelines, clip editing, and media exports remain upcoming milestones.
+The application now provides named local projects, portable project import/export, drag-and-drop source import, exact BDO log parsing, MP4 signature checks, native local VOD playback, approximate frame stepping, session-safe VOD relinking, and one independently stored synchronization anchor per perspective. Coordinated multi-perspective playback, timelines, clip editing, and media exports remain upcoming milestones.
 
 See the [development guide](docs/DEVELOPMENT.md) to run the current application locally.
 

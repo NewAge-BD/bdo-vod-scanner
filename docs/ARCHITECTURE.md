@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, event search, project schema, IndexedDB repository, project management, and local source import exist; remaining domain features and adapters are implemented incrementally by milestone.
+This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, event search, project schema, IndexedDB repository, project management, local source import, native single-VOD playback, and per-VOD synchronization exist; remaining domain features and adapters are implemented incrementally by milestone.
 
 ## Architectural style
 
@@ -97,6 +97,8 @@ videoTime = anchorVideoTime + (eventSessionTime - anchorEventSessionTime)
 ```
 
 Multiple events may share one second and therefore initially map to the same video time. Every VOD has an independent anchor and offset.
+
+The implemented synchronization workspace proposes the first valid event, supports searching and selecting another event, and records the paused video's fractional time. Updating a sync point replaces only that VOD's anchor. Secondary anchors and drift correction remain intentionally unsupported.
 
 If the log clock crosses from late night to an earlier time, increment the day offset. A second synchronization point and drift correction remain future work.
 

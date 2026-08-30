@@ -80,7 +80,13 @@ function VodCard({ vod, linked }: { readonly vod: VodReference; readonly linked:
           <h3>{vod.displayName}</h3>
           <p>{vod.fileName}</p>
         </div>
-        <span className="sync-badge">{t('sources.syncRequired')}</span>
+        <span
+          className={
+            vod.synchronizationAnchor === null ? 'sync-badge' : 'sync-badge sync-badge--complete'
+          }
+        >
+          {vod.synchronizationAnchor === null ? t('sources.syncRequired') : t('sources.synced')}
+        </span>
       </div>
       <dl className="source-card__facts source-card__facts--video">
         <Fact label={t('sources.size')} value={formatBytes(vod.fileSizeBytes, numberFormatter)} />

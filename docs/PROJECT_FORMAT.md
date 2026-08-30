@@ -90,6 +90,8 @@ Store:
 
 Use numeric seconds with sufficient fractional precision. Do not persist formatted timestamps as the authoritative value.
 
+Schema version 1 now writes this anchor when the user confirms synchronization. The stored offset is `videoTimeSeconds - eventSessionTimeSeconds`. Re-synchronizing a VOD replaces its anchor without changing other perspectives.
+
 ## Clips
 
 Each clip contains:

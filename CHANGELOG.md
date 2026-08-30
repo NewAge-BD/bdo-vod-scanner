@@ -24,6 +24,11 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added local source cards with log event counts, parse warnings, VOD metadata, sync state, and relink state.
 - Added session-only VOD file links and safe metadata-based relinking after a browser reload.
 - Added overload warnings for projects with more than eight VOD references.
+- Added the supplied character artwork as a privacy-safe website/header icon without HUD names.
+- Added native local VOD playback with automatic object-URL cleanup.
+- Added approximate previous/next-frame navigation using detected FPS or a 60 FPS fallback.
+- Added searchable log-event selection and one persistent synchronization anchor per VOD.
+- Added independent sync status and calculated offset display for every perspective.
 
 ### Documentation
 

@@ -4,6 +4,7 @@ test('manages a portable private local project', async ({ page }) => {
   await page.goto('/');
 
   await expect(page).toHaveTitle('BDO VOD Scanner');
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/website-symbol.png');
   await expect(page.getByRole('heading', { level: 1, name: 'Your projects' })).toBeVisible();
   await expect(page.getByText('Local processing only')).toBeVisible();
 
@@ -60,9 +61,17 @@ test('manages a portable private local project', async ({ page }) => {
   await expect(page.getByRole('heading', { name: '2026-08-29.log' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Synthetic Perspective' })).toBeVisible();
   await expect(page.getByText('Linked for this session')).toBeVisible();
-  await expect(page.getByText('SYNC REQUIRED')).toBeVisible();
+  await expect(page.getByText('SYNC REQUIRED', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Synchronize VODs' })).toBeVisible();
+  await expect(
+    page.getByText(
+      '[20:00:56] FrostCairn died to RiverWarden from DawnKeep (TideCaller, IcePetal)',
+    ),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Set synchronization point' })).toBeDisabled();
 
   await page.reload();
   await page.getByRole('button', { name: /Sunday Node War/ }).click();
   await expect(page.getByText('Reselect required')).toBeVisible();
+  await expect(page.getByText('This VOD is not linked for the current session')).toBeVisible();
 });
