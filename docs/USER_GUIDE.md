@@ -1,7 +1,7 @@
 # User Guide
 
 > [!NOTE]
-> Local project management is available now. The log/VOD workflow described after step 1 is the planned MVP and is not implemented yet.
+> Local project management and source-file import are available now. Synchronization and the workflow after step 2 remain planned MVP work.
 
 ## What BDO VOD Scanner does
 
@@ -21,7 +21,11 @@ Use **Import project** to select a `.bdo-vod-project.json` file. Import opens th
 
 Drag one `YYYY-MM-DD.log` file and one or more MP4 VODs onto the import surface.
 
-For every VOD, the application displays filename, size, duration, resolution, detected frame rate, codec information, and synchronization status.
+The same files can be selected with **Choose log and MP4 files**. The log is validated against the exact BDO event format. Invalid individual MP4s and unrelated files are skipped without discarding valid sources from the selection.
+
+For every VOD, the application displays filename, size, duration, resolution, available frame-rate/codec information, synchronization status, and current file-link state. Native browsers often do not expose frame rate or codec names; the UI reports this rather than guessing.
+
+Only metadata is saved for VODs. After reloading the app, **Reselect required** means the original local MP4 must be selected again. A matching filename, size, and last-modified time safely relinks the file without creating a duplicate VOD. The raw log is small and is embedded in the project.
 
 ### 3. Synchronize every VOD
 

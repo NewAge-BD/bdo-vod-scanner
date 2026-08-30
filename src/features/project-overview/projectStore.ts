@@ -15,6 +15,7 @@ export interface ProjectStoreState {
   readonly activeProjectId: string | undefined;
   readonly status: ProjectStoreStatus;
   readonly errorMessage: string | undefined;
+  readonly vodFiles: ReadonlyMap<string, File>;
   readonly load: () => Promise<void>;
   readonly create: (name: string) => Promise<void>;
   readonly importProject: (content: string) => Promise<void>;
@@ -23,6 +24,10 @@ export interface ProjectStoreState {
   readonly open: (id: string) => void;
   readonly close: () => void;
   readonly dismissError: () => void;
+  readonly saveSourceImport: (
+    project: PortableProject,
+    vodFiles: ReadonlyMap<string, File>,
+  ) => Promise<boolean>;
 }
 
 export function createProjectStore(repository: ProjectRepository) {
@@ -31,6 +36,7 @@ export function createProjectStore(repository: ProjectRepository) {
     activeProjectId: undefined,
     status: 'idle',
     errorMessage: undefined,
+    vodFiles: new Map(),
 
     load: async () => {
       set({ status: 'loading', errorMessage: undefined });
@@ -100,10 +106,16 @@ export function createProjectStore(repository: ProjectRepository) {
 
     delete: async (id) => {
       try {
+        const deletedProject = get().projects.find((project) => project.id === id);
         await repository.delete(id);
+        const remainingVodFiles = new Map(get().vodFiles);
+        for (const vod of deletedProject?.vods ?? []) {
+          remainingVodFiles.delete(vod.id);
+        }
         set({
           projects: get().projects.filter((project) => project.id !== id),
           activeProjectId: get().activeProjectId === id ? undefined : get().activeProjectId,
+          vodFiles: remainingVodFiles,
           errorMessage: undefined,
         });
       } catch {
@@ -114,6 +126,32 @@ export function createProjectStore(repository: ProjectRepository) {
     open: (id) => set({ activeProjectId: id }),
     close: () => set({ activeProjectId: undefined }),
     dismissError: () => set({ errorMessage: undefined }),
+
+    saveSourceImport: async (project, vodFiles) => {
+      if (!get().projects.some((candidate) => candidate.id === project.id)) {
+        set({ errorMessage: 'projects.errors.missing' });
+        return false;
+      }
+
+      try {
+        await repository.save(project);
+        const updatedVodFiles = new Map(get().vodFiles);
+        for (const [vodId, file] of vodFiles) {
+          updatedVodFiles.set(vodId, file);
+        }
+        set({
+          projects: sortProjects(
+            get().projects.map((candidate) => (candidate.id === project.id ? project : candidate)),
+          ),
+          vodFiles: updatedVodFiles,
+          errorMessage: undefined,
+        });
+        return true;
+      } catch {
+        set({ errorMessage: 'projects.errors.sources' });
+        return false;
+      }
+    },
   }));
 }
 

@@ -1,23 +1,29 @@
 import { useTranslation } from 'react-i18next';
 
 import type { ProjectRepository } from '../infrastructure/projects';
+import type { VideoMetadataInspector } from '../infrastructure/media';
 import { BrandMark } from '../shared/components/BrandMark';
 import { ProjectOverview } from '../features/project-overview/ProjectOverview';
 import { ProjectStoreProvider } from '../features/project-overview/ProjectStoreProvider';
 
 interface AppProps {
   readonly repository?: ProjectRepository;
+  readonly metadataInspector?: VideoMetadataInspector;
 }
 
-export function App({ repository }: AppProps) {
+export function App({ repository, metadataInspector }: AppProps) {
   return (
     <ProjectStoreProvider repository={repository}>
-      <AppContent />
+      <AppContent metadataInspector={metadataInspector} />
     </ProjectStoreProvider>
   );
 }
 
-function AppContent() {
+function AppContent({
+  metadataInspector,
+}: {
+  readonly metadataInspector?: VideoMetadataInspector;
+}) {
   const { t } = useTranslation();
 
   return (
@@ -41,7 +47,7 @@ function AppContent() {
         </div>
       </header>
 
-      <ProjectOverview />
+      <ProjectOverview metadataInspector={metadataInspector} />
 
       <footer className="app-footer">
         <span>{t('app.version', { version: '0.0.0' })}</span>

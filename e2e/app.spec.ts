@@ -39,4 +39,30 @@ test('manages a portable private local project', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Sunday Node War' })).toBeVisible();
   await page.getByRole('button', { name: 'All projects' }).click();
   await expect(page.getByRole('button', { name: /Sunday Node War/ })).toBeVisible();
+
+  await page.getByRole('button', { name: /Sunday Node War/ }).click();
+  await page.getByLabel('Local log and MP4 files').setInputFiles([
+    {
+      name: '2026-08-29.log',
+      mimeType: 'text/plain',
+      buffer: Buffer.from(
+        '[20:00:56] FrostCairn died to RiverWarden from DawnKeep (TideCaller, IcePetal)',
+      ),
+    },
+    {
+      name: 'Synthetic Perspective.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]),
+    },
+  ]);
+
+  await expect(page.getByRole('heading', { name: 'Imported sources' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '2026-08-29.log' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Synthetic Perspective' })).toBeVisible();
+  await expect(page.getByText('Linked for this session')).toBeVisible();
+  await expect(page.getByText('SYNC REQUIRED')).toBeVisible();
+
+  await page.reload();
+  await page.getByRole('button', { name: /Sunday Node War/ }).click();
+  await expect(page.getByText('Reselect required')).toBeVisible();
 });

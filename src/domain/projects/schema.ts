@@ -71,3 +71,4 @@ export const portableProjectSchema = z.strictObject({
 });
 
 export type PortableProject = z.infer<typeof portableProjectSchema>;
+export type VodReference = z.infer<typeof vodReferenceSchema>;

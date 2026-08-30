@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, event search, project schema, IndexedDB repository, and project-management UI exist; remaining domain features and adapters are implemented incrementally by milestone.
+This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, event search, project schema, IndexedDB repository, project management, and local source import exist; remaining domain features and adapters are implemented incrementally by milestone.
 
 ## Architectural style
 
@@ -124,6 +124,10 @@ Use an efficient graphical layer for dense event markers and bundling. Keep inte
 - Version local storage and portable formats independently where needed, with explicit migrations.
 
 Project data is validated with the same strict schema before storage and after retrieval. The UI accesses storage through a repository interface; tests can substitute an in-memory repository without changing feature code.
+
+VOD `File` objects are intentionally held only in transient Zustand state. Portable and IndexedDB project data contains metadata references, not media bytes. After reloading, selecting a file with matching name, size, and last-modified time relinks it to the existing VOD reference after its MP4 signature is checked.
+
+Native HTML media inspection uses a short-lived object URL and stores duration and resolution when the browser can decode the metadata. The URL is always revoked. Failure to decode metadata preserves the VOD reference with unknown media fields and does not invalidate other imported sources.
 
 ## Worker boundaries
 

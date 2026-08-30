@@ -10,6 +10,8 @@
 
 Container support does not guarantee codec support. An MP4 may contain H.264, HEVC, or another codec whose playback availability depends on the browser and Windows installation.
 
+The current importer verifies the MP4 `ftyp` file signature and asks the browser for native metadata. Duration and resolution are stored when available. Chromium's native video element does not expose reliable frame-rate, variable-frame-rate, or codec names, so those fields remain visibly unavailable instead of being guessed. Deeper MP4 inspection is a later milestone and may require an approved media dependency.
+
 ## File-size requirements
 
 The supplied reference VOD is approximately 58 GB. Individual VODs may reach approximately 100 GB, and a project may contain many perspectives.
@@ -23,6 +25,8 @@ Mandatory rules:
 - Decode only visible players.
 - Warn when the number and resolution of visible VODs may exceed practical hardware capacity.
 - Let the user continue after acknowledging the warning.
+
+The current UI warns when a project contains more than eight VOD references. Actual visible-player load management is added with multi-perspective playback.
 
 ## Playback
 

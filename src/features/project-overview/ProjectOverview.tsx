@@ -2,13 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { PortableProject } from '../../domain/projects';
+import type { VideoMetadataInspector } from '../../infrastructure/media';
 import { EmptyProjectState } from './EmptyProjectState';
 import { ProjectCard } from './ProjectCard';
 import { ProjectNameDialog } from './ProjectNameDialog';
 import { ProjectWorkspace } from './ProjectWorkspace';
 import { useProjectStore } from './useProjectStore';
 
-export function ProjectOverview() {
+interface ProjectOverviewProps {
+  readonly metadataInspector?: VideoMetadataInspector;
+}
+
+export function ProjectOverview({ metadataInspector }: ProjectOverviewProps) {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const projects = useProjectStore((state) => state.projects);
@@ -35,7 +40,13 @@ export function ProjectOverview() {
 
   const activeProject = projects.find((project) => project.id === activeProjectId);
   if (activeProject !== undefined) {
-    return <ProjectWorkspace onBack={closeProject} project={activeProject} />;
+    return (
+      <ProjectWorkspace
+        metadataInspector={metadataInspector}
+        onBack={closeProject}
+        project={activeProject}
+      />
+    );
   }
 
   async function handleImport(file: File | undefined) {
