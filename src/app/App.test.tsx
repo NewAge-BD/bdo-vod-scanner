@@ -165,4 +165,65 @@ describe('App', () => {
     expect(await screen.findByText('Synchronization point saved locally.')).toBeInTheDocument();
     expect(screen.getByText('SYNCED')).toBeInTheDocument();
   });
+
+  it('coordinates, promotes, hides, and restores synchronized perspectives', async () => {
+    const user = userEvent.setup();
+    render(
+      <App metadataInspector={metadataInspector} repository={new InMemoryProjectRepository()} />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'New project' }));
+    await user.type(screen.getByLabelText('Project name'), 'Multiple perspectives');
+    await user.click(screen.getByRole('button', { name: 'Create project' }));
+
+    const log = new File([syntheticLog], '2026-08-29.log', { type: 'text/plain' });
+    const mp4Signature = new Uint8Array([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109]);
+    const perspectiveA = new File([mp4Signature], 'Perspective A.mp4', {
+      type: 'video/mp4',
+      lastModified: 100,
+    });
+    const perspectiveB = new File([mp4Signature], 'Perspective B.mp4', {
+      type: 'video/mp4',
+      lastModified: 200,
+    });
+    await user.upload(screen.getByLabelText('Local log and MP4 files'), [
+      log,
+      perspectiveA,
+      perspectiveB,
+    ]);
+
+    fireEvent.loadedMetadata(await screen.findByLabelText('Perspective A video perspective'));
+    await user.click(screen.getByRole('button', { name: 'Set synchronization point' }));
+    await screen.findByText('Synchronization point saved locally.');
+
+    await user.click(screen.getByRole('button', { name: 'Perspective B, Sync required' }));
+    fireEvent.loadedMetadata(screen.getByLabelText('Perspective B video perspective'));
+    await user.click(screen.getByRole('button', { name: 'Set synchronization point' }));
+    await screen.findByText('Synchronization point saved locally.');
+
+    expect(
+      await screen.findByLabelText('Perspective A synchronized muted mini player'),
+    ).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Video timeline playhead'), {
+      target: { value: '60' },
+    });
+    await user.click(
+      screen.getByRole('button', { name: 'Make Perspective A the main perspective' }),
+    );
+
+    expect(screen.getByLabelText('Perspective A video perspective')).toBeInTheDocument();
+    expect(screen.getByText('00:01:00.000')).toBeInTheDocument();
+    expect(
+      await screen.findByLabelText('Perspective B synchronized muted mini player'),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Hide Perspective B mini player' }));
+    expect(
+      screen.queryByLabelText('Perspective B synchronized muted mini player'),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Show mini' }));
+    expect(
+      await screen.findByLabelText('Perspective B synchronized muted mini player'),
+    ).toBeInTheDocument();
+  });
 });

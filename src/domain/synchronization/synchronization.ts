@@ -41,3 +41,10 @@ export function mapSessionTimeToVideoTime(
 ): number {
   return anchor.videoTimeSeconds + (eventSessionTimeSeconds - anchor.eventSessionTimeSeconds);
 }
+
+export function mapVideoTimeToSessionTime(
+  anchor: SynchronizationAnchorInput,
+  videoTimeSeconds: number,
+): number {
+  return anchor.eventSessionTimeSeconds + (videoTimeSeconds - anchor.videoTimeSeconds);
+}

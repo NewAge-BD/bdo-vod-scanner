@@ -26,13 +26,13 @@ Mandatory rules:
 - Warn when the number and resolution of visible VODs may exceed practical hardware capacity.
 - Let the user continue after acknowledging the warning.
 
-The current UI warns when a project contains more than eight VOD references. Actual visible-player load management is added with multi-perspective playback.
+The current UI warns when a project contains more than eight VOD references and separately warns when more than four perspectives are visible. Hidden perspectives are unmounted so they do not retain an active object URL, player, or decoder.
 
 ## Playback
 
 Use native HTML video playback when the codec is supported. Display a clear error when it is not, while preserving the rest of the project.
 
-Only the main video is audible. Visible miniplayers are muted. Hidden videos retain logical synchronization but should not actively play or decode.
+Only the main video is audible. Visible miniplayers are muted and follow shared session time plus the main play/pause intent. Hidden videos retain their project synchronization data but do not actively play or decode.
 
 Outside a VOD's available source range, show no video content for that perspective.
 

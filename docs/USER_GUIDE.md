@@ -1,7 +1,7 @@
 # User Guide
 
 > [!NOTE]
-> Local project management, source-file import, native single-VOD playback, and one sync point per perspective are available now. Coordinated multi-perspective playback and the workflow after step 3 remain planned MVP work.
+> Local project management, source-file import, one sync point per perspective, synchronized timelines, and coordinated multi-perspective playback are available now. Event navigation after synchronization, clip editing, and export remain planned MVP work.
 
 ## What BDO VOD Scanner does
 
@@ -9,7 +9,7 @@ BDO VOD Scanner aligns one BDO event log with one or more local MP4 recordings. 
 
 Imported files remain local and are never uploaded.
 
-## Planned workflow
+## Workflow
 
 ### 1. Create or open a project
 
@@ -55,7 +55,9 @@ Every VOD has its own synchronization offset. Select another perspective above t
 
 The preview adapts to the number of visible VODs. Click a perspective to make it the main video. Other visible perspectives continue as muted miniplayers, while hidden perspectives do not consume active playback resources.
 
-Only the main video is audible. Switching perspectives preserves the shared event position.
+Only the main video is audible. Click a miniplayer or its **Open as main perspective** control to promote it. Switching perspectives preserves the shared session position. An unsynchronized, unlinked, or out-of-range perspective displays a status placeholder instead of stale video.
+
+Use **Hide mini** beside a perspective to remove it from the grid and stop its active playback resources. Use **Show mini** to restore it. More than four visible perspectives trigger a dismissible performance warning; playback remains available.
 
 ### 5. Search events
 

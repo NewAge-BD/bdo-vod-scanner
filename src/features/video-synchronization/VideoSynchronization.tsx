@@ -11,6 +11,7 @@ import { parseBdoLog, searchEvents, type BdoEvent } from '../../domain/events';
 import type { PortableProject, VodReference } from '../../domain/projects';
 import {
   mapSessionTimeToVideoTime,
+  mapVideoTimeToSessionTime,
   type SynchronizationAnchorInput,
 } from '../../domain/synchronization';
 import {
@@ -20,6 +21,7 @@ import {
   type LogTimelineMarker,
 } from '../../domain/timeline';
 import { clampVideoPan, zoomVideoAtPoint, type ViewportPoint } from '../../domain/viewport';
+import { SynchronizedMiniPlayer } from './SynchronizedMiniPlayer';
 import { useObjectUrl } from './useObjectUrl';
 
 const MAX_VISIBLE_EVENTS = 50;
@@ -49,7 +51,12 @@ export function VideoSynchronization({
   const [query, setQuery] = useState('');
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isVideoReady, setIsVideoReady] = useState(false);
-  const [videoTime, setVideoTime] = useState(0);
+  const [videoTime, setVideoTime] = useState(
+    project.vods[0]?.synchronizationAnchor?.videoTimeSeconds ?? 0,
+  );
+  const [isMainPlaying, setIsMainPlaying] = useState(false);
+  const [hiddenVodIds, setHiddenVodIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [performanceWarningDismissed, setPerformanceWarningDismissed] = useState(false);
 
   if (parsedLog === undefined || project.vods.length === 0) {
     return null;
@@ -65,15 +72,53 @@ export function VideoSynchronization({
     query.trim().length === 0 ? parsedLog.events : searchEvents(parsedLog.events, [query])
   ).slice(0, MAX_VISIBLE_EVENTS);
   const estimatedFrameRate = activeVod?.nominalFrameRate ?? 60;
+  const sharedSessionTime =
+    activeVod?.synchronizationAnchor === null || activeVod?.synchronizationAnchor === undefined
+      ? undefined
+      : mapVideoTimeToSessionTime(activeVod.synchronizationAnchor, videoTime);
+  const secondaryPerspectives: readonly SecondaryPerspective[] = project.vods
+    .filter((vod) => vod.id !== activeVod?.id && !hiddenVodIds.has(vod.id))
+    .map((vod) => ({
+      file: vodFiles.get(vod.id),
+      targetVideoTime:
+        sharedSessionTime === undefined || vod.synchronizationAnchor === null
+          ? undefined
+          : mapSessionTimeToVideoTime(vod.synchronizationAnchor, sharedSessionTime),
+      vod,
+    }));
+  const visibleVodCount = 1 + secondaryPerspectives.length;
 
   function selectPerspective(vodId: string) {
     const vod = project.vods.find((candidate) => candidate.id === vodId);
+    const nextVideoTime =
+      vod?.synchronizationAnchor === null || vod?.synchronizationAnchor === undefined
+        ? 0
+        : sharedSessionTime === undefined
+          ? vod.synchronizationAnchor.videoTimeSeconds
+          : mapSessionTimeToVideoTime(vod.synchronizationAnchor, sharedSessionTime);
     setActiveVodId(vodId);
     setSelectedEventId(vod?.synchronizationAnchor?.eventId ?? firstEventId);
     setQuery('');
     setSaveState('idle');
     setIsVideoReady(false);
-    setVideoTime(vod?.synchronizationAnchor?.videoTimeSeconds ?? 0);
+    setVideoTime(clampToVod(nextVideoTime, vod));
+    setHiddenVodIds((current) => {
+      const next = new Set(current);
+      next.delete(vodId);
+      return next;
+    });
+  }
+
+  function setPerspectiveVisible(vodId: string, visible: boolean) {
+    setHiddenVodIds((current) => {
+      const next = new Set(current);
+      if (visible) {
+        next.delete(vodId);
+      } else {
+        next.add(vodId);
+      }
+      return next;
+    });
   }
 
   async function saveSynchronization() {
@@ -101,30 +146,52 @@ export function VideoSynchronization({
       </div>
 
       <div className="perspective-tabs" role="group" aria-label={t('synchronization.perspectives')}>
-        {project.vods.map((vod) => (
-          <button
-            aria-pressed={vod.id === activeVod?.id}
-            className={
-              vod.id === activeVod?.id
-                ? 'perspective-tab perspective-tab--active'
-                : 'perspective-tab'
-            }
-            key={vod.id}
-            onClick={() => selectPerspective(vod.id)}
-            type="button"
-          >
-            <span>{vod.displayName}</span>
-            <small>
-              {vod.synchronizationAnchor === null
-                ? t('synchronization.notSynchronized')
-                : t('synchronization.synchronized')}
-            </small>
-          </button>
-        ))}
+        {project.vods.map((vod) => {
+          const isActive = vod.id === activeVod?.id;
+          const isVisible = isActive || !hiddenVodIds.has(vod.id);
+          const synchronizationStatus =
+            vod.synchronizationAnchor === null
+              ? t('synchronization.notSynchronized')
+              : t('synchronization.synchronized');
+          return (
+            <div className="perspective-tab-group" key={vod.id}>
+              <button
+                aria-label={`${vod.displayName}, ${synchronizationStatus}`}
+                aria-pressed={isActive}
+                className={isActive ? 'perspective-tab perspective-tab--active' : 'perspective-tab'}
+                onClick={() => selectPerspective(vod.id)}
+                type="button"
+              >
+                <span>{vod.displayName}</span>
+                <small>{synchronizationStatus}</small>
+              </button>
+              {!isActive && (
+                <button
+                  aria-pressed={isVisible}
+                  className="perspective-visibility"
+                  onClick={() => setPerspectiveVisible(vod.id, !isVisible)}
+                  type="button"
+                >
+                  {isVisible
+                    ? t('synchronization.hideMiniPlayer')
+                    : t('synchronization.showMiniPlayer')}
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="video-sync__workspace">
         <div className="video-sync__player-column">
+          {visibleVodCount > 4 && !performanceWarningDismissed && (
+            <div className="perspective-performance-warning" role="status">
+              <span>{t('synchronization.performanceWarning', { count: visibleVodCount })}</span>
+              <button onClick={() => setPerformanceWarningDismissed(true)} type="button">
+                {t('common.dismiss')}
+              </button>
+            </div>
+          )}
           {file === undefined || activeVod === undefined ? (
             <div className="video-unavailable">
               <strong>{t('synchronization.reselectTitle')}</strong>
@@ -135,11 +202,16 @@ export function VideoSynchronization({
               estimatedFrameRate={estimatedFrameRate}
               events={parsedLog.events}
               file={file}
-              initialTime={activeVod.synchronizationAnchor?.videoTimeSeconds ?? 0}
+              initialTime={videoTime}
+              isPlaying={isMainPlaying}
               key={`${activeVod.id}-${file.name}-${file.lastModified}-${file.size}`}
+              onHidePerspective={(vodId) => setPerspectiveVisible(vodId, false)}
+              onPlaybackChange={setIsMainPlaying}
+              onPromotePerspective={selectPerspective}
               onReady={setIsVideoReady}
               onSelectEvent={setSelectedEventId}
               onTimeChange={setVideoTime}
+              secondaryPerspectives={secondaryPerspectives}
               selectedEvent={selectedEvent}
               vod={activeVod}
             />
@@ -220,7 +292,12 @@ function SynchronizedVideoPlayer({
   initialTime,
   estimatedFrameRate,
   events,
+  isPlaying: playbackIntent,
+  secondaryPerspectives,
   selectedEvent,
+  onHidePerspective,
+  onPlaybackChange,
+  onPromotePerspective,
   onReady,
   onSelectEvent,
   onTimeChange,
@@ -230,7 +307,12 @@ function SynchronizedVideoPlayer({
   readonly initialTime: number;
   readonly estimatedFrameRate: number;
   readonly events: readonly BdoEvent[];
+  readonly isPlaying: boolean;
+  readonly secondaryPerspectives: readonly SecondaryPerspective[];
   readonly selectedEvent: BdoEvent | undefined;
+  readonly onHidePerspective: (vodId: string) => void;
+  readonly onPlaybackChange: (isPlaying: boolean) => void;
+  readonly onPromotePerspective: (vodId: string) => void;
   readonly onReady: (ready: boolean) => void;
   readonly onSelectEvent: (eventId: string) => void;
   readonly onTimeChange: (time: number) => void;
@@ -501,87 +583,111 @@ function SynchronizedVideoPlayer({
   return (
     <>
       <div
-        aria-label={t('synchronization.videoViewport')}
-        className={`video-viewport${isVideoPanning ? ' video-viewport--panning' : ''}`}
-        onDoubleClick={resetVideoViewport}
-        onPointerCancel={endVideoPan}
-        onPointerDown={beginVideoPan}
-        onPointerMove={moveVideoPan}
-        onPointerUp={endVideoPan}
-        ref={videoViewportRef}
+        className={`perspective-stage perspective-stage--${secondaryPerspectives.length === 0 ? 'single' : secondaryPerspectives.length === 1 ? 'split' : 'multi'}`}
       >
-        <video
-          aria-label={t('synchronization.videoLabel', { name: vod.displayName })}
-          onClick={togglePlayback}
-          onError={() => onReady(false)}
-          onKeyDown={(event) => {
-            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-              event.preventDefault();
-              stepFrame(event.key === 'ArrowLeft' ? -1 : 1);
-            } else if (event.key === ' ') {
-              event.preventDefault();
-              togglePlayback();
-            }
-          }}
-          onLoadedMetadata={(event) => {
-            const duration = Number.isFinite(event.currentTarget.duration)
-              ? event.currentTarget.duration
-              : (vod.durationSeconds ?? Math.max(initialTime, 0));
-            const safeInitialTime = Math.min(initialTime, duration);
-            setMediaDuration(duration);
-            setTimelineCenter(safeInitialTime);
-            event.currentTarget.currentTime = safeInitialTime;
-            updateTime(safeInitialTime);
-            onReady(true);
-          }}
-          onPause={(event) => {
-            setIsPlaying(false);
-            updateTime(event.currentTarget.currentTime, true);
-          }}
-          onPlay={() => setIsPlaying(true)}
-          onTimeUpdate={(event) => updateTime(event.currentTarget.currentTime, true)}
-          ref={videoRef}
-          src={objectUrl}
-          style={{
-            transform: `translate3d(${videoPan.x}px, ${videoPan.y}px, 0) scale(${videoZoom})`,
-          }}
-          tabIndex={0}
-        />
-        <span className="video-viewport__zoom" aria-live="polite">
-          {t('synchronization.videoZoom', { factor: formatZoom(videoZoom) })}
-        </span>
-        <span className="video-viewport__hint">{t('synchronization.videoViewportHint')}</span>
         <div
-          className="video-viewport__controls"
-          onClick={(event) => event.stopPropagation()}
-          onDoubleClick={(event) => event.stopPropagation()}
-          onPointerDown={(event) => event.stopPropagation()}
+          aria-label={t('synchronization.videoViewport')}
+          className={`video-viewport${isVideoPanning ? ' video-viewport--panning' : ''}`}
+          onDoubleClick={resetVideoViewport}
+          onPointerCancel={endVideoPan}
+          onPointerDown={beginVideoPan}
+          onPointerMove={moveVideoPan}
+          onPointerUp={endVideoPan}
+          ref={videoViewportRef}
         >
-          <button onClick={togglePlayback} type="button">
-            {isPlaying ? t('synchronization.pause') : t('synchronization.play')}
-          </button>
-          <button
-            onClick={() => {
-              const video = videoRef.current;
-              if (video !== null) {
-                video.muted = !isMuted;
-                setIsMuted(video.muted);
+          <video
+            aria-label={t('synchronization.videoLabel', { name: vod.displayName })}
+            onClick={togglePlayback}
+            onError={() => onReady(false)}
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                event.preventDefault();
+                stepFrame(event.key === 'ArrowLeft' ? -1 : 1);
+              } else if (event.key === ' ') {
+                event.preventDefault();
+                togglePlayback();
               }
             }}
-            type="button"
+            onLoadedMetadata={(event) => {
+              const duration = Number.isFinite(event.currentTarget.duration)
+                ? event.currentTarget.duration
+                : (vod.durationSeconds ?? Math.max(initialTime, 0));
+              const safeInitialTime = Math.min(initialTime, duration);
+              setMediaDuration(duration);
+              setTimelineCenter(safeInitialTime);
+              event.currentTarget.currentTime = safeInitialTime;
+              updateTime(safeInitialTime);
+              onReady(true);
+              if (playbackIntent) {
+                void event.currentTarget.play().catch(() => undefined);
+              }
+            }}
+            onPause={(event) => {
+              setIsPlaying(false);
+              onPlaybackChange(false);
+              updateTime(event.currentTarget.currentTime, true);
+            }}
+            onPlay={() => {
+              setIsPlaying(true);
+              onPlaybackChange(true);
+            }}
+            onTimeUpdate={(event) => updateTime(event.currentTarget.currentTime, true)}
+            ref={videoRef}
+            src={objectUrl}
+            style={{
+              transform: `translate3d(${videoPan.x}px, ${videoPan.y}px, 0) scale(${videoZoom})`,
+            }}
+            tabIndex={0}
+          />
+          <span className="video-viewport__zoom" aria-live="polite">
+            {t('synchronization.videoZoom', { factor: formatZoom(videoZoom) })}
+          </span>
+          <span className="video-viewport__hint">{t('synchronization.videoViewportHint')}</span>
+          <div
+            className="video-viewport__controls"
+            onClick={(event) => event.stopPropagation()}
+            onDoubleClick={(event) => event.stopPropagation()}
+            onPointerDown={(event) => event.stopPropagation()}
           >
-            {isMuted ? t('synchronization.unmute') : t('synchronization.mute')}
-          </button>
-          <button disabled={videoZoom === 1} onClick={resetVideoViewport} type="button">
-            {t('synchronization.resetView')}
-          </button>
-          <button
-            onClick={() => void videoViewportRef.current?.requestFullscreen?.()}
-            type="button"
-          >
-            {t('synchronization.fullscreen')}
-          </button>
+            <button onClick={togglePlayback} type="button">
+              {isPlaying ? t('synchronization.pause') : t('synchronization.play')}
+            </button>
+            <button
+              onClick={() => {
+                const video = videoRef.current;
+                if (video !== null) {
+                  video.muted = !isMuted;
+                  setIsMuted(video.muted);
+                }
+              }}
+              type="button"
+            >
+              {isMuted ? t('synchronization.unmute') : t('synchronization.mute')}
+            </button>
+            <button disabled={videoZoom === 1} onClick={resetVideoViewport} type="button">
+              {t('synchronization.resetView')}
+            </button>
+            <button
+              onClick={() => void videoViewportRef.current?.requestFullscreen?.()}
+              type="button"
+            >
+              {t('synchronization.fullscreen')}
+            </button>
+          </div>
         </div>
+        {secondaryPerspectives.length > 0 && (
+          <div className="perspective-mini-grid">
+            {secondaryPerspectives.map((perspective) => (
+              <SecondaryPerspectivePreview
+                isPlaying={playbackIntent}
+                key={perspective.vod.id}
+                onHide={() => onHidePerspective(perspective.vod.id)}
+                onPromote={() => onPromotePerspective(perspective.vod.id)}
+                perspective={perspective}
+              />
+            ))}
+          </div>
+        )}
       </div>
       <div
         aria-label={t('synchronization.timelineControls')}
@@ -746,6 +852,73 @@ function formatZoom(factor: number): string {
   return factor < 10 ? factor.toFixed(1) : factor.toFixed(0);
 }
 
+function SecondaryPerspectivePreview({
+  isPlaying,
+  onHide,
+  onPromote,
+  perspective,
+}: {
+  readonly isPlaying: boolean;
+  readonly onHide: () => void;
+  readonly onPromote: () => void;
+  readonly perspective: SecondaryPerspective;
+}) {
+  const { t } = useTranslation();
+  const { file, targetVideoTime, vod } = perspective;
+  const isOutsideSource =
+    targetVideoTime !== undefined &&
+    (targetVideoTime < 0 ||
+      (vod.durationSeconds !== null && targetVideoTime > vod.durationSeconds));
+
+  if (file !== undefined && targetVideoTime !== undefined && !isOutsideSource) {
+    return (
+      <SynchronizedMiniPlayer
+        file={file}
+        isPlaying={isPlaying}
+        onHide={onHide}
+        onPromote={onPromote}
+        targetVideoTime={targetVideoTime}
+        vod={vod}
+      />
+    );
+  }
+
+  const state =
+    vod.synchronizationAnchor === null
+      ? t('synchronization.miniSyncRequired')
+      : file === undefined
+        ? t('synchronization.miniReselectRequired')
+        : isOutsideSource
+          ? t('synchronization.outsideSourceRange')
+          : t('synchronization.awaitingMainSynchronization');
+
+  return (
+    <div className="perspective-mini perspective-mini--placeholder">
+      <span className="perspective-mini__name">{vod.displayName}</span>
+      <span className="perspective-mini__state">{state}</span>
+      <button
+        aria-label={t('synchronization.promotePerspective', { name: vod.displayName })}
+        className="perspective-mini__promote"
+        onClick={onPromote}
+        type="button"
+      />
+      <button
+        aria-label={t('synchronization.hidePerspective', { name: vod.displayName })}
+        className="perspective-mini__hide"
+        onClick={onHide}
+        type="button"
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
+function clampToVod(time: number, vod: VodReference | undefined): number {
+  const maximum = vod?.durationSeconds ?? Number.POSITIVE_INFINITY;
+  return Math.min(maximum, Math.max(0, time));
+}
+
 interface DragState {
   readonly pointerId: number;
   readonly startX: number;
@@ -758,4 +931,10 @@ interface TimelineDragState {
   readonly startX: number;
   readonly originCenter: number;
   readonly secondsPerPixel: number;
+}
+
+interface SecondaryPerspective {
+  readonly file: File | undefined;
+  readonly targetVideoTime: number | undefined;
+  readonly vod: VodReference;
 }

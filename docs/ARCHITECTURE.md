@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, event search, project schema, IndexedDB repository, project management, local source import, native single-VOD playback, and per-VOD synchronization exist; remaining domain features and adapters are implemented incrementally by milestone.
+This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, event search, project schema, IndexedDB repository, project management, local source import, native playback, per-VOD synchronization, synchronized timelines, and coordinated multi-perspective playback exist; remaining domain features and adapters are implemented incrementally by milestone.
 
 ## Architectural style
 
@@ -104,16 +104,13 @@ If the log clock crosses from late night to an earlier time, increment the day o
 
 ## Playback coordination
 
-- A shared coordinator owns the global session position and play/pause intent.
-- The main and visible mini-players follow that position.
-- Hidden VODs retain logical position but do not actively decode or play.
-- Only the main video is audible.
-- Promoting another perspective preserves the global time.
-- Clip ranges remain attached to their source VOD.
+The implemented coordinator derives shared session time from the main VOD's current media time and synchronization anchor. Each visible synchronized miniplayer maps that session time through its own anchor and follows the main play/pause intent. Only the main video is audible. Promoting a miniplayer maps the shared time into the new main VOD before switching.
+
+Hidden perspectives are unmounted and therefore do not keep an active player, object URL, or decoder. Unsynchronized, unlinked, and out-of-range perspectives render state placeholders. A dismissible warning appears above four visible perspectives. Clip ranges will remain attached to their source VOD when clip editing is added.
 
 ## Timeline rendering
 
-The current single-VOD synchronization timeline uses a native range control for accessible dragging and keyboard operation. Wheel zoom and middle-button panning update only the timeline time window. The video viewport stores separate image scale and translation values, with pointer-centered wheel zoom and bounded image panning. Both surfaces provide visible controls and double-click reset behavior.
+The main synchronization timeline uses a native range control for accessible dragging and keyboard operation. Wheel zoom and middle-button panning update only the timeline time window. The video viewport stores separate image scale and translation values, with pointer-centered wheel zoom and bounded image panning. Both surfaces provide visible controls and double-click reset behavior.
 
 The log-event track maps session times through the stored VOD anchor onto the same visible video-time window. Before synchronization, the selected event and current video position provide a provisional preview anchor. At most 48 marker bins are rendered: individual kills and deaths retain their semantic colors, while multiple events in one bin become a neutral bundle that zooms into its region. The searchable event list remains the complete semantic keyboard-operable representation.
 

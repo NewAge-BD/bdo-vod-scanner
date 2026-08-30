@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { createProject, portableProjectSchema } from '../projects';
-import { mapSessionTimeToVideoTime, synchronizeVod } from './synchronization';
+import {
+  mapSessionTimeToVideoTime,
+  mapVideoTimeToSessionTime,
+  synchronizeVod,
+} from './synchronization';
 
 describe('VOD synchronization', () => {
   it('stores an independent anchor and calculated offset without mutating the project', () => {
@@ -39,6 +43,7 @@ describe('VOD synchronization', () => {
 
     expect(mapSessionTimeToVideoTime(anchor, 72_056)).toBe(55.25);
     expect(mapSessionTimeToVideoTime(anchor, 72_061.5)).toBe(60.75);
+    expect(mapVideoTimeToSessionTime(anchor, 60.75)).toBe(72_061.5);
   });
 });
 

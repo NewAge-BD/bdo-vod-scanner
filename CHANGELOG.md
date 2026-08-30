@@ -33,6 +33,10 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added a shared log-event track on the visible video-time scale with green kills, red deaths, neutral dense-event bundles, and marker navigation.
 - Added searchable log-event selection and one persistent synchronization anchor per VOD.
 - Added independent sync status and calculated offset display for every perspective.
+- Added synchronized multi-perspective playback with one audible main VOD and muted secondary miniplayers.
+- Added perspective promotion that preserves shared session time, plus per-perspective show and hide controls.
+- Added placeholders for unsynchronized, unlinked, and out-of-range perspectives without decoding hidden video.
+- Added a dismissible performance warning when more than four perspectives are visible.
 
 ### Documentation
 
