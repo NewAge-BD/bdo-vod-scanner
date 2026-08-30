@@ -1444,6 +1444,33 @@ h1 {
   cursor: pointer;
 }
 
+.clipping-timeline__name-label button.timeline-split-toggle {
+  color: #b9c5d4;
+  background: rgb(122 147 176 / 8%);
+  border-color: rgb(122 147 176 / 28%);
+}
+
+.clipping-timeline__name-label button.timeline-split-toggle:hover,
+.clipping-timeline__name-label button.timeline-split-toggle[aria-pressed='true'] {
+  color: var(--accent);
+  background: rgb(205 255 53 / 8%);
+  border-color: rgb(205 255 53 / 38%);
+}
+
+.timeline-split-toggle svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.name-timeline-group {
+  display: grid;
+  gap: 0.32rem;
+}
+
 .name-timeline-entry {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

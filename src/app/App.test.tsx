@@ -223,6 +223,23 @@ describe('App', () => {
         name: 'Remove RiverWarden timeline',
       }),
     ).toBeInTheDocument();
+    const splitRiverWarden = within(clippingTimeline).getByRole('button', {
+      name: 'Split RiverWarden timeline into kill and death timelines',
+    });
+    expect(splitRiverWarden).toHaveAttribute(
+      'title',
+      'Splits timeline in 2 separate kill and death timelines',
+    );
+    await user.click(splitRiverWarden);
+    expect(within(clippingTimeline).getByText('RiverWarden · Kills')).toBeInTheDocument();
+    expect(within(clippingTimeline).getByText('RiverWarden · Deaths')).toBeInTheDocument();
+    const mergeRiverWarden = within(clippingTimeline).getByRole('button', {
+      name: 'Merge RiverWarden kill and death timelines',
+    });
+    expect(mergeRiverWarden).toHaveAttribute('aria-pressed', 'true');
+    await user.click(mergeRiverWarden);
+    expect(within(clippingTimeline).queryByText('RiverWarden · Kills')).not.toBeInTheDocument();
+    expect(within(clippingTimeline).queryByText('RiverWarden · Deaths')).not.toBeInTheDocument();
     await user.type(clippingNameInput, 'CopperGrove{Enter}');
     expect(
       await within(clippingTimeline).findByRole('button', {

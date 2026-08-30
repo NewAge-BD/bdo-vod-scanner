@@ -24,6 +24,7 @@ import {
   type TimelineWindow,
 } from '../../domain/timeline';
 import { clampVideoPan, zoomVideoAtPoint, type ViewportPoint } from '../../domain/viewport';
+import { SplitTimelineIcon } from '../../shared/components/SplitTimelineIcon';
 import { TrashIcon } from '../../shared/components/TrashIcon';
 import { ClipPanel } from '../clip-editor';
 import { SynchronizedMiniPlayer } from './SynchronizedMiniPlayer';
@@ -748,6 +749,9 @@ function SynchronizedVideoPlayer({
   const [isTimelinePanning, setIsTimelinePanning] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [splitNameTimelines, setSplitNameTimelines] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
   const objectUrl = useObjectUrl(file);
   const zoomFactor = zoomLevelToFactor(zoomLevel);
   const timelineWindow = useMemo(
@@ -799,18 +803,48 @@ function SynchronizedVideoPlayer({
   );
   const nameMarkerGroups = useMemo(
     () =>
-      searchTerms.map((term) => ({
-        markers: buildAlignedMarkers(
-          searchEvents(events, [term]),
-          alignmentEventId,
-          alignmentEventTime,
-          alignmentVideoTime,
-          timelineWindow,
-        ),
-        term,
-      })),
+      searchTerms.map((term) => {
+        const matchingEvents = searchEvents(events, [term]);
+        return {
+          deathMarkers: buildAlignedMarkers(
+            matchingEvents.filter((event) => event.verb === 'diedTo'),
+            alignmentEventId,
+            alignmentEventTime,
+            alignmentVideoTime,
+            timelineWindow,
+          ),
+          killMarkers: buildAlignedMarkers(
+            matchingEvents.filter((event) => event.verb === 'killed'),
+            alignmentEventId,
+            alignmentEventTime,
+            alignmentVideoTime,
+            timelineWindow,
+          ),
+          markers: buildAlignedMarkers(
+            matchingEvents,
+            alignmentEventId,
+            alignmentEventTime,
+            alignmentVideoTime,
+            timelineWindow,
+          ),
+          term,
+        };
+      }),
     [alignmentEventId, alignmentEventTime, alignmentVideoTime, events, searchTerms, timelineWindow],
   );
+
+  function toggleNameTimelineSplit(term: string) {
+    setSplitNameTimelines((current) => {
+      const next = new Set(current);
+      const key = term.toLocaleLowerCase();
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }
 
   useEffect(() => {
     if (eventSeekRequest === undefined) {
@@ -1356,18 +1390,52 @@ function SynchronizedVideoPlayer({
             {searchSaveState === 'error' && (
               <p className="name-timeline-error">{t('clipping.nameSaveError')}</p>
             )}
-            {nameMarkerGroups.map(({ markers, term }) => (
-              <EventTimelineLane
-                emptyLabel={t('clipping.noVisibleNameEvents', { name: term })}
-                events={events}
-                key={term.toLocaleLowerCase()}
-                label={term}
-                markers={markers}
-                onActivate={activateLogMarker}
-                onRemove={() => onRemoveSearchTerm(term)}
-                selectedEvent={selectedEvent}
-              />
-            ))}
+            {nameMarkerGroups.map(
+              ({ deathMarkers: nameDeaths, killMarkers: nameKills, markers, term }) => {
+                const timelineKey = term.toLocaleLowerCase();
+                const isSplit = splitNameTimelines.has(timelineKey);
+                if (!isSplit) {
+                  return (
+                    <EventTimelineLane
+                      emptyLabel={t('clipping.noVisibleNameEvents', { name: term })}
+                      events={events}
+                      key={timelineKey}
+                      label={term}
+                      markers={markers}
+                      onActivate={activateLogMarker}
+                      onRemove={() => onRemoveSearchTerm(term)}
+                      onToggleSplit={() => toggleNameTimelineSplit(term)}
+                      selectedEvent={selectedEvent}
+                      split={false}
+                    />
+                  );
+                }
+                return (
+                  <div className="name-timeline-group" key={timelineKey}>
+                    <EventTimelineLane
+                      actionLabel={term}
+                      emptyLabel={t('clipping.noVisibleNameKills', { name: term })}
+                      events={events}
+                      label={t('clipping.nameKillTimeline', { name: term })}
+                      markers={nameKills}
+                      onActivate={activateLogMarker}
+                      onRemove={() => onRemoveSearchTerm(term)}
+                      onToggleSplit={() => toggleNameTimelineSplit(term)}
+                      selectedEvent={selectedEvent}
+                      split
+                    />
+                    <EventTimelineLane
+                      emptyLabel={t('clipping.noVisibleNameDeaths', { name: term })}
+                      events={events}
+                      label={t('clipping.nameDeathTimeline', { name: term })}
+                      markers={nameDeaths}
+                      onActivate={activateLogMarker}
+                      selectedEvent={selectedEvent}
+                    />
+                  </div>
+                );
+              },
+            )}
           </div>
         ) : (
           <div className="log-timeline" aria-label={t('synchronization.logTimeline')}>
@@ -1490,34 +1558,58 @@ function buildAlignedMarkers(
 }
 
 function EventTimelineLane({
+  actionLabel,
   emptyLabel,
   events,
   label,
   markers,
   onActivate,
   onRemove,
+  onToggleSplit,
   selectedEvent,
+  split,
 }: {
+  readonly actionLabel?: string;
   readonly emptyLabel: string;
   readonly events: readonly BdoEvent[];
   readonly label: string;
   readonly markers: readonly LogTimelineMarker[];
   readonly onActivate: (marker: LogTimelineMarker) => void;
   readonly onRemove?: () => void;
+  readonly onToggleSplit?: () => void;
   readonly selectedEvent: BdoEvent | undefined;
+  readonly split?: boolean;
 }) {
   const { t } = useTranslation();
+  const accessibleLabel = actionLabel ?? label;
   return (
     <div className="clipping-timeline__lane">
       <div className="clipping-timeline__name-label">
         <span className="clipping-timeline__label" title={label}>
           {label}
         </span>
+        {onToggleSplit !== undefined && (
+          <button
+            aria-label={
+              split
+                ? t('clipping.mergeNameTimeline', { name: accessibleLabel })
+                : t('clipping.splitNameTimeline', { name: accessibleLabel })
+            }
+            aria-pressed={split}
+            className="timeline-split-toggle"
+            onClick={onToggleSplit}
+            title={split ? t('clipping.mergeTimelineTooltip') : t('clipping.splitTimelineTooltip')}
+            type="button"
+          >
+            <SplitTimelineIcon />
+          </button>
+        )}
         {onRemove !== undefined && (
           <button
-            aria-label={t('clipping.removeNameTimeline', { name: label })}
+            aria-label={t('clipping.removeNameTimeline', { name: accessibleLabel })}
+            className="timeline-remove"
             onClick={onRemove}
-            title={t('clipping.removeNameTimeline', { name: label })}
+            title={t('clipping.removeNameTimeline', { name: accessibleLabel })}
             type="button"
           >
             ×

@@ -8,6 +8,7 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ### Added
 
+- Added a per-name split control that separates a selected-name timeline into dedicated kill and death lanes.
 - Added the React, strict TypeScript, Vite, internationalization, and custom-CSS application foundation.
 - Added the initial accessible project-overview shell.
 - Added formatting, linting, type checking, unit testing, Chromium smoke testing, production builds, and private CI checks.
