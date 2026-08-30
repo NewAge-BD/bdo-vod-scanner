@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the approved target architecture for the MVP. No application code exists yet.
+This document describes the approved target architecture for the MVP. The application shell and quality foundation exist; domain features and adapters are implemented incrementally by milestone.
 
 ## Architectural style
 

@@ -194,7 +194,7 @@ Baseline approved on 2026-08-30:
 
 - Node.js 24 LTS and npm with committed lockfile.
 - React 19.2.
-- Strict TypeScript 7.0.
+- Strict TypeScript 6.0. Upgrade to TypeScript 7 after the React i18n integration officially supports it and all checks pass.
 - Vite 8.2.
 - Zustand 5.x.
 - Zod 4.5.

@@ -1,18 +1,15 @@
 # Development Guide
 
-> [!NOTE]
-> The application toolchain has not been scaffolded yet. Commands in this guide become authoritative only after the initial setup task creates and verifies them.
-
 ## Intended environment
 
 - Windows development is the primary environment.
 - Node.js 24 LTS
 - npm with a committed `package-lock.json`
 - React 19.2
-- TypeScript 7.0 in strict mode
+- TypeScript 6.0 in strict mode
 - Vite 8.2
 
-The initial setup must resolve and lock mutually compatible stable patch versions. Do not use prereleases without approval.
+Stable compatible patch versions are locked in `package-lock.json`. TypeScript 6 is temporarily pinned because the approved React i18n integration does not yet declare TypeScript 7 compatibility. Upgrade after its peer range supports TypeScript 7 and all checks pass. Do not use prereleases without approval.
 
 ## Intended quality tools
 
@@ -22,13 +19,21 @@ The initial setup must resolve and lock mutually compatible stable patch version
 - React Testing Library 16
 - Playwright 1.62 using Chromium
 
-## Intended commands
+## Local setup
 
-The initial scaffold should provide scripts equivalent to:
+```text
+npm install
+npm run dev
+```
+
+The local URL is printed by Vite. No backend or external service is required.
+
+## Commands
 
 ```text
 npm run dev
 npm run format
+npm run format:check
 npm run lint
 npm run typecheck
 npm run test
@@ -36,7 +41,7 @@ npm run test:e2e
 npm run build
 ```
 
-Document the exact command behavior after scaffolding.
+Playwright requires its local Chromium binary. Install it once with `npx playwright install chromium` when the smoke test reports that the executable is missing.
 
 ## Required verification
 
