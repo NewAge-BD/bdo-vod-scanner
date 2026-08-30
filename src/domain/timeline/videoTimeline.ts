@@ -32,6 +32,28 @@ export function calculateTimelineWindow(
   };
 }
 
+export function calculatePointerAnchoredZoomCenter(
+  mediaDurationSeconds: number,
+  currentWindow: TimelineWindow,
+  nextZoomFactor: number,
+  pointerRatio: number,
+): number {
+  const duration = finiteNonNegative(mediaDurationSeconds);
+  if (duration === 0) {
+    return 0;
+  }
+  const safeRatio = Number.isFinite(pointerRatio) ? Math.min(1, Math.max(0, pointerRatio)) : 0.5;
+  const safeZoom = Number.isFinite(nextZoomFactor) ? Math.max(1, nextZoomFactor) : 1;
+  const nextVisibleDuration = duration / safeZoom;
+  const anchorTime = currentWindow.startSeconds + currentWindow.durationSeconds * safeRatio;
+  const maximumStart = duration - nextVisibleDuration;
+  const nextStart = Math.min(
+    maximumStart,
+    Math.max(0, anchorTime - nextVisibleDuration * safeRatio),
+  );
+  return nextStart + nextVisibleDuration / 2;
+}
+
 function finiteNonNegative(value: number): number {
   return Number.isFinite(value) ? Math.max(0, value) : 0;
 }

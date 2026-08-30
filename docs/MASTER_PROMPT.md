@@ -96,7 +96,8 @@ Preserve raw line and line number. Assign an event ID independent of timestamp. 
 - Search Family A/B, Character A/B, and Guild B.
 - Ignore case and allow partial matches.
 - Multiple terms use OR semantics.
-- Preserve independent terms for every VOD.
+- Keep synchronization-search terms session-only and independent per VOD. They are navigation aids for matching visible Ingame timestamps to log timestamps and must never affect clipping filters or saved clips.
+- Persist clipping-name timelines independently for every VOD.
 - Store the active-term snapshot on clip creation.
 - Provide previous/next matching-event navigation.
 - Selecting an event seeks synchronized visible videos and pauses.
@@ -140,7 +141,7 @@ Frame accuracy means visual frame-by-frame navigation, not a guaranteed professi
 
 Keep synchronization and clip selection as separate workspaces. A **Start Clipping** action below the synchronization confirmation opens the clipping workspace with the active perspective as a large single player and its timeline across the full available width. While clipping, hide the project heading, project navigation, source import, and imported-source cards above the workspace. Restore them when the user returns to synchronization.
 
-Do not create extra timeline rows for additional VOD perspectives. Show shared **Kills** and **Deaths** rows, followed by a **Selected names** text entry. Adding a family, character, or guild name creates one independently filtered event timeline for that name; users may add or remove as many name timelines as needed within the saved per-perspective limit. Support zoom and horizontal navigation. Bundle dense events while zoomed out and separate them while zoomed in. Render `killed` green, `died to` red, and bundles neutrally. Use efficient graphics for dense markers plus a semantic keyboard-operable event list. Clicking an event seeks and pauses. Display clip ranges with draggable handles.
+Do not create extra timeline rows for additional VOD perspectives. Show shared **Kills** and **Deaths** rows, followed by a **Selected names** text entry. Adding a family, character, or guild name creates one independently filtered event timeline for that name; users may add or remove as many name timelines as needed within the saved per-perspective limit. Support mouse-wheel zoom anchored to the exact time beneath the pointer and horizontal navigation. Bundle dense events while zoomed out and separate them while zoomed in. Render `killed` green, `died to` red, and bundles neutrally. Use efficient graphics for dense markers plus a semantic keyboard-operable event list. Clicking an event seeks and pauses. Display clip ranges with draggable handles.
 
 Minimum keyboard controls:
 

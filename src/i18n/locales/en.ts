@@ -173,7 +173,7 @@ export const en = {
   },
   synchronization: {
     addSearchTerm: 'Add name',
-    addSearchTermLabel: 'Add a family, character, or guild name',
+    addSearchTermLabel: 'Find a family, character, or guild name',
     confirm: 'Set synchronization point',
     description:
       'Find the selected event in the video, pause on the matching frame, then save the anchor.',
@@ -216,9 +216,10 @@ export const en = {
     saveError: 'The synchronization point could not be saved.',
     saving: 'Saving…',
     searchPlaceholder: 'Family, character, or guild name',
-    searchTerms: 'Active names for this perspective',
+    searchTerms: 'Temporary synchronization search',
     removeSearchTerm: 'Remove {{term}}',
-    searchTermsSaveError: 'The active names could not be saved.',
+    temporarySearchHint:
+      'Session-only navigation aid. These names do not affect clipping filters or saved clips.',
     selectedEvent: 'Selected log event',
     synchronized: 'Synchronized',
     showMiniPlayer: 'Show mini',

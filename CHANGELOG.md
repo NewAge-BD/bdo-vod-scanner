@@ -45,6 +45,7 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added an accessible collapsible clip list with source perspective, range, duration, and deletion.
 - Added a dedicated full-width clipping workspace opened from the synchronization panel.
 - Added separate Kills and Deaths rows plus direct name entry that creates one independently filtered timeline per saved name.
+- Separated temporary synchronization searches from persistent clipping-name timelines.
 - Added confirmed per-VOD deletion from source cards and perspective tabs, including safe cleanup of owned clips and local file links.
 - Made the clipping workspace hide project navigation, source import, and source cards until returning to synchronization.
 
@@ -55,6 +56,7 @@ The project intends to follow Semantic Versioning once releases begin.
 ### Fixed
 
 - Prevented mouse-wheel zoom over the video or timeline from scrolling the surrounding page.
+- Kept the timeline time beneath the mouse pointer stationary while zooming at off-center positions.
 - Kept synchronized and sync-required status colors stable when selecting another perspective.
 
 ## [0.1.0] - Planned

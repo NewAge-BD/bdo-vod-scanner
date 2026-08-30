@@ -1628,6 +1628,13 @@ h1 {
   text-transform: uppercase;
 }
 
+.sync-event-panel__hint {
+  margin: -0.15rem 0 0.55rem;
+  color: var(--quiet);
+  font-size: 0.61rem;
+  line-height: 1.4;
+}
+
 .selected-event {
   margin-bottom: 1.1rem;
   padding: 0.8rem;

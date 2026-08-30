@@ -118,6 +118,19 @@ describe('App', () => {
       y: 0,
       toJSON: () => undefined,
     });
+    const timelineScale = playhead.parentElement;
+    expect(timelineScale).not.toBeNull();
+    vi.spyOn(timelineScale!, 'getBoundingClientRect').mockReturnValue({
+      bottom: 160,
+      height: 40,
+      left: 0,
+      right: 800,
+      top: 120,
+      width: 800,
+      x: 0,
+      y: 120,
+      toJSON: () => undefined,
+    });
     Object.assign(timeline, {
       hasPointerCapture: vi.fn(() => true),
       releasePointerCapture: vi.fn(),
@@ -126,12 +139,15 @@ describe('App', () => {
     const timelineWheel = new WheelEvent('wheel', {
       bubbles: true,
       cancelable: true,
-      clientX: 400,
+      clientX: 600,
       deltaY: -100,
     });
     fireEvent(timeline, timelineWheel);
     expect(timelineWheel.defaultPrevented).toBe(true);
     expect(screen.getByText('Zoom ×1.3')).toBeInTheDocument();
+    const zoomedStart = Number(playhead.getAttribute('min'));
+    const zoomedEnd = Number(playhead.getAttribute('max'));
+    expect(zoomedStart + (zoomedEnd - zoomedStart) * 0.75).toBeCloseTo(2_700, 6);
     const rangeStartBeforePan = playhead.getAttribute('min');
     fireEvent.pointerDown(timeline, { button: 1, clientX: 400, pointerId: 1 });
     fireEvent.pointerMove(timeline, { clientX: 300, pointerId: 1 });
@@ -165,7 +181,7 @@ describe('App', () => {
     expect(await screen.findByText('Synchronization point saved locally.')).toBeInTheDocument();
     expect(screen.getByText('SYNCED')).toBeInTheDocument();
 
-    const searchInput = screen.getByLabelText('Add a family, character, or guild name');
+    const searchInput = screen.getByLabelText('Find a family, character, or guild name');
     await user.type(searchInput, 'EmberVale');
     await user.click(screen.getByRole('button', { name: 'Add name' }));
     expect(await screen.findByText('1 matching event')).toBeInTheDocument();
@@ -197,8 +213,16 @@ describe('App', () => {
     expect(within(clippingTimeline).getByText('Kills')).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Deaths')).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Selected names')).toBeInTheDocument();
-    expect(within(clippingTimeline).getByText('RiverWarden')).toBeInTheDocument();
     const clippingNameInput = within(clippingTimeline).getByLabelText('Selected names');
+    expect(
+      within(clippingTimeline).queryByRole('button', { name: 'Remove RiverWarden timeline' }),
+    ).not.toBeInTheDocument();
+    await user.type(clippingNameInput, 'RiverWarden{Enter}');
+    expect(
+      await within(clippingTimeline).findByRole('button', {
+        name: 'Remove RiverWarden timeline',
+      }),
+    ).toBeInTheDocument();
     await user.type(clippingNameInput, 'CopperGrove{Enter}');
     expect(
       await within(clippingTimeline).findByRole('button', {
@@ -313,7 +337,7 @@ describe('App', () => {
       'perspective-tab--active',
     );
     await user.type(
-      screen.getByLabelText('Add a family, character, or guild name'),
+      screen.getByLabelText('Find a family, character, or guild name'),
       'FrostCairn{Enter}',
     );
     expect(await screen.findByText('FrostCairn')).toBeInTheDocument();

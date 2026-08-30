@@ -17,6 +17,7 @@ import {
 } from '../../domain/synchronization';
 import {
   buildLogTimelineMarkers,
+  calculatePointerAnchoredZoomCenter,
   calculateTimelineWindow,
   zoomLevelToFactor,
   type LogTimelineMarker,
@@ -68,8 +69,14 @@ export function VideoSynchronization({
   const [activeVodId, setActiveVodId] = useState(project.vods[0]?.id);
   const activeVod = project.vods.find((vod) => vod.id === activeVodId) ?? project.vods[0];
   const [selectedEventId, setSelectedEventId] = useState<string>();
-  const [searchDraft, setSearchDraft] = useState('');
-  const [searchSaveState, setSearchSaveState] = useState<'idle' | 'saving' | 'error'>('idle');
+  const [syncSearchDraft, setSyncSearchDraft] = useState('');
+  const [syncSearchTermsByVod, setSyncSearchTermsByVod] = useState<
+    ReadonlyMap<string, readonly string[]>
+  >(() => new Map());
+  const [clipSearchDraft, setClipSearchDraft] = useState('');
+  const [clipSearchSaveState, setClipSearchSaveState] = useState<'idle' | 'saving' | 'error'>(
+    'idle',
+  );
   const [eventSeekRequest, setEventSeekRequest] = useState<EventSeekRequest>();
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isVideoReady, setIsVideoReady] = useState(false);
@@ -90,9 +97,13 @@ export function VideoSynchronization({
   const defaultEventId = activeVod?.synchronizationAnchor?.eventId ?? firstEventId;
   const selectedEvent =
     events.find((event) => event.id === (selectedEventId ?? defaultEventId)) ?? events[0];
-  const matchingEvents = useMemo(
+  const syncSearchTerms = useMemo(
+    () => (activeVod === undefined ? [] : (syncSearchTermsByVod.get(activeVod.id) ?? [])),
+    [activeVod, syncSearchTermsByVod],
+  );
+  const syncMatchingEvents = useMemo(
     () =>
-      searchEvents(events, activeVod?.searchTerms ?? []).filter((event) => {
+      searchEvents(events, syncSearchTerms).filter((event) => {
         if (
           activeVod?.synchronizationAnchor === null ||
           activeVod?.synchronizationAnchor === undefined ||
@@ -106,21 +117,25 @@ export function VideoSynchronization({
         );
         return mappedTime >= 0 && mappedTime <= activeVod.durationSeconds;
       }),
-    [activeVod, events],
+    [activeVod, events, syncSearchTerms],
+  );
+  const clipMatchingEvents = useMemo(
+    () => searchEvents(events, activeVod?.searchTerms ?? []),
+    [activeVod?.searchTerms, events],
   );
   const eventIndexById = useMemo(
     () => new Map(events.map((event, index) => [event.id, index])),
     [events],
   );
-  const visibleMatchingEvents = matchingEvents.slice(0, MAX_VISIBLE_EVENTS);
+  const visibleMatchingEvents = syncMatchingEvents.slice(0, MAX_VISIBLE_EVENTS);
   const previousMatchingEvent = findAdjacentMatchingEvent(
-    matchingEvents,
+    syncMatchingEvents,
     eventIndexById,
     selectedEvent?.id,
     -1,
   );
   const nextMatchingEvent = findAdjacentMatchingEvent(
-    matchingEvents,
+    syncMatchingEvents,
     eventIndexById,
     selectedEvent?.id,
     1,
@@ -160,8 +175,9 @@ export function VideoSynchronization({
           : mapSessionTimeToVideoTime(vod.synchronizationAnchor, sharedSessionTime);
     setActiveVodId(vodId);
     setSelectedEventId(vod?.synchronizationAnchor?.eventId ?? firstEventId);
-    setSearchDraft('');
-    setSearchSaveState('idle');
+    setSyncSearchDraft('');
+    setClipSearchDraft('');
+    setClipSearchSaveState('idle');
     setEventSeekRequest(undefined);
     setClipDraft({});
     setClipSaveState('idle');
@@ -175,8 +191,40 @@ export function VideoSynchronization({
     });
   }
 
-  async function addSearchTerm() {
-    const term = searchDraft.trim();
+  function addSyncSearchTerm() {
+    const term = syncSearchDraft.trim();
+    if (activeVod === undefined || term.length === 0 || syncSearchTerms.length >= 50) {
+      return;
+    }
+    const alreadyExists = syncSearchTerms.some(
+      (candidate) => candidate.toLocaleLowerCase() === term.toLocaleLowerCase(),
+    );
+    if (!alreadyExists) {
+      setSyncSearchTermsByVod((current) => {
+        const next = new Map(current);
+        next.set(activeVod.id, [...syncSearchTerms, term]);
+        return next;
+      });
+    }
+    setSyncSearchDraft('');
+  }
+
+  function removeSyncSearchTerm(term: string) {
+    if (activeVod === undefined) {
+      return;
+    }
+    setSyncSearchTermsByVod((current) => {
+      const next = new Map(current);
+      next.set(
+        activeVod.id,
+        syncSearchTerms.filter((candidate) => candidate !== term),
+      );
+      return next;
+    });
+  }
+
+  async function addClipSearchTerm() {
+    const term = clipSearchDraft.trim();
     if (activeVod === undefined || term.length === 0 || activeVod.searchTerms.length >= 50) {
       return;
     }
@@ -184,27 +232,27 @@ export function VideoSynchronization({
       (candidate) => candidate.toLocaleLowerCase() === term.toLocaleLowerCase(),
     );
     if (alreadyExists) {
-      setSearchDraft('');
+      setClipSearchDraft('');
       return;
     }
-    setSearchSaveState('saving');
+    setClipSearchSaveState('saving');
     const saved = await onSearchTermsChange(activeVod.id, [...activeVod.searchTerms, term]);
-    setSearchSaveState(saved ? 'idle' : 'error');
+    setClipSearchSaveState(saved ? 'idle' : 'error');
     if (saved) {
-      setSearchDraft('');
+      setClipSearchDraft('');
     }
   }
 
-  async function removeSearchTerm(term: string) {
+  async function removeClipSearchTerm(term: string) {
     if (activeVod === undefined) {
       return;
     }
-    setSearchSaveState('saving');
+    setClipSearchSaveState('saving');
     const saved = await onSearchTermsChange(
       activeVod.id,
       activeVod.searchTerms.filter((candidate) => candidate !== term),
     );
-    setSearchSaveState(saved ? 'idle' : 'error');
+    setClipSearchSaveState(saved ? 'idle' : 'error');
   }
 
   function selectOrJumpToEvent(event: BdoEvent) {
@@ -263,7 +311,7 @@ export function VideoSynchronization({
     ) {
       return;
     }
-    const matchingEventIds = matchingEvents
+    const matchingEventIds = clipMatchingEvents
       .filter((event) => {
         const eventVideoTime = mapSessionTimeToVideoTime(anchor, event.sessionTimeSeconds);
         return eventVideoTime >= inPointSeconds && eventVideoTime <= outPointSeconds;
@@ -413,15 +461,15 @@ export function VideoSynchronization({
         onPlaybackChange={setIsMainPlaying}
         onPromotePerspective={selectPerspective}
         onReady={setIsVideoReady}
-        onRemoveSearchTerm={(term) => void removeSearchTerm(term)}
-        onSearchDraftChange={setSearchDraft}
-        onAddSearchTerm={() => void addSearchTerm()}
+        onRemoveSearchTerm={(term) => void removeClipSearchTerm(term)}
+        onSearchDraftChange={setClipSearchDraft}
+        onAddSearchTerm={() => void addClipSearchTerm()}
         onSelectEvent={setSelectedEventId}
         onTimeChange={setVideoTime}
         onSaveClip={() => void saveMarkedClip()}
         secondaryPerspectives={clippingMode ? [] : secondaryPerspectives}
-        searchDraft={searchDraft}
-        searchSaveState={searchSaveState}
+        searchDraft={clipSearchDraft}
+        searchSaveState={clipSearchSaveState}
         searchTerms={activeVod.searchTerms}
         selectedEvent={selectedEvent}
         vod={activeVod}
@@ -496,15 +544,15 @@ export function VideoSynchronization({
           )}
 
           <p className="sync-event-panel__label">{t('synchronization.searchTerms')}</p>
-          {activeVod !== undefined && activeVod.searchTerms.length > 0 && (
+          <p className="sync-event-panel__hint">{t('synchronization.temporarySearchHint')}</p>
+          {syncSearchTerms.length > 0 && (
             <div className="search-term-list" aria-label={t('synchronization.searchTerms')}>
-              {activeVod.searchTerms.map((term) => (
+              {syncSearchTerms.map((term) => (
                 <span className="search-term" key={term}>
                   {term}
                   <button
                     aria-label={t('synchronization.removeSearchTerm', { term })}
-                    disabled={searchSaveState === 'saving'}
-                    onClick={() => void removeSearchTerm(term)}
+                    onClick={() => removeSyncSearchTerm(term)}
                     type="button"
                   >
                     ×
@@ -520,37 +568,28 @@ export function VideoSynchronization({
             <input
               id="sync-event-search"
               maxLength={120}
-              onChange={(event) => setSearchDraft(event.target.value)}
+              onChange={(event) => setSyncSearchDraft(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   event.preventDefault();
-                  void addSearchTerm();
+                  addSyncSearchTerm();
                 }
               }}
               placeholder={t('synchronization.searchPlaceholder')}
               type="search"
-              value={searchDraft}
+              value={syncSearchDraft}
             />
             <button
-              disabled={
-                searchDraft.trim().length === 0 ||
-                searchSaveState === 'saving' ||
-                (activeVod?.searchTerms.length ?? 0) >= 50
-              }
-              onClick={() => void addSearchTerm()}
+              disabled={syncSearchDraft.trim().length === 0 || syncSearchTerms.length >= 50}
+              onClick={addSyncSearchTerm}
               type="button"
             >
               {t('synchronization.addSearchTerm')}
             </button>
           </div>
-          {searchSaveState === 'error' && (
-            <p className="sync-save-state sync-save-state--error">
-              {t('synchronization.searchTermsSaveError')}
-            </p>
-          )}
           <div className="event-match-navigation">
             <span aria-live="polite">
-              {t('synchronization.matchCount', { count: matchingEvents.length })}
+              {t('synchronization.matchCount', { count: syncMatchingEvents.length })}
             </span>
             <div>
               <button
@@ -696,6 +735,7 @@ function SynchronizedVideoPlayer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoViewportRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const timelineScaleRef = useRef<HTMLDivElement>(null);
   const videoDragRef = useRef<DragState | null>(null);
   const timelineDragRef = useRef<TimelineDragState | null>(null);
   const [displayTime, setDisplayTime] = useState(initialTime);
@@ -816,7 +856,8 @@ function SynchronizedVideoPlayer({
 
   useEffect(() => {
     const timeline = timelineRef.current;
-    if (timeline === null) {
+    const timelineScale = timelineScaleRef.current;
+    if (timeline === null || timelineScale === null) {
       return;
     }
     const handleWheel = (event: WheelEvent) => {
@@ -824,19 +865,22 @@ function SynchronizedVideoPlayer({
       if (mediaDuration === 0) {
         return;
       }
-      const bounds = timeline.getBoundingClientRect();
+      const bounds = timelineScale.getBoundingClientRect();
       const pointerRatio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
       const nextLevel = Math.min(120, Math.max(1, zoomLevel + (event.deltaY < 0 ? 4 : -4)));
-      const anchorTime =
-        timelineWindow.startSeconds + timelineWindow.durationSeconds * pointerRatio;
-      const nextVisibleDuration = mediaDuration / zoomLevelToFactor(nextLevel);
-      const nextStart = anchorTime - nextVisibleDuration * pointerRatio;
-      setTimelineCenter(nextStart + nextVisibleDuration / 2);
+      setTimelineCenter(
+        calculatePointerAnchoredZoomCenter(
+          mediaDuration,
+          timelineWindow,
+          zoomLevelToFactor(nextLevel),
+          pointerRatio,
+        ),
+      );
       setZoomLevel(nextLevel);
     };
     timeline.addEventListener('wheel', handleWheel, { passive: false });
     return () => timeline.removeEventListener('wheel', handleWheel);
-  }, [mediaDuration, timelineWindow.durationSeconds, timelineWindow.startSeconds, zoomLevel]);
+  }, [mediaDuration, timelineWindow, zoomLevel]);
 
   function updateTime(time: number, followPlayhead = false) {
     setDisplayTime(time);
@@ -1155,7 +1199,7 @@ function SynchronizedVideoPlayer({
           <span>{t('synchronization.visibleRange')}</span>
           <time>{formatTime(timelineWindow.endSeconds)}</time>
         </div>
-        <div className="video-timeline__scrubber">
+        <div className="video-timeline__scrubber" ref={timelineScaleRef}>
           <input
             aria-label={t('synchronization.videoTimeline')}
             max={timelineWindow.endSeconds}

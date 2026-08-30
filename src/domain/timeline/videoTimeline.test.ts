@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { calculateTimelineWindow, zoomLevelToFactor } from './videoTimeline';
+import {
+  calculatePointerAnchoredZoomCenter,
+  calculateTimelineWindow,
+  zoomLevelToFactor,
+} from './videoTimeline';
 
 describe('video timeline window', () => {
   it('shows the complete media at the minimum zoom', () => {
@@ -37,5 +41,16 @@ describe('video timeline window', () => {
     expect(zoomLevelToFactor(13)).toBe(2);
     expect(zoomLevelToFactor(0)).toBe(1);
     expect(zoomLevelToFactor(999)).toBeCloseTo(966.5, 1);
+  });
+
+  it('keeps the time below an off-center pointer stationary while zooming', () => {
+    const currentWindow = calculateTimelineWindow(600, 300, 2);
+    const nextCenter = calculatePointerAnchoredZoomCenter(600, currentWindow, 4, 0.75);
+    const nextWindow = calculateTimelineWindow(600, nextCenter, 4);
+
+    const timeBefore = currentWindow.startSeconds + currentWindow.durationSeconds * 0.75;
+    const timeAfter = nextWindow.startSeconds + nextWindow.durationSeconds * 0.75;
+    expect(timeAfter).toBeCloseTo(timeBefore, 10);
+    expect(nextWindow.startSeconds).toBe(262.5);
   });
 });

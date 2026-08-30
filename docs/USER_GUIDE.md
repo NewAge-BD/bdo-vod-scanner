@@ -65,7 +65,7 @@ Use **Hide mini** beside a perspective to remove it from the grid and stop its a
 
 Add one or more family, character, or guild names. Searches ignore case and support partial matches. Multiple active names use OR matching and can be removed individually.
 
-Every VOD keeps its own active names and saves them automatically in the project. Use **Previous matching event** and **Next matching event** to move between matches inside the active VOD's available time range. Selecting a result directly has the same effect. The main and visible synchronized videos seek to that shared moment and pause.
+This synchronization search is temporary and independent for every VOD during the current session. It is intended for comparing visible Ingame timestamps with nearby log events. It never adds clipping timelines, changes clip filters, or affects saved clips. Use **Previous matching event** and **Next matching event** to move between matches inside the active VOD's available time range. Selecting a result directly has the same effect. The main and visible synchronized videos seek to that shared moment and pause.
 
 ### 6. Mark clips
 
