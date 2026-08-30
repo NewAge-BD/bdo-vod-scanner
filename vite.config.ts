@@ -3,6 +3,19 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    watch: {
+      ignored: [
+        '**/*.mp4',
+        '**/*.mkv',
+        '**/*.mov',
+        '**/*.avi',
+        '**/*.webm',
+        '**/*.wav',
+        '**/*.mp3',
+      ],
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
