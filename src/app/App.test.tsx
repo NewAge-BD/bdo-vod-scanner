@@ -211,6 +211,9 @@ describe('App', () => {
     expect(screen.queryByRole('heading', { name: 'Source import' })).not.toBeInTheDocument();
     const clippingTimeline = screen.getByLabelText('Full-width clipping timeline');
     const clippingPlayhead = screen.getByLabelText('Video timeline playhead');
+    expect(screen.getByLabelText('Video timeline controls')).toHaveClass(
+      'video-timeline--clipping',
+    );
     expect(within(clippingTimeline).getByText('Kills')).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Deaths')).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Selected names')).toBeInTheDocument();
@@ -273,6 +276,10 @@ describe('App', () => {
     expect(screen.getByDisplayValue('RiverWarden')).toBeInTheDocument();
     expect(screen.getByText('00:00:55.000 – 00:01:10.000')).toBeInTheDocument();
     expect(screen.getByText('15.000 s')).toBeInTheDocument();
+    expect(screen.getByLabelText('Timeline frame rate')).toHaveValue(60);
+    expect(screen.getByLabelText('Timeline width')).toHaveValue(1920);
+    expect(screen.getByLabelText('Timeline height')).toHaveValue(1080);
+    expect(screen.getByRole('button', { name: 'Export to DaVinci Resolve' })).toBeEnabled();
 
     const clipTitle = screen.getByLabelText('Clip title');
     await user.clear(clipTitle);

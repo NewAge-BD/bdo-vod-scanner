@@ -161,6 +161,19 @@ export const en = {
     timeline: 'Full-width clipping timeline',
     title: 'Clipping workspace',
   },
+  davinci: {
+    error: 'The DaVinci Resolve timeline could not be created. Check the export settings.',
+    export: 'Export to DaVinci Resolve',
+    exporting: 'Preparing timeline…',
+    frameRate: 'Timeline frame rate',
+    height: 'Timeline height',
+    kicker: 'EDIT TIMELINE',
+    relinkNote:
+      'The FCPXML contains source filenames only. Import it in Resolve, then relink missing media to your original VOD folder.',
+    summary: 'Exports every marked clip in the saved order, without gaps, including source audio.',
+    title: 'DaVinci Resolve',
+    width: 'Timeline width',
+  },
   sources: {
     codecs: 'Codecs',
     date: 'Session date',

@@ -70,15 +70,15 @@ The media library is not yet selected. Evaluate candidates such as Mediabunny an
 
 ## DaVinci Resolve export
 
-- Support at least the current free DaVinci Resolve version.
-- Produce one timeline with clips in manual order and no gaps.
-- Include original video and audio.
-- Default to 60 FPS.
-- Default to the largest imported VOD resolution.
-- Let users override frame rate and resolution.
-- Reference source filenames in the website.
-- Attempt automatic matching where supported, with manual relinking as the reliable fallback.
-- Select the exact interchange format only after a compatibility test.
+The implemented browser exporter creates FCPXML 1.10:
+
+- One timeline contains clips in saved manual order with no gaps.
+- Composite asset clips include original video and source audio.
+- Timeline time values are quantized to exact rational frames, including NTSC rates such as 59.94 FPS.
+- The default is 60 FPS and the largest imported VOD resolution; users may override and persist frame rate and resolution.
+- Only source filenames are referenced because the website does not persist private full paths.
+- Manual media relinking in Resolve is the reliable browser workflow.
+- Direct timeline import should be compatibility-tested against the installed free Resolve version before public release.
 
 ## Synthetic test media
 

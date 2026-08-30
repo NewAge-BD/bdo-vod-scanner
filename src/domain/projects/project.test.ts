@@ -7,6 +7,7 @@ import {
   renameProject,
   setVodSearchTerms,
   setVodSplitSearchTerms,
+  setDavinciDefaults,
 } from './project';
 import { portableProjectSchema } from './schema';
 import { parseProjectFile, ProjectImportError, serializeProject } from './serialization';
@@ -187,6 +188,18 @@ describe('project domain', () => {
   it('creates a sanitized, recognizable export filename', () => {
     const project = createProject('  Siege: EU / Finals.  ');
     expect(getProjectExportFileName(project)).toBe('Siege- EU - Finals.bdo-vod-project.json');
+  });
+
+  it('stores validated DaVinci Resolve timeline defaults', () => {
+    const project = createProject('Resolve defaults', new Date('2026-08-30T12:00:00.000Z'));
+    const updated = setDavinciDefaults(
+      project,
+      { frameRate: 59.94, width: 2560, height: 1440 },
+      new Date('2026-08-30T13:00:00.000Z'),
+    );
+
+    expect(updated.davinciDefaults).toEqual({ frameRate: 59.94, width: 2560, height: 1440 });
+    expect(updated.updatedAt).toBe('2026-08-30T13:00:00.000Z');
   });
 
   it('rejects empty names and unknown project fields', () => {

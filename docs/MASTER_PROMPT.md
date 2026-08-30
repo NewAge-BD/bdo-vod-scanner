@@ -141,7 +141,7 @@ Frame accuracy means visual frame-by-frame navigation, not a guaranteed professi
 
 Keep synchronization and clip selection as separate workspaces. A **Start Clipping** action below the synchronization confirmation opens the clipping workspace with the active perspective as a large single player and its timeline across the full available width. Use the wider desktop canvas, a viewport-aware player height, readable event lanes, and pointer-friendly markers and clip handles. While clipping, hide the project heading, project navigation, source import, and imported-source cards above the workspace. Restore them when the user returns to synchronization.
 
-Do not create extra timeline rows for additional VOD perspectives. Show shared **Kills** and **Deaths** rows, followed by a **Selected names** text entry. Adding a family, character, or guild name creates one independently filtered event timeline for that name; users may add or remove as many name timelines as needed within the saved per-perspective limit. Give each name timeline a compact split toggle that changes its combined row into separate kill and death rows and can merge them again. Persist that layout per VOD in the project. Support mouse-wheel zoom anchored to the exact time beneath the pointer and horizontal navigation. Bundle dense events while zoomed out and separate them while zoomed in. Render `killed` green, `died to` red, and bundles neutrally. Use efficient graphics for dense markers plus a semantic keyboard-operable event list. Clicking an event seeks and pauses. Display clip ranges with draggable handles.
+Do not create extra timeline rows for additional VOD perspectives. Show shared **Kills** and **Deaths** rows, followed by a **Selected names** text entry. Align the video playhead track and every event track to the same horizontal time scale after accounting for the event-label column. Adding a family, character, or guild name creates one independently filtered event timeline for that name; users may add or remove as many name timelines as needed within the saved per-perspective limit. Give each name timeline a compact split toggle that changes its combined row into separate kill and death rows and can merge them again. Persist that layout per VOD in the project. Support mouse-wheel zoom anchored to the exact time beneath the pointer and horizontal navigation. Bundle dense events while zoomed out and separate them while zoomed in. Render `killed` green, `died to` red, and bundles neutrally. Use efficient graphics for dense markers plus a semantic keyboard-operable event list. Clicking an event seeks and pauses. Display clip ranges with draggable handles.
 
 Minimum keyboard controls:
 
@@ -190,6 +190,7 @@ Before choosing a media library, perform a technical spike and request approval 
 - Default to 60 FPS and the largest imported VOD resolution; allow overrides.
 - In the website, reference filenames/metadata, attempt matching where possible, and support manual relinking.
 - Future desktop exports may use full paths after a privacy warning.
+- The browser implementation uses FCPXML 1.10, rational frame times, composite video/audio asset clips, stored manual ordering, and sequential edits without gaps.
 - Select and document the exact interchange format only after a compatibility test.
 - Request approval before adding an export dependency.
 

@@ -14,6 +14,7 @@ describe('ClipPanel', () => {
     render(
       <ClipPanel
         onCollapsedChange={vi.fn().mockResolvedValue(true)}
+        onDavinciDefaultsChange={vi.fn().mockResolvedValue(true)}
         onDeleteClip={vi.fn().mockResolvedValue(true)}
         onRenameClip={vi.fn().mockResolvedValue(true)}
         onReorderClips={onReorderClips}

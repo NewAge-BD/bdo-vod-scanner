@@ -1,11 +1,14 @@
 import { useState, type DragEvent as ReactDragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { DaVinciTimelineSettings } from '../../domain/davinci-export';
 import type { Clip, PortableProject } from '../../domain/projects';
+import { DavinciExportPanel } from '../davinci-export';
 
 interface ClipPanelProps {
   readonly project: PortableProject;
   readonly onCollapsedChange: (collapsed: boolean) => Promise<boolean>;
+  readonly onDavinciDefaultsChange: (settings: DaVinciTimelineSettings) => Promise<boolean>;
   readonly onDeleteClip: (clipId: string) => Promise<boolean>;
   readonly onReorderClips: (clipOrder: readonly string[]) => Promise<boolean>;
   readonly onRenameClip: (clipId: string, title: string) => Promise<boolean>;
@@ -14,6 +17,7 @@ interface ClipPanelProps {
 export function ClipPanel({
   project,
   onCollapsedChange,
+  onDavinciDefaultsChange,
   onDeleteClip,
   onReorderClips,
   onRenameClip,
@@ -133,6 +137,9 @@ export function ClipPanel({
             ))}
           </div>
         ))}
+      {!collapsed && (
+        <DavinciExportPanel onDefaultsChange={onDavinciDefaultsChange} project={project} />
+      )}
     </section>
   );
 }

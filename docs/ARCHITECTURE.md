@@ -158,9 +158,9 @@ The exact media library is intentionally undecided. A focused spike and dependen
 
 ### DaVinci Resolve
 
-The exporter converts clip-domain data into one supported interchange timeline. It defaults to 60 FPS and the largest imported VOD resolution, includes source audio, and preserves manual clip order.
+The implemented exporter converts clip-domain data into one FCPXML 1.10 timeline. It defaults to 60 FPS and the largest imported VOD resolution, includes source audio, preserves manual clip order, and places edits sequentially without gaps. Export calculations are pure domain logic with frame-rational time values; the browser adapter only saves the generated XML file.
 
-The exact interchange format is selected only after a compatibility test with the free Resolve version.
+Browser exports deliberately reference source filenames without private full paths. Manual relinking is therefore the reliable workflow. A future desktop adapter may add approved full-path references after a privacy warning.
 
 ## Desktop evolution
 

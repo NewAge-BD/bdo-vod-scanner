@@ -40,6 +40,18 @@ export function renameProject(
   });
 }
 
+export function setDavinciDefaults(
+  project: PortableProject,
+  defaults: PortableProject['davinciDefaults'],
+  now = new Date(),
+): PortableProject {
+  return portableProjectSchema.parse({
+    ...project,
+    updatedAt: now.toISOString(),
+    davinciDefaults: defaults,
+  });
+}
+
 export function setVodSearchTerms(
   project: PortableProject,
   vodId: string,

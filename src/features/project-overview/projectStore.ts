@@ -14,6 +14,7 @@ import {
   deleteProjectVod,
   parseProjectFile,
   renameProject,
+  setDavinciDefaults,
   setVodSearchTerms,
   setVodSplitSearchTerms,
   type PortableProject,
@@ -69,6 +70,10 @@ export interface ProjectStoreState {
   ) => Promise<boolean>;
   readonly deleteClip: (projectId: string, clipId: string) => Promise<boolean>;
   readonly reorderClips: (projectId: string, clipOrder: readonly string[]) => Promise<boolean>;
+  readonly saveDavinciDefaults: (
+    projectId: string,
+    defaults: PortableProject['davinciDefaults'],
+  ) => Promise<boolean>;
   readonly setClipPanelCollapsed: (projectId: string, collapsed: boolean) => Promise<boolean>;
 }
 
@@ -319,6 +324,12 @@ export function createProjectStore(repository: ProjectRepository) {
     reorderClips: async (projectId, clipOrder) => {
       return saveProjectUpdate(set, get, repository, projectId, (project) =>
         reorderProjectClips(project, clipOrder),
+      );
+    },
+
+    saveDavinciDefaults: async (projectId, defaults) => {
+      return saveProjectUpdate(set, get, repository, projectId, (project) =>
+        setDavinciDefaults(project, defaults),
       );
     },
 

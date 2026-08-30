@@ -40,6 +40,7 @@ export function ProjectWorkspace({
   const updateClip = useProjectStore((state) => state.updateClip);
   const deleteClip = useProjectStore((state) => state.deleteClip);
   const reorderClips = useProjectStore((state) => state.reorderClips);
+  const saveDavinciDefaults = useProjectStore((state) => state.saveDavinciDefaults);
   const deleteVod = useProjectStore((state) => state.deleteVod);
   const setClipPanelCollapsed = useProjectStore((state) => state.setClipPanelCollapsed);
   const [isImporting, setIsImporting] = useState(false);
@@ -160,6 +161,7 @@ export function ProjectWorkspace({
         onClipPanelCollapsedChange={(collapsed) => setClipPanelCollapsed(project.id, collapsed)}
         onCreateClip={(vodId, input) => createClip(project.id, vodId, input)}
         onDeleteClip={(clipId) => deleteClip(project.id, clipId)}
+        onDavinciDefaultsChange={(defaults) => saveDavinciDefaults(project.id, defaults)}
         onReorderClips={(clipOrder) => reorderClips(project.id, clipOrder)}
         onDeleteVod={handleDeleteVod}
         onClippingModeChange={handleClippingModeChange}

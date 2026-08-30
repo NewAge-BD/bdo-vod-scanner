@@ -1,7 +1,7 @@
 # User Guide
 
 > [!NOTE]
-> Local project management, source-file import, one sync point per perspective, synchronized timelines, coordinated multi-perspective playback, event-name navigation, and clip marking are available now. Manual clip ordering and export remain planned MVP work.
+> Local project management, source-file import, one sync point per perspective, synchronized timelines, coordinated multi-perspective playback, event-name navigation, clip marking, manual clip ordering, and DaVinci Resolve timeline export are available now. Direct media export remains planned MVP work.
 
 ## What BDO VOD Scanner does
 
@@ -71,7 +71,7 @@ This synchronization search is temporary and independent for every VOD during th
 
 After saving a synchronization point, choose **Start Clipping** below the synchronization button. This opens a separate workspace with one large active video and a timeline that uses the full page width. Project navigation, source import, and source cards are hidden in this focused view. Use **Back to synchronization** whenever an anchor or name filter needs adjustment; the hidden project sections then return.
 
-The timeline contains shared **Kills** and **Deaths** rows. Enter a family, character, or guild name directly beside **Selected names** and choose **Add name timeline** (or press Enter). Every added name receives its own independently filtered event row and can be removed again. Use the split icon beside a selected name to separate its combined row into individual kill and death rows; select it again to merge them. This layout is saved per VOD and restored with the project. Add more names whenever another dedicated timeline is useful. Extra VOD perspectives do not create extra timeline rows; switch the active perspective above the player instead.
+The timeline contains shared **Kills** and **Deaths** rows. The video playhead and all event tracks use the same horizontal time scale, so vertically aligned markers represent the same video moment. Enter a family, character, or guild name directly beside **Selected names** and choose **Add name timeline** (or press Enter). Every added name receives its own independently filtered event row and can be removed again. Use the split icon beside a selected name to separate its combined row into individual kill and death rows; select it again to merge them. This layout is saved per VOD and restored with the project. Add more names whenever another dedicated timeline is useful. Extra VOD perspectives do not create extra timeline rows; switch the active perspective above the player instead.
 
 Pause on the desired start and choose **Set in (I)**, then move to the desired end and choose **Set out (O)**. The `I` and `O` keys perform the same actions while the video is focused in the clipping workspace. Refine both boundaries with the larger timeline handles: lime marks the in-point and blue marks the out-point. Both remain aligned to the visible timeline while zooming. Choose **Add clip** when the range is ready.
 
@@ -81,7 +81,9 @@ The clip is saved locally with its source perspective, exact range, duration, ac
 
 **Export all clips** writes the selected-perspective clips to a chosen folder. This browser export is experimental and prioritizes losslessness, so clip boundaries may expand to safe keyframes.
 
-**Export to DaVinci** creates one ordered edit timeline with original video and audio references. Browser exports may require manual relinking because websites cannot reliably obtain full local source paths.
+**Export to DaVinci Resolve** creates an FCPXML file with one gapless edit timeline. It follows the saved manual clip order, keeps every clip attached to its original VOD time range, and includes video and source audio. Adjust timeline frame rate, width, and height before exporting; these values are saved with the project. The default is 60 FPS and the largest detected VOD resolution.
+
+In Resolve, use **File → Import → Timeline** and select the exported `.fcpxml` file. The website intentionally stores only source filenames, not private full paths. If Resolve reports missing media, point its relink action at the folder containing the original VODs.
 
 ### 8. Save or transfer a project
 

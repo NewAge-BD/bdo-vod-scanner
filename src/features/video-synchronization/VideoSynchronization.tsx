@@ -8,6 +8,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import type { CreateClipInput, UpdateClipInput } from '../../domain/clips';
+import type { DaVinciTimelineSettings } from '../../domain/davinci-export';
 import { parseBdoLog, searchEvents, type BdoEvent } from '../../domain/events';
 import type { PortableProject, VodReference } from '../../domain/projects';
 import {
@@ -39,6 +40,7 @@ interface VideoSynchronizationProps {
   readonly vodFiles: ReadonlyMap<string, File>;
   readonly onClipPanelCollapsedChange: (collapsed: boolean) => Promise<boolean>;
   readonly onCreateClip: (vodId: string, input: CreateClipInput) => Promise<boolean>;
+  readonly onDavinciDefaultsChange: (settings: DaVinciTimelineSettings) => Promise<boolean>;
   readonly onDeleteClip: (clipId: string) => Promise<boolean>;
   readonly onReorderClips: (clipOrder: readonly string[]) => Promise<boolean>;
   readonly onDeleteVod: (vodId: string) => Promise<boolean>;
@@ -57,6 +59,7 @@ export function VideoSynchronization({
   vodFiles,
   onClipPanelCollapsedChange,
   onCreateClip,
+  onDavinciDefaultsChange,
   onDeleteClip,
   onReorderClips,
   onDeleteVod,
@@ -529,6 +532,7 @@ export function VideoSynchronization({
         <div className="clipping-workspace__player">{renderPlayer(true)}</div>
         <ClipPanel
           onCollapsedChange={onClipPanelCollapsedChange}
+          onDavinciDefaultsChange={onDavinciDefaultsChange}
           onDeleteClip={onDeleteClip}
           onReorderClips={onReorderClips}
           onRenameClip={(clipId, title) => onUpdateClip(clipId, { title })}
@@ -1222,7 +1226,7 @@ function SynchronizedVideoPlayer({
       </div>
       <div
         aria-label={t('synchronization.timelineControls')}
-        className={`video-timeline${isTimelinePanning ? ' video-timeline--panning' : ''}`}
+        className={`video-timeline${clippingMode ? ' video-timeline--clipping' : ''}${isTimelinePanning ? ' video-timeline--panning' : ''}`}
         onDoubleClick={() => {
           setZoomLevel(1);
           setTimelineCenter(displayTime);

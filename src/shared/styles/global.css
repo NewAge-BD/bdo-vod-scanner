@@ -1174,6 +1174,16 @@ h1 {
   user-select: none;
 }
 
+.video-timeline--clipping {
+  --timeline-label-column: 12rem;
+  --timeline-lane-gap: 0.55rem;
+}
+
+.video-timeline--clipping .video-timeline__ruler,
+.video-timeline--clipping .video-timeline__scrubber {
+  margin-left: calc(var(--timeline-label-column) + var(--timeline-lane-gap));
+}
+
 .video-timeline--panning,
 .video-timeline--panning input {
   cursor: grabbing !important;
@@ -1421,9 +1431,9 @@ h1 {
 
 .clipping-timeline__lane {
   display: grid;
-  grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
+  grid-template-columns: minmax(8rem, var(--timeline-label-column, 12rem)) minmax(0, 1fr);
   align-items: center;
-  gap: 0.55rem;
+  gap: var(--timeline-lane-gap, 0.55rem);
 }
 
 .clipping-timeline__label {
@@ -2029,6 +2039,76 @@ h1 {
   white-space: nowrap;
 }
 
+.davinci-export {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.davinci-export__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.davinci-export__heading h3 {
+  margin: 0.15rem 0 0;
+  font-size: 1.05rem;
+}
+
+.davinci-export__heading > p {
+  max-width: 36rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.davinci-export__controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(8rem, 0.7fr)) minmax(14rem, 1.2fr);
+  align-items: end;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+}
+
+.davinci-export__controls label span {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--quiet);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.davinci-export__controls input {
+  width: 100%;
+  padding: 0.48rem 0.55rem;
+}
+
+.davinci-export__button {
+  min-height: 2.35rem !important;
+  color: var(--accent-ink) !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  font-weight: 850;
+}
+
+.davinci-export__relink-note,
+.davinci-export__error {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  font-size: 0.66rem;
+  line-height: 1.5;
+}
+
+.davinci-export__error {
+  color: var(--death);
+}
+
 .empty-state {
   display: grid;
   grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
@@ -2248,6 +2328,28 @@ h1 {
 
   .clipping-timeline__lane {
     grid-template-columns: 1fr;
+  }
+
+  .video-timeline--clipping .video-timeline__ruler,
+  .video-timeline--clipping .video-timeline__scrubber {
+    margin-left: 0;
+  }
+
+  .davinci-export__heading {
+    display: block;
+  }
+
+  .davinci-export__heading > p {
+    margin-top: 0.5rem;
+    text-align: left;
+  }
+
+  .davinci-export__controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .davinci-export__button {
+    grid-column: 1 / -1;
   }
 
   .name-timeline-error {
