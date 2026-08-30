@@ -69,7 +69,7 @@ Every VOD keeps its own active names and saves them automatically in the project
 
 ### 6. Mark clips
 
-After saving a synchronization point, choose **Start Clipping** below the synchronization button. This opens a separate workspace with one large active video and a timeline that uses the full page width. Use **Back to synchronization** whenever an anchor or name filter needs adjustment.
+After saving a synchronization point, choose **Start Clipping** below the synchronization button. This opens a separate workspace with one large active video and a timeline that uses the full page width. Project navigation, source import, and source cards are hidden in this focused view. Use **Back to synchronization** whenever an anchor or name filter needs adjustment; the hidden project sections then return.
 
 The timeline begins with one source row for every imported VOD. Synchronized source coverage and existing clip ranges are shown on the shared scale; unavailable perspectives remain visible as **Sync required**. Three event rows follow: **Kills**, **Deaths**, and **Selected names**. The last row shows the current perspective's saved name filter.
 

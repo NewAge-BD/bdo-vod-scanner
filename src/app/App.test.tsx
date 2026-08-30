@@ -190,6 +190,9 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Start Clipping' }));
     expect(screen.getByRole('heading', { name: 'Clipping workspace' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Back to synchronization' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'All projects' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Imported sources' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Source import' })).not.toBeInTheDocument();
     const clippingTimeline = screen.getByLabelText('Full-width clipping timeline');
     expect(within(clippingTimeline).getByText('Kills')).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Deaths')).toBeInTheDocument();
@@ -218,6 +221,11 @@ describe('App', () => {
     expect(screen.queryByLabelText('Clip title')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Expand' }));
     expect(await screen.findByDisplayValue('Opening pick')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Back to synchronization' }));
+    expect(screen.getByRole('button', { name: 'All projects' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Imported sources' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Source import' })).toBeInTheDocument();
 
     const confirmDeletion = vi.spyOn(window, 'confirm').mockReturnValueOnce(false);
     const deleteVodButtons = screen.getAllByRole('button', {

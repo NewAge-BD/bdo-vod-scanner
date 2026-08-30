@@ -39,6 +39,7 @@ interface VideoSynchronizationProps {
   readonly onCreateClip: (vodId: string, input: CreateClipInput) => Promise<boolean>;
   readonly onDeleteClip: (clipId: string) => Promise<boolean>;
   readonly onDeleteVod: (vodId: string) => Promise<boolean>;
+  readonly onClippingModeChange: (isClipping: boolean) => void;
   readonly onSearchTermsChange: (vodId: string, searchTerms: readonly string[]) => Promise<boolean>;
   readonly onSynchronize: (vodId: string, anchor: SynchronizationAnchorInput) => Promise<boolean>;
   readonly onUpdateClip: (clipId: string, input: UpdateClipInput) => Promise<boolean>;
@@ -51,6 +52,7 @@ export function VideoSynchronization({
   onCreateClip,
   onDeleteClip,
   onDeleteVod,
+  onClippingModeChange,
   onSearchTermsChange,
   onSynchronize,
   onUpdateClip,
@@ -318,6 +320,7 @@ export function VideoSynchronization({
       const nextVod = project.vods.find((vod) => vod.id !== vodId);
       setActiveVodId(nextVod?.id);
       setWorkspaceMode('synchronization');
+      onClippingModeChange(false);
       setSelectedEventId(nextVod?.synchronizationAnchor?.eventId ?? firstEventId);
       setClipDraft({});
       setClipSaveState('idle');
@@ -433,7 +436,10 @@ export function VideoSynchronization({
           </div>
           <button
             className="button clipping-workspace__back"
-            onClick={() => setWorkspaceMode('synchronization')}
+            onClick={() => {
+              setWorkspaceMode('synchronization');
+              onClippingModeChange(false);
+            }}
             type="button"
           >
             {t('clipping.back')}
@@ -598,7 +604,10 @@ export function VideoSynchronization({
           <button
             className="button clipping-start"
             disabled={activeVod?.synchronizationAnchor === null || file === undefined}
-            onClick={() => setWorkspaceMode('clipping')}
+            onClick={() => {
+              setWorkspaceMode('clipping');
+              onClippingModeChange(true);
+            }}
             type="button"
           >
             {t('clipping.start')}

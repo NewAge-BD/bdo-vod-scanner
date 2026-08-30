@@ -754,6 +754,12 @@ h1 {
   margin-bottom: 0.35rem;
 }
 
+.video-sync.clipping-workspace {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
 .clipping-workspace__description {
   margin: 0 0 1rem;
   color: var(--muted);

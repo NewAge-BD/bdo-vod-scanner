@@ -45,6 +45,7 @@ export function ProjectWorkspace({
     SourceImportErrorCode | 'saveFailed' | 'unexpected'
   >();
   const [lastImport, setLastImport] = useState<SourceImportResult>();
+  const [isClipping, setIsClipping] = useState(false);
   const linkedVodIds = useMemo(() => new Set(vodFiles.keys()), [vodFiles]);
 
   async function handleFiles(files: readonly File[]) {
@@ -91,58 +92,71 @@ export function ProjectWorkspace({
     return deleteVod(project.id, vodId);
   }
 
+  function handleClippingModeChange(active: boolean) {
+    if (active) {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+    setIsClipping(active);
+  }
+
   return (
     <main className="project-workspace" id="main-content">
-      <button className="back-button" onClick={onBack} type="button">
-        <span aria-hidden="true">←</span> {t('projects.back')}
-      </button>
-      <p className="section-kicker">{t('projects.workspaceKicker')}</p>
-      <h1>{project.name}</h1>
+      {!isClipping && (
+        <>
+          <button className="back-button" onClick={onBack} type="button">
+            <span aria-hidden="true">←</span> {t('projects.back')}
+          </button>
+          <p className="section-kicker">{t('projects.workspaceKicker')}</p>
+          <h1>{project.name}</h1>
 
-      {importError !== undefined && (
-        <div className="import-message import-message--error" role="alert">
-          <strong>{t('sourceImport.errorTitle')}</strong>
-          <span>{t(`sourceImport.errors.${importError}`)}</span>
-        </div>
-      )}
-
-      {lastImport !== undefined && (
-        <div className="import-results" role="status">
-          <p>
-            {t('sourceImport.success', {
-              events: lastImport.importedLog ? lastImport.eventCount : 0,
-              vods: lastImport.importedVodCount,
-              relinked: lastImport.relinkedVodCount,
-            })}
-          </p>
-          {lastImport.logIssueCount > 0 && (
-            <p className="import-results__warning">
-              {t('sourceImport.logWarnings', { count: lastImport.logIssueCount })}
-            </p>
+          {importError !== undefined && (
+            <div className="import-message import-message--error" role="alert">
+              <strong>{t('sourceImport.errorTitle')}</strong>
+              <span>{t(`sourceImport.errors.${importError}`)}</span>
+            </div>
           )}
-          {lastImport.issues.length > 0 && (
-            <ul>
-              {lastImport.issues.map((issue, index) => (
-                <li key={`${issue.code}-${issue.fileName ?? 'project'}-${index}`}>
-                  {t(`sourceImport.issues.${issue.code}`, { fileName: issue.fileName })}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
 
-      <FileDropZone disabled={isImporting} onFiles={handleFiles} />
-      <SourceOverview
-        linkedVodIds={linkedVodIds}
-        onDeleteVod={(vodId) => void handleDeleteVod(vodId)}
-        project={project}
-      />
+          {lastImport !== undefined && (
+            <div className="import-results" role="status">
+              <p>
+                {t('sourceImport.success', {
+                  events: lastImport.importedLog ? lastImport.eventCount : 0,
+                  vods: lastImport.importedVodCount,
+                  relinked: lastImport.relinkedVodCount,
+                })}
+              </p>
+              {lastImport.logIssueCount > 0 && (
+                <p className="import-results__warning">
+                  {t('sourceImport.logWarnings', { count: lastImport.logIssueCount })}
+                </p>
+              )}
+              {lastImport.issues.length > 0 && (
+                <ul>
+                  {lastImport.issues.map((issue, index) => (
+                    <li key={`${issue.code}-${issue.fileName ?? 'project'}-${index}`}>
+                      {t(`sourceImport.issues.${issue.code}`, { fileName: issue.fileName })}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          <FileDropZone disabled={isImporting} onFiles={handleFiles} />
+          <SourceOverview
+            linkedVodIds={linkedVodIds}
+            onDeleteVod={(vodId) => void handleDeleteVod(vodId)}
+            project={project}
+          />
+        </>
+      )}
       <VideoSynchronization
         onClipPanelCollapsedChange={(collapsed) => setClipPanelCollapsed(project.id, collapsed)}
         onCreateClip={(vodId, input) => createClip(project.id, vodId, input)}
         onDeleteClip={(clipId) => deleteClip(project.id, clipId)}
         onDeleteVod={handleDeleteVod}
+        onClippingModeChange={handleClippingModeChange}
         onSearchTermsChange={(vodId, searchTerms) =>
           saveVodSearchTerms(project.id, vodId, searchTerms)
         }
