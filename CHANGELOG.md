@@ -28,6 +28,8 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added native local VOD playback with automatic object-URL cleanup.
 - Added approximate previous/next-frame navigation using detected FPS or a 60 FPS fallback.
 - Added a draggable video playhead with an exponentially zoomable and pannable visible time range.
+- Added mouse-wheel zoom, middle-button panning, and double-click reset for both the video image and timeline time window.
+- Added lightweight custom playback, mute, view-reset, and fullscreen controls so video-image zoom never displaces its controls.
 - Added searchable log-event selection and one persistent synchronization anchor per VOD.
 - Added independent sync status and calculated offset display for every perspective.
 

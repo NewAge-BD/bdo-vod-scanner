@@ -36,9 +36,14 @@ The first log event is proposed by default. If it is difficult to locate in the 
 Use the video timeline below the player to find the matching frame:
 
 - Drag the bright playhead to scrub through the visible time range. The player pauses while seeking.
+- Scroll the mouse wheel over the timeline to zoom around the pointer position.
+- Hold the middle mouse button and drag the timeline to move the visible time window.
+- Double-click the timeline to reset its time zoom.
 - Use **Zoom in** or the zoom slider to enlarge a short section around the current frame.
 - Use **Earlier** and **Later** to move through the recording while zoomed in.
 - Use **Previous frame** and **Next frame** for the final approximate frame adjustment.
+
+To inspect a small visual detail such as the kill feed or chat, scroll the mouse wheel over the video image. While zoomed in, hold the middle mouse button and drag to move the image. Double-click the image or choose **Reset view** to return to the complete frame. Video-image zoom and timeline time zoom are independent.
 
 Stop on the matching event and choose **Set synchronization point**.
 

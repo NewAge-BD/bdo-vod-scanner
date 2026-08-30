@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import '../i18n';
 import type { VideoMetadataInspector } from '../infrastructure/media';
@@ -74,10 +74,54 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Synchronize VODs' })).toBeInTheDocument();
 
     fireEvent.loadedMetadata(screen.getByLabelText('Synthetic Perspective video perspective'));
+    const videoViewport = screen.getByLabelText('Zoomable video viewport');
+    vi.spyOn(videoViewport, 'getBoundingClientRect').mockReturnValue({
+      bottom: 450,
+      height: 450,
+      left: 0,
+      right: 800,
+      top: 0,
+      width: 800,
+      x: 0,
+      y: 0,
+      toJSON: () => undefined,
+    });
+    fireEvent.wheel(videoViewport, { clientX: 400, clientY: 225, deltaY: -100 });
+    expect(screen.getByText('Video ×1.2')).toBeInTheDocument();
+    fireEvent.doubleClick(videoViewport);
+    expect(screen.getByText('Video ×1.0')).toBeInTheDocument();
+
     const playhead = screen.getByLabelText('Video timeline playhead');
     const zoom = screen.getByLabelText('Timeline zoom level');
     expect(playhead).toHaveAttribute('max', '3600');
     expect(zoom).toHaveValue('1');
+
+    const timeline = screen.getByLabelText('Video timeline controls');
+    vi.spyOn(timeline, 'getBoundingClientRect').mockReturnValue({
+      bottom: 200,
+      height: 200,
+      left: 0,
+      right: 800,
+      top: 0,
+      width: 800,
+      x: 0,
+      y: 0,
+      toJSON: () => undefined,
+    });
+    Object.assign(timeline, {
+      hasPointerCapture: vi.fn(() => true),
+      releasePointerCapture: vi.fn(),
+      setPointerCapture: vi.fn(),
+    });
+    fireEvent.wheel(timeline, { clientX: 400, deltaY: -100 });
+    expect(screen.getByText('Zoom ×1.3')).toBeInTheDocument();
+    const rangeStartBeforePan = playhead.getAttribute('min');
+    fireEvent.pointerDown(timeline, { button: 1, clientX: 400, pointerId: 1 });
+    fireEvent.pointerMove(timeline, { clientX: 300, pointerId: 1 });
+    fireEvent.pointerUp(timeline, { clientX: 300, pointerId: 1 });
+    expect(playhead.getAttribute('min')).not.toBe(rangeStartBeforePan);
+    fireEvent.doubleClick(timeline);
+    expect(screen.getByText('Zoom ×1.0')).toBeInTheDocument();
 
     fireEvent.change(zoom, { target: { value: '13' } });
     expect(screen.getByText('Zoom ×2.0')).toBeInTheDocument();

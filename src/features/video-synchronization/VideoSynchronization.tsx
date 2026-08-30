@@ -1,13 +1,21 @@
-import { useMemo, useRef, useState } from 'react';
+import {
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type WheelEvent as ReactWheelEvent,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { parseBdoLog, searchEvents, type BdoEvent } from '../../domain/events';
 import type { PortableProject, VodReference } from '../../domain/projects';
 import type { SynchronizationAnchorInput } from '../../domain/synchronization';
 import { calculateTimelineWindow, zoomLevelToFactor } from '../../domain/timeline';
+import { clampVideoPan, zoomVideoAtPoint, type ViewportPoint } from '../../domain/viewport';
 import { useObjectUrl } from './useObjectUrl';
 
 const MAX_VISIBLE_EVENTS = 50;
+const MAX_VIDEO_ZOOM = 8;
 
 interface VideoSynchronizationProps {
   readonly project: PortableProject;
@@ -212,10 +220,20 @@ function SynchronizedVideoPlayer({
 }) {
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const videoViewportRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const videoDragRef = useRef<DragState | null>(null);
+  const timelineDragRef = useRef<TimelineDragState | null>(null);
   const [displayTime, setDisplayTime] = useState(initialTime);
   const [mediaDuration, setMediaDuration] = useState(vod.durationSeconds ?? 0);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [timelineCenter, setTimelineCenter] = useState(initialTime);
+  const [videoZoom, setVideoZoom] = useState(1);
+  const [videoPan, setVideoPan] = useState<ViewportPoint>({ x: 0, y: 0 });
+  const [isVideoPanning, setIsVideoPanning] = useState(false);
+  const [isTimelinePanning, setIsTimelinePanning] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const objectUrl = useObjectUrl(file);
   const zoomFactor = zoomLevelToFactor(zoomLevel);
   const timelineWindow = calculateTimelineWindow(mediaDuration, timelineCenter, zoomFactor);
@@ -263,43 +281,257 @@ function SynchronizedVideoPlayer({
   }
 
   function panTimeline(direction: -1 | 1) {
-    const targetTime = Math.min(
+    const targetCenter = Math.min(
       mediaDuration,
-      Math.max(0, displayTime + timelineWindow.durationSeconds * 0.8 * direction),
+      Math.max(0, timelineCenter + timelineWindow.durationSeconds * 0.8 * direction),
     );
-    setTimelineCenter(targetTime);
-    seekTo(targetTime);
+    setTimelineCenter(targetCenter);
+  }
+
+  function togglePlayback() {
+    const video = videoRef.current;
+    if (video === null) {
+      return;
+    }
+    if (video.paused) {
+      void video.play().catch(() => undefined);
+    } else {
+      video.pause();
+    }
+  }
+
+  function resetVideoViewport() {
+    setVideoZoom(1);
+    setVideoPan({ x: 0, y: 0 });
+  }
+
+  function handleVideoWheel(event: ReactWheelEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const viewport = videoViewportRef.current;
+    if (viewport === null) {
+      return;
+    }
+    const bounds = viewport.getBoundingClientRect();
+    const nextZoom = Math.min(
+      MAX_VIDEO_ZOOM,
+      Math.max(1, videoZoom * Math.exp(-event.deltaY * 0.0015)),
+    );
+    setVideoPan(
+      zoomVideoAtPoint({
+        currentZoom: videoZoom,
+        nextZoom,
+        currentPan: videoPan,
+        pointer: { x: event.clientX - bounds.left, y: event.clientY - bounds.top },
+        viewport: { width: bounds.width, height: bounds.height },
+      }),
+    );
+    setVideoZoom(nextZoom);
+  }
+
+  function beginVideoPan(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.button !== 1 || videoZoom === 1) {
+      return;
+    }
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    videoDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      origin: videoPan,
+    };
+    setIsVideoPanning(true);
+  }
+
+  function moveVideoPan(event: ReactPointerEvent<HTMLDivElement>) {
+    const drag = videoDragRef.current;
+    const viewport = videoViewportRef.current;
+    if (drag === null || drag.pointerId !== event.pointerId || viewport === null) {
+      return;
+    }
+    const bounds = viewport.getBoundingClientRect();
+    setVideoPan(
+      clampVideoPan(
+        {
+          x: drag.origin.x + event.clientX - drag.startX,
+          y: drag.origin.y + event.clientY - drag.startY,
+        },
+        { width: bounds.width, height: bounds.height },
+        videoZoom,
+      ),
+    );
+  }
+
+  function endVideoPan(event: ReactPointerEvent<HTMLDivElement>) {
+    if (videoDragRef.current?.pointerId !== event.pointerId) {
+      return;
+    }
+    videoDragRef.current = null;
+    setIsVideoPanning(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
+
+  function handleTimelineWheel(event: ReactWheelEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const timeline = timelineRef.current;
+    if (timeline === null || mediaDuration === 0) {
+      return;
+    }
+    const bounds = timeline.getBoundingClientRect();
+    const pointerRatio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+    const nextLevel = Math.min(120, Math.max(1, zoomLevel + (event.deltaY < 0 ? 4 : -4)));
+    const anchorTime = timelineWindow.startSeconds + timelineWindow.durationSeconds * pointerRatio;
+    const nextVisibleDuration = mediaDuration / zoomLevelToFactor(nextLevel);
+    const nextStart = anchorTime - nextVisibleDuration * pointerRatio;
+    setTimelineCenter(nextStart + nextVisibleDuration / 2);
+    setZoomLevel(nextLevel);
+  }
+
+  function beginTimelinePan(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.button !== 1 || zoomLevel === 1) {
+      return;
+    }
+    const timeline = timelineRef.current;
+    if (timeline === null) {
+      return;
+    }
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    timelineDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      originCenter: timelineCenter,
+      secondsPerPixel: timelineWindow.durationSeconds / timeline.getBoundingClientRect().width,
+    };
+    setIsTimelinePanning(true);
+  }
+
+  function moveTimelinePan(event: ReactPointerEvent<HTMLDivElement>) {
+    const drag = timelineDragRef.current;
+    if (drag === null || drag.pointerId !== event.pointerId) {
+      return;
+    }
+    setTimelineCenter(
+      Math.min(
+        mediaDuration,
+        Math.max(0, drag.originCenter - (event.clientX - drag.startX) * drag.secondsPerPixel),
+      ),
+    );
+  }
+
+  function endTimelinePan(event: ReactPointerEvent<HTMLDivElement>) {
+    if (timelineDragRef.current?.pointerId !== event.pointerId) {
+      return;
+    }
+    timelineDragRef.current = null;
+    setIsTimelinePanning(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   }
 
   return (
     <>
-      <video
-        aria-label={t('synchronization.videoLabel', { name: vod.displayName })}
-        controls
-        onKeyDown={(event) => {
-          if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-            event.preventDefault();
-            stepFrame(event.key === 'ArrowLeft' ? -1 : 1);
-          }
+      <div
+        aria-label={t('synchronization.videoViewport')}
+        className={`video-viewport${isVideoPanning ? ' video-viewport--panning' : ''}`}
+        onDoubleClick={resetVideoViewport}
+        onPointerCancel={endVideoPan}
+        onPointerDown={beginVideoPan}
+        onPointerMove={moveVideoPan}
+        onPointerUp={endVideoPan}
+        onWheel={handleVideoWheel}
+        ref={videoViewportRef}
+      >
+        <video
+          aria-label={t('synchronization.videoLabel', { name: vod.displayName })}
+          onClick={togglePlayback}
+          onError={() => onReady(false)}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+              event.preventDefault();
+              stepFrame(event.key === 'ArrowLeft' ? -1 : 1);
+            } else if (event.key === ' ') {
+              event.preventDefault();
+              togglePlayback();
+            }
+          }}
+          onLoadedMetadata={(event) => {
+            const duration = Number.isFinite(event.currentTarget.duration)
+              ? event.currentTarget.duration
+              : (vod.durationSeconds ?? Math.max(initialTime, 0));
+            const safeInitialTime = Math.min(initialTime, duration);
+            setMediaDuration(duration);
+            setTimelineCenter(safeInitialTime);
+            event.currentTarget.currentTime = safeInitialTime;
+            updateTime(safeInitialTime);
+            onReady(true);
+          }}
+          onPause={(event) => {
+            setIsPlaying(false);
+            updateTime(event.currentTarget.currentTime, true);
+          }}
+          onPlay={() => setIsPlaying(true)}
+          onTimeUpdate={(event) => updateTime(event.currentTarget.currentTime, true)}
+          ref={videoRef}
+          src={objectUrl}
+          style={{
+            transform: `translate3d(${videoPan.x}px, ${videoPan.y}px, 0) scale(${videoZoom})`,
+          }}
+          tabIndex={0}
+        />
+        <span className="video-viewport__zoom" aria-live="polite">
+          {t('synchronization.videoZoom', { factor: formatZoom(videoZoom) })}
+        </span>
+        <span className="video-viewport__hint">{t('synchronization.videoViewportHint')}</span>
+        <div
+          className="video-viewport__controls"
+          onClick={(event) => event.stopPropagation()}
+          onDoubleClick={(event) => event.stopPropagation()}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <button onClick={togglePlayback} type="button">
+            {isPlaying ? t('synchronization.pause') : t('synchronization.play')}
+          </button>
+          <button
+            onClick={() => {
+              const video = videoRef.current;
+              if (video !== null) {
+                video.muted = !isMuted;
+                setIsMuted(video.muted);
+              }
+            }}
+            type="button"
+          >
+            {isMuted ? t('synchronization.unmute') : t('synchronization.mute')}
+          </button>
+          <button disabled={videoZoom === 1} onClick={resetVideoViewport} type="button">
+            {t('synchronization.resetView')}
+          </button>
+          <button
+            onClick={() => void videoViewportRef.current?.requestFullscreen?.()}
+            type="button"
+          >
+            {t('synchronization.fullscreen')}
+          </button>
+        </div>
+      </div>
+      <div
+        aria-label={t('synchronization.timelineControls')}
+        className={`video-timeline${isTimelinePanning ? ' video-timeline--panning' : ''}`}
+        onDoubleClick={() => {
+          setZoomLevel(1);
+          setTimelineCenter(displayTime);
         }}
-        onError={() => onReady(false)}
-        onLoadedMetadata={(event) => {
-          const duration = Number.isFinite(event.currentTarget.duration)
-            ? event.currentTarget.duration
-            : (vod.durationSeconds ?? Math.max(initialTime, 0));
-          const safeInitialTime = Math.min(initialTime, duration);
-          setMediaDuration(duration);
-          setTimelineCenter(safeInitialTime);
-          event.currentTarget.currentTime = safeInitialTime;
-          updateTime(safeInitialTime);
-          onReady(true);
-        }}
-        onPause={(event) => updateTime(event.currentTarget.currentTime, true)}
-        onTimeUpdate={(event) => updateTime(event.currentTarget.currentTime, true)}
-        ref={videoRef}
-        src={objectUrl}
-      />
-      <div className="video-timeline" aria-label={t('synchronization.timelineControls')}>
+        onPointerCancel={endTimelinePan}
+        onPointerDown={beginTimelinePan}
+        onPointerMove={moveTimelinePan}
+        onPointerUp={endTimelinePan}
+        onWheel={handleTimelineWheel}
+        ref={timelineRef}
+      >
         <div className="video-timeline__transport">
           <button onClick={() => stepFrame(-1)} type="button">
             {t('synchronization.previousFrame')}
@@ -333,7 +565,11 @@ function SynchronizedVideoPlayer({
         </div>
 
         <div className="video-timeline__zoom">
-          <button disabled={zoomLevel === 1} onClick={() => panTimeline(-1)} type="button">
+          <button
+            disabled={zoomLevel === 1 || timelineWindow.startSeconds === 0}
+            onClick={() => panTimeline(-1)}
+            type="button"
+          >
             {t('synchronization.panEarlier')}
           </button>
           <button
@@ -363,7 +599,11 @@ function SynchronizedVideoPlayer({
           >
             {t('synchronization.zoomIn')}
           </button>
-          <button disabled={zoomLevel === 1} onClick={() => panTimeline(1)} type="button">
+          <button
+            disabled={zoomLevel === 1 || timelineWindow.endSeconds >= mediaDuration}
+            onClick={() => panTimeline(1)}
+            type="button"
+          >
             {t('synchronization.panLater')}
           </button>
         </div>
@@ -393,4 +633,18 @@ function formatSignedTime(seconds: number): string {
 
 function formatZoom(factor: number): string {
   return factor < 10 ? factor.toFixed(1) : factor.toFixed(0);
+}
+
+interface DragState {
+  readonly pointerId: number;
+  readonly startX: number;
+  readonly startY: number;
+  readonly origin: ViewportPoint;
+}
+
+interface TimelineDragState {
+  readonly pointerId: number;
+  readonly startX: number;
+  readonly originCenter: number;
+  readonly secondsPerPixel: number;
 }

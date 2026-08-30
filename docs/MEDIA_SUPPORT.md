@@ -49,7 +49,7 @@ The browser MVP promises visual frame-by-frame navigation, not a professional gu
 
 Expected frame rates include 30, 60, 120, and 144 FPS.
 
-The implemented player provides a draggable playhead, an exponentially zoomable visible time range, earlier/later panning controls, previous/next-frame buttons, and left/right arrow handling while the video is focused. Seeking pauses playback. Frame stepping uses `1 / FPS`; when the browser has not exposed an FPS value, the UI clearly labels the 60 FPS estimate. This is visual approximate navigation and not a guaranteed frame index.
+The implemented player provides independent video-image and timeline-time zoom. Mouse-wheel input zooms the surface beneath the pointer, middle-button dragging pans that surface, and double-click resets it. The timeline also provides a draggable playhead, an exponentially zoomable visible time range, earlier/later panning controls, previous/next-frame buttons, and left/right arrow handling while the video is focused. Seeking pauses playback. Frame stepping uses `1 / FPS`; when the browser has not exposed an FPS value, the UI clearly labels the 60 FPS estimate. This is visual approximate navigation and not a guaranteed frame index.
 
 ## Direct clip export
 

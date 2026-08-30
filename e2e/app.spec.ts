@@ -70,6 +70,23 @@ test('manages a portable private local project', async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByLabel('Video timeline playhead')).toBeVisible();
   await expect(page.getByLabel('Timeline zoom level')).toBeVisible();
+  const videoViewport = page.getByLabel('Zoomable video viewport');
+  await expect(videoViewport).toBeVisible();
+  await videoViewport.hover({ position: { x: 200, y: 120 } });
+  await page.mouse.wheel(0, -120);
+  await expect(page.getByText(/Video ×(?!1\.0)/)).toBeVisible();
+  const video = videoViewport.locator('video');
+  const transformBeforePan = await video.getAttribute('style');
+  const videoBounds = await videoViewport.boundingBox();
+  expect(videoBounds).not.toBeNull();
+  await page.mouse.move(videoBounds!.x + 200, videoBounds!.y + 120);
+  await page.mouse.down({ button: 'middle' });
+  await page.mouse.move(videoBounds!.x + 260, videoBounds!.y + 150);
+  await page.mouse.up({ button: 'middle' });
+  expect(await video.getAttribute('style')).not.toBe(transformBeforePan);
+  await videoViewport.dblclick({ position: { x: 200, y: 120 } });
+  await expect(page.getByText('Video ×1.0')).toBeVisible();
+
   await expect(page.getByRole('button', { name: 'Set synchronization point' })).toBeDisabled();
 
   await page.reload();

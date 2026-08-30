@@ -774,13 +774,98 @@ h1 {
   border-right: 1px solid var(--border);
 }
 
-.video-sync__player-column video {
-  display: block;
+.video-viewport {
+  position: relative;
   width: 100%;
   max-height: 70vh;
   aspect-ratio: 16 / 9;
+  overflow: hidden;
   background: #000;
+  cursor: zoom-in;
+  touch-action: none;
+  user-select: none;
+}
+
+.video-viewport--panning {
+  cursor: grabbing;
+}
+
+.video-viewport video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  cursor: inherit;
   object-fit: contain;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.video-viewport video:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+
+.video-viewport__zoom {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  padding: 0.28rem 0.42rem;
+  color: var(--accent);
+  background: rgb(5 7 10 / 82%);
+  border: 1px solid rgb(216 254 69 / 28%);
+  border-radius: 0.3rem;
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.64rem;
+  font-weight: 750;
+  pointer-events: none;
+}
+
+.video-viewport__hint {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  padding: 0.28rem 0.42rem;
+  color: #c1cad6;
+  background: rgb(5 7 10 / 76%);
+  border-radius: 0.3rem;
+  font-size: 0.6rem;
+  pointer-events: none;
+}
+
+.video-viewport__controls {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 3rem;
+  padding: 0.6rem 0.7rem;
+  background: linear-gradient(transparent, rgb(0 0 0 / 90%));
+  cursor: default;
+}
+
+.video-viewport__controls button {
+  padding: 0.4rem 0.55rem;
+  color: var(--text);
+  background: rgb(20 24 31 / 86%);
+  border: 1px solid #485160;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 750;
+}
+
+.video-viewport__controls button:hover:not(:disabled) {
+  background: #252b35;
+  border-color: #667285;
+}
+
+.video-viewport__controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .video-unavailable {
@@ -806,6 +891,13 @@ h1 {
   padding: 0.75rem;
   background: #0b0e12;
   border-top: 1px solid var(--border);
+  touch-action: none;
+  user-select: none;
+}
+
+.video-timeline--panning,
+.video-timeline--panning input {
+  cursor: grabbing !important;
 }
 
 .video-timeline button {
