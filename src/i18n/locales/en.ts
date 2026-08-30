@@ -156,9 +156,9 @@ export const en = {
     experimental: 'EXPERIMENTAL',
     folder: {
       cancelled:
-        'No writable folder access was granted. The selection was cancelled or blocked by an embedded browser. Open this app in Chrome, Brave, or Edge and try again.',
+        'No writable folder access was granted. The selection was cancelled or blocked by an embedded browser. Open this app in Chrome or Edge and try again. Brave intentionally does not expose the required folder API.',
       error:
-        'The output folder could not be opened. Check browser permission, or open this app in Chrome, Brave, or Edge and try again.',
+        'The output folder could not be opened. Check browser permission, or open this app in Chrome or Edge and try again. Brave does not support this direct export path.',
     },
     exportAll: 'Export all clips',
     exporting: 'Exporting clips…',
@@ -178,7 +178,7 @@ export const en = {
       'Copies original encoded video and audio into separate MP4 clips in the saved clip order. No media is uploaded.',
     title: 'Direct clip export',
     unsupported:
-      'Direct large-file export is unavailable in this browser. Use Chrome/Edge with local file access or export a DaVinci Resolve timeline instead.',
+      'Direct large-file export requires writable-folder access from Chrome or Edge. Brave and embedded preview browsers do not expose the required API. DaVinci Resolve timeline export remains available.',
     analysisProgress: 'MP4 analysis in progress',
     writeProgress: 'Clip writing progress',
   },
