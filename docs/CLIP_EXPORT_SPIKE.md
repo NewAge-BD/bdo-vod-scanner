@@ -2,7 +2,7 @@
 
 ## Status
 
-Recommendation approved on 2026-08-30. Mediabunny 1.55.4 is installed and the first experimental packet-copy exporter is being validated. The feature remains experimental until the prototype acceptance criteria are satisfied with synthetic and real recorder fixtures.
+Recommendation approved on 2026-08-30. Mediabunny 1.55.4 is installed and the first experimental packet-copy exporter is being validated. A real 58.5 GB ShadowPlay AV1/AAC recording has produced a readable lossless test clip with both streams preserved. The feature remains experimental until the remaining prototype acceptance criteria are satisfied across recorder fixtures and the complete Chrome UI path.
 
 ## Decision
 
@@ -70,7 +70,7 @@ The browser file picker must run directly from the export button's user gesture.
 For a requested range `[in, out]`:
 
 1. Find the last verified video key packet whose presentation timestamp is less than or equal to `in`.
-2. Use that packet's presentation time as `effectiveIn`.
+2. Select the covering audio packet. If it begins slightly earlier than the video keyframe, use that audio timestamp as the common `effectiveIn` so no copied packet becomes negative.
 3. Iterate video packets from that key packet in decode order.
 4. Include audio packets required to cover the same effective media interval.
 5. Use `out` when it produces a valid muxed result; otherwise extend to the first safe following boundary and disclose the adjustment.
@@ -89,7 +89,7 @@ The large-file path requires `showDirectoryPicker` and writable file streams cre
 - Do not fall back to a whole-file `Blob` download for large clips because that can exhaust memory.
 - Do not add a cloud service or third-party streaming relay.
 
-The File System Access API is broadly available in Chromium, but Brave support can differ. Feature detection is therefore mandatory even though Brave is an MVP target.
+The File System Access API is available for this workflow in Chrome and Edge. Brave intentionally disables it, so direct clip export is unavailable there even though the rest of the application remains a Brave MVP target. Feature detection is mandatory.
 
 ## Failure and cancellation rules
 
@@ -116,7 +116,7 @@ The dependency is accepted for production use only when a focused prototype demo
 - Output streams to disk with bounded memory use.
 - Progress and cancellation work without corrupting already completed outputs.
 - Chrome and the user's installed Brave build report their capability accurately.
-- A real ShadowPlay VOD exports successfully before the feature is considered usable.
+- A real ShadowPlay AV1/AAC VOD has passed the packet-copy and output-readability check; repeat the successful export through the complete Chrome UI path before considering the feature usable.
 - AMD Adrenalin and OBS fixtures are added when available; lack of those fixtures remains visible rather than being treated as proven compatibility.
 
 ## Sources

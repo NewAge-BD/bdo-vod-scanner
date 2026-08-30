@@ -62,6 +62,7 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ### Fixed
 
+- Preserved AV1/AAC recorder audio that begins slightly before a safe video keyframe by rebasing the clip to the earliest copied packet instead of producing a rejected negative timestamp.
 - Prevented locally exported media files from triggering a development-server page reload that discarded the active project and session-only VOD links.
 - Made direct clip export show folder selection, MP4 analysis, preparation, and writing progress instead of appearing idle during long keyframe scans, with actionable Chrome/Edge guidance when Brave or an embedded browser lacks writable-folder access.
 - Aligned the clipping playhead track and every event lane to the same horizontal time scale.

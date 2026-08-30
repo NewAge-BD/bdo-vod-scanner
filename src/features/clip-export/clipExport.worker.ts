@@ -17,6 +17,7 @@ import type {
   ClipExportWorkerResponse,
   LosslessClipExportRequest,
 } from './types';
+import { getPacketTimelineOrigin } from './packetTiming';
 
 interface WorkerScope {
   addEventListener(
@@ -92,12 +93,29 @@ async function exportClip(request: LosslessClipExportRequest, signal: AbortSigna
     const endVideoPacket =
       (await videoSink.getNextKeyPacket(keyAtRequestedEnd, { verifyKeyPackets: true })) ??
       undefined;
-    const effectiveInSeconds = startVideoPacket.timestamp;
+    const videoInSeconds = startVideoPacket.timestamp;
     const effectiveOutSeconds =
       endVideoPacket?.timestamp ?? (await input.computeDuration([videoTrack]));
-    if (effectiveOutSeconds <= effectiveInSeconds) {
+    if (effectiveOutSeconds <= videoInSeconds) {
       throw new ClipExportWorkerError('missingKeyframe');
     }
+
+    const audioSink = audioTrack === null ? undefined : new EncodedPacketSink(audioTrack);
+    const startAudioPacket =
+      audioSink === undefined
+        ? undefined
+        : ((await audioSink.getPacket(videoInSeconds)) ??
+          (await audioSink.getFirstPacket()) ??
+          undefined);
+    const audioPacketAtEnd =
+      audioSink === undefined
+        ? null
+        : await audioSink.getPacket(effectiveOutSeconds, { metadataOnly: true });
+    const endAudioPacket =
+      audioSink === undefined || audioPacketAtEnd === null
+        ? undefined
+        : ((await audioSink.getNextPacket(audioPacketAtEnd, { metadataOnly: true })) ?? undefined);
+    const effectiveInSeconds = getPacketTimelineOrigin(videoInSeconds, startAudioPacket?.timestamp);
 
     throwIfCancelled(signal);
     const writable = await request.destination.createWritable();
@@ -144,36 +162,26 @@ async function exportClip(request: LosslessClipExportRequest, signal: AbortSigna
         startPacket: startVideoPacket,
       }),
     ];
-    if (audioTrack !== null && audioSource !== undefined && audioDecoderConfig !== null) {
-      const audioSink = new EncodedPacketSink(audioTrack);
-      const startAudioPacket =
-        (await audioSink.getPacket(effectiveInSeconds)) ??
-        (await audioSink.getFirstPacket()) ??
-        undefined;
-      const audioPacketAtEnd = await audioSink.getPacket(effectiveOutSeconds, {
-        metadataOnly: true,
-      });
-      const endAudioPacket =
-        audioPacketAtEnd === null
-          ? undefined
-          : ((await audioSink.getNextPacket(audioPacketAtEnd, { metadataOnly: true })) ??
-            undefined);
-      if (startAudioPacket !== undefined) {
-        pumps.push(
-          pumpAudioPackets({
-            decoderConfig: audioDecoderConfig,
-            endPacket: endAudioPacket,
-            originSeconds: effectiveInSeconds,
-            reportProgress,
-            signal,
-            sink: audioSink,
-            source: audioSource,
-            startPacket: startAudioPacket,
-          }),
-        );
-      } else {
-        audioSource.close();
-      }
+    if (
+      audioSink !== undefined &&
+      audioSource !== undefined &&
+      audioDecoderConfig !== null &&
+      startAudioPacket !== undefined
+    ) {
+      pumps.push(
+        pumpAudioPackets({
+          decoderConfig: audioDecoderConfig,
+          endPacket: endAudioPacket,
+          originSeconds: effectiveInSeconds,
+          reportProgress,
+          signal,
+          sink: audioSink,
+          source: audioSource,
+          startPacket: startAudioPacket,
+        }),
+      );
+    } else if (audioSource !== undefined) {
+      audioSource.close();
     }
 
     await Promise.all(pumps);
