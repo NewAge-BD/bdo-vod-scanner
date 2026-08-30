@@ -26,6 +26,8 @@ export interface LosslessClipExportResult {
   readonly outputBytes: number;
 }
 
+export type ClipExportPhase = 'analyzing' | 'writing';
+
 export type ClipExportErrorCode =
   | 'cancelled'
   | 'missingKeyframe'
@@ -40,6 +42,7 @@ export type ClipExportWorkerRequest =
   | { readonly type: 'cancel' };
 
 export type ClipExportWorkerResponse =
+  | { readonly type: 'phase'; readonly phase: ClipExportPhase }
   | { readonly type: 'progress'; readonly progress: number }
   | { readonly type: 'complete'; readonly result: LosslessClipExportResult }
   | { readonly type: 'error'; readonly code: ClipExportErrorCode };

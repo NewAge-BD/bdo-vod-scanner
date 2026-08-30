@@ -154,18 +154,31 @@ export const en = {
       writeFailed: 'The output file could not be written. Check permission and free disk space.',
     },
     experimental: 'EXPERIMENTAL',
+    folder: {
+      cancelled: 'No output folder was granted. Choose Export all clips to try again.',
+      error: 'The output folder could not be opened. Check browser permission and try again.',
+    },
     exportAll: 'Export all clips',
     exporting: 'Exporting clips…',
     kicker: 'LOSSLESS MEDIA',
-    progress: '{{completed}} of {{count}} complete · {{title}}',
+    phases: {
+      analyzing:
+        '{{completed}} of {{count}} complete · Analyzing MP4 and locating safe keyframes for {{title}}…',
+      preparing: '{{completed}} of {{count}} complete · Preparing {{title}}…',
+      selectingFolder: 'Choose an output folder in the browser dialog…',
+      writing: '{{completed}} of {{count}} complete · Writing {{title}}…',
+    },
     resultSummary: '{{successful}} exported · {{failed}} failed or cancelled · {{count}} total',
     setupError:
       'The output folder could not be opened. Check browser permission and choose the folder again.',
+    selectingFolder: 'Choose output folder…',
     summary:
       'Copies original encoded video and audio into separate MP4 clips in the saved clip order. No media is uploaded.',
     title: 'Direct clip export',
     unsupported:
       'Direct large-file export is unavailable in this browser. Use Chrome/Edge with local file access or export a DaVinci Resolve timeline instead.',
+    analysisProgress: 'MP4 analysis in progress',
+    writeProgress: 'Clip writing progress',
   },
   clipping: {
     addNameTimeline: 'Add name timeline',

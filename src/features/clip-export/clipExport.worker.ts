@@ -52,6 +52,7 @@ workerScope.addEventListener('message', (event) => {
 
 async function exportClip(request: LosslessClipExportRequest, signal: AbortSignal) {
   validateRange(request);
+  workerScope.postMessage({ type: 'phase', phase: 'analyzing' });
   const input = new Input({ source: new BlobSource(request.source), formats: [MP4] });
   let output: Output<Mp4OutputFormat, StreamTarget> | undefined;
   let outputBytes = 0;
@@ -108,6 +109,7 @@ async function exportClip(request: LosslessClipExportRequest, signal: AbortSigna
       format: new Mp4OutputFormat({ fastStart: false }),
       target,
     });
+    workerScope.postMessage({ type: 'phase', phase: 'writing' });
 
     const videoSource = new EncodedVideoPacketSource(videoCodec);
     output.addVideoTrack(videoSource, {

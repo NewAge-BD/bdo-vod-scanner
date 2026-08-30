@@ -71,6 +71,7 @@ export function exportLosslessClip(
   options: {
     readonly signal: AbortSignal;
     readonly onProgress: (progress: number) => void;
+    readonly onPhase: (phase: 'analyzing' | 'writing') => void;
   },
 ): Promise<LosslessClipExportResult> {
   const worker = new Worker(new URL('./clipExport.worker.ts', import.meta.url), {
@@ -88,6 +89,10 @@ export function exportLosslessClip(
     };
     options.signal.addEventListener('abort', cancel, { once: true });
     worker.addEventListener('message', (event: MessageEvent<ClipExportWorkerResponse>) => {
+      if (event.data.type === 'phase') {
+        options.onPhase(event.data.phase);
+        return;
+      }
       if (event.data.type === 'progress') {
         options.onProgress(event.data.progress);
         return;

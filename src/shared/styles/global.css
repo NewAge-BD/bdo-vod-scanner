@@ -2125,6 +2125,13 @@ h1 {
   width: 100%;
 }
 
+.lossless-export__progress progress {
+  height: 0.7rem;
+  overflow: hidden;
+  accent-color: var(--accent);
+  border-radius: 999px;
+}
+
 .lossless-export__progress span {
   display: block;
   margin-bottom: 0.35rem;

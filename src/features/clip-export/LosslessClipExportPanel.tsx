@@ -24,13 +24,19 @@ interface ExportItemResult {
   readonly errorCode?: ClipExportErrorCode | 'sourceMissing';
 }
 
+type ExportPhase = 'selectingFolder' | 'preparing' | 'analyzing' | 'writing';
+
 export function LosslessClipExportPanel({ project, vodFiles }: LosslessClipExportPanelProps) {
   const { t } = useTranslation();
   const supported = supportsLosslessClipExport();
   const orderedClips = project.clipOrder
     .map((id) => project.clips.find((clip) => clip.id === id))
     .filter((clip): clip is Clip => clip !== undefined);
-  const [state, setState] = useState<'idle' | 'exporting' | 'complete' | 'error'>('idle');
+  const [state, setState] = useState<'idle' | 'selecting' | 'exporting' | 'complete' | 'error'>(
+    'idle',
+  );
+  const [phase, setPhase] = useState<ExportPhase>();
+  const [folderMessage, setFolderMessage] = useState<'cancelled' | 'error'>();
   const [activeClipTitle, setActiveClipTitle] = useState<string>();
   const [progress, setProgress] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
@@ -42,6 +48,11 @@ export function LosslessClipExportPanel({ project, vodFiles }: LosslessClipExpor
       return;
     }
 
+    setState('selecting');
+    setPhase('selectingFolder');
+    setFolderMessage(undefined);
+    setResults([]);
+
     let directory;
     try {
       directory = await window.showDirectoryPicker({
@@ -51,15 +62,21 @@ export function LosslessClipExportPanel({ project, vodFiles }: LosslessClipExpor
       });
     } catch (error: unknown) {
       if (error instanceof DOMException && error.name === 'AbortError') {
+        setFolderMessage('cancelled');
+        setState('idle');
+        setPhase(undefined);
         return;
       }
+      setFolderMessage('error');
       setState('error');
+      setPhase(undefined);
       return;
     }
 
     const controller = new AbortController();
     activeController.current = controller;
     setState('exporting');
+    setPhase('preparing');
     setCompletedCount(0);
     setProgress(0);
     setResults([]);
@@ -72,6 +89,7 @@ export function LosslessClipExportPanel({ project, vodFiles }: LosslessClipExpor
       setActiveClipTitle(clip.title);
       setCompletedCount(index);
       setProgress(0);
+      setPhase('preparing');
       const source = vodFiles.get(clip.vodId);
       if (source === undefined) {
         nextResults.push({ clipId: clip.id, clipTitle: clip.title, errorCode: 'sourceMissing' });
@@ -93,7 +111,11 @@ export function LosslessClipExportPanel({ project, vodFiles }: LosslessClipExpor
             requestedInSeconds: clip.inPointSeconds,
             requestedOutSeconds: clip.outPointSeconds,
           },
-          { signal: controller.signal, onProgress: setProgress },
+          {
+            signal: controller.signal,
+            onPhase: setPhase,
+            onProgress: setProgress,
+          },
         );
         nextResults.push({ clipId: clip.id, clipTitle: clip.title, fileName, result });
       } catch (error: unknown) {
@@ -112,6 +134,7 @@ export function LosslessClipExportPanel({ project, vodFiles }: LosslessClipExpor
 
     activeController.current = undefined;
     setActiveClipTitle(undefined);
+    setPhase(undefined);
     setCompletedCount(nextResults.length);
     setProgress(1);
     setState(nextResults.some((result) => result.errorCode !== undefined) ? 'error' : 'complete');
@@ -134,11 +157,20 @@ export function LosslessClipExportPanel({ project, vodFiles }: LosslessClipExpor
       <div className="lossless-export__actions">
         <button
           className="lossless-export__button"
-          disabled={!supported || orderedClips.length === 0 || state === 'exporting'}
+          disabled={
+            !supported ||
+            orderedClips.length === 0 ||
+            state === 'selecting' ||
+            state === 'exporting'
+          }
           onClick={() => void exportAllClips()}
           type="button"
         >
-          {state === 'exporting' ? t('clipExport.exporting') : t('clipExport.exportAll')}
+          {state === 'selecting'
+            ? t('clipExport.selectingFolder')
+            : state === 'exporting'
+              ? t('clipExport.exporting')
+              : t('clipExport.exportAll')}
         </button>
         {state === 'exporting' && (
           <button onClick={() => activeController.current?.abort()} type="button">
@@ -146,21 +178,30 @@ export function LosslessClipExportPanel({ project, vodFiles }: LosslessClipExpor
           </button>
         )}
       </div>
-      {state === 'exporting' && (
+      {(state === 'selecting' || state === 'exporting') && phase !== undefined && (
         <div className="lossless-export__progress" role="status">
           <label>
             <span>
-              {t('clipExport.progress', {
+              {t(`clipExport.phases.${phase}`, {
                 completed: completedCount,
                 count: orderedClips.length,
                 title: activeClipTitle,
               })}
             </span>
-            <progress max="1" value={progress} />
+            {phase === 'writing' ? (
+              <progress aria-label={t('clipExport.writeProgress')} max="1" value={progress} />
+            ) : (
+              <progress aria-label={t('clipExport.analysisProgress')} />
+            )}
           </label>
         </div>
       )}
-      {state === 'error' && results.length === 0 && (
+      {folderMessage !== undefined && (
+        <p className="lossless-export__unsupported" role="status">
+          {t(`clipExport.folder.${folderMessage}`)}
+        </p>
+      )}
+      {state === 'error' && results.length === 0 && folderMessage === undefined && (
         <p className="lossless-export__unsupported" role="alert">
           {t('clipExport.setupError')}
         </p>
