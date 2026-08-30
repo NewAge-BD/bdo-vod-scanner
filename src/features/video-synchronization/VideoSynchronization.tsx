@@ -1,9 +1,9 @@
 import {
+  useEffect,
   useMemo,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
-  type WheelEvent as ReactWheelEvent,
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -239,6 +239,57 @@ function SynchronizedVideoPlayer({
   const timelineWindow = calculateTimelineWindow(mediaDuration, timelineCenter, zoomFactor);
   const frameDuration = 1 / estimatedFrameRate;
 
+  useEffect(() => {
+    const viewport = videoViewportRef.current;
+    if (viewport === null) {
+      return;
+    }
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const bounds = viewport.getBoundingClientRect();
+      const nextZoom = Math.min(
+        MAX_VIDEO_ZOOM,
+        Math.max(1, videoZoom * Math.exp(-event.deltaY * 0.0015)),
+      );
+      setVideoPan(
+        zoomVideoAtPoint({
+          currentZoom: videoZoom,
+          nextZoom,
+          currentPan: videoPan,
+          pointer: { x: event.clientX - bounds.left, y: event.clientY - bounds.top },
+          viewport: { width: bounds.width, height: bounds.height },
+        }),
+      );
+      setVideoZoom(nextZoom);
+    };
+    viewport.addEventListener('wheel', handleWheel, { passive: false });
+    return () => viewport.removeEventListener('wheel', handleWheel);
+  }, [videoPan, videoZoom]);
+
+  useEffect(() => {
+    const timeline = timelineRef.current;
+    if (timeline === null) {
+      return;
+    }
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      if (mediaDuration === 0) {
+        return;
+      }
+      const bounds = timeline.getBoundingClientRect();
+      const pointerRatio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+      const nextLevel = Math.min(120, Math.max(1, zoomLevel + (event.deltaY < 0 ? 4 : -4)));
+      const anchorTime =
+        timelineWindow.startSeconds + timelineWindow.durationSeconds * pointerRatio;
+      const nextVisibleDuration = mediaDuration / zoomLevelToFactor(nextLevel);
+      const nextStart = anchorTime - nextVisibleDuration * pointerRatio;
+      setTimelineCenter(nextStart + nextVisibleDuration / 2);
+      setZoomLevel(nextLevel);
+    };
+    timeline.addEventListener('wheel', handleWheel, { passive: false });
+    return () => timeline.removeEventListener('wheel', handleWheel);
+  }, [mediaDuration, timelineWindow.durationSeconds, timelineWindow.startSeconds, zoomLevel]);
+
   function updateTime(time: number, followPlayhead = false) {
     setDisplayTime(time);
     onTimeChange(time);
@@ -305,29 +356,6 @@ function SynchronizedVideoPlayer({
     setVideoPan({ x: 0, y: 0 });
   }
 
-  function handleVideoWheel(event: ReactWheelEvent<HTMLDivElement>) {
-    event.preventDefault();
-    const viewport = videoViewportRef.current;
-    if (viewport === null) {
-      return;
-    }
-    const bounds = viewport.getBoundingClientRect();
-    const nextZoom = Math.min(
-      MAX_VIDEO_ZOOM,
-      Math.max(1, videoZoom * Math.exp(-event.deltaY * 0.0015)),
-    );
-    setVideoPan(
-      zoomVideoAtPoint({
-        currentZoom: videoZoom,
-        nextZoom,
-        currentPan: videoPan,
-        pointer: { x: event.clientX - bounds.left, y: event.clientY - bounds.top },
-        viewport: { width: bounds.width, height: bounds.height },
-      }),
-    );
-    setVideoZoom(nextZoom);
-  }
-
   function beginVideoPan(event: ReactPointerEvent<HTMLDivElement>) {
     if (event.button !== 1 || videoZoom === 1) {
       return;
@@ -371,22 +399,6 @@ function SynchronizedVideoPlayer({
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
-  }
-
-  function handleTimelineWheel(event: ReactWheelEvent<HTMLDivElement>) {
-    event.preventDefault();
-    const timeline = timelineRef.current;
-    if (timeline === null || mediaDuration === 0) {
-      return;
-    }
-    const bounds = timeline.getBoundingClientRect();
-    const pointerRatio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
-    const nextLevel = Math.min(120, Math.max(1, zoomLevel + (event.deltaY < 0 ? 4 : -4)));
-    const anchorTime = timelineWindow.startSeconds + timelineWindow.durationSeconds * pointerRatio;
-    const nextVisibleDuration = mediaDuration / zoomLevelToFactor(nextLevel);
-    const nextStart = anchorTime - nextVisibleDuration * pointerRatio;
-    setTimelineCenter(nextStart + nextVisibleDuration / 2);
-    setZoomLevel(nextLevel);
   }
 
   function beginTimelinePan(event: ReactPointerEvent<HTMLDivElement>) {
@@ -442,7 +454,6 @@ function SynchronizedVideoPlayer({
         onPointerDown={beginVideoPan}
         onPointerMove={moveVideoPan}
         onPointerUp={endVideoPan}
-        onWheel={handleVideoWheel}
         ref={videoViewportRef}
       >
         <video
@@ -529,7 +540,6 @@ function SynchronizedVideoPlayer({
         onPointerDown={beginTimelinePan}
         onPointerMove={moveTimelinePan}
         onPointerUp={endTimelinePan}
-        onWheel={handleTimelineWheel}
         ref={timelineRef}
       >
         <div className="video-timeline__transport">

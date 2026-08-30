@@ -73,7 +73,10 @@ test('manages a portable private local project', async ({ page }) => {
   const videoViewport = page.getByLabel('Zoomable video viewport');
   await expect(videoViewport).toBeVisible();
   await videoViewport.hover({ position: { x: 200, y: 120 } });
+  const scrollBeforeVideoZoom = await page.evaluate<number>('window.scrollY');
   await page.mouse.wheel(0, -120);
+  await page.waitForTimeout(50);
+  expect(await page.evaluate<number>('window.scrollY')).toBe(scrollBeforeVideoZoom);
   await expect(page.getByText(/Video ×(?!1\.0)/)).toBeVisible();
   const video = videoViewport.locator('video');
   const transformBeforePan = await video.getAttribute('style');
@@ -86,6 +89,13 @@ test('manages a portable private local project', async ({ page }) => {
   expect(await video.getAttribute('style')).not.toBe(transformBeforePan);
   await videoViewport.dblclick({ position: { x: 200, y: 120 } });
   await expect(page.getByText('Video ×1.0')).toBeVisible();
+
+  const timeline = page.getByLabel('Video timeline controls');
+  await timeline.hover({ position: { x: 300, y: 80 } });
+  const scrollBeforeTimelineZoom = await page.evaluate<number>('window.scrollY');
+  await page.mouse.wheel(0, -120);
+  await page.waitForTimeout(50);
+  expect(await page.evaluate<number>('window.scrollY')).toBe(scrollBeforeTimelineZoom);
 
   await expect(page.getByRole('button', { name: 'Set synchronization point' })).toBeDisabled();
 

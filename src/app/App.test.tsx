@@ -86,7 +86,15 @@ describe('App', () => {
       y: 0,
       toJSON: () => undefined,
     });
-    fireEvent.wheel(videoViewport, { clientX: 400, clientY: 225, deltaY: -100 });
+    const videoWheel = new WheelEvent('wheel', {
+      bubbles: true,
+      cancelable: true,
+      clientX: 400,
+      clientY: 225,
+      deltaY: -100,
+    });
+    fireEvent(videoViewport, videoWheel);
+    expect(videoWheel.defaultPrevented).toBe(true);
     expect(screen.getByText('Video ×1.2')).toBeInTheDocument();
     fireEvent.doubleClick(videoViewport);
     expect(screen.getByText('Video ×1.0')).toBeInTheDocument();
@@ -113,7 +121,14 @@ describe('App', () => {
       releasePointerCapture: vi.fn(),
       setPointerCapture: vi.fn(),
     });
-    fireEvent.wheel(timeline, { clientX: 400, deltaY: -100 });
+    const timelineWheel = new WheelEvent('wheel', {
+      bubbles: true,
+      cancelable: true,
+      clientX: 400,
+      deltaY: -100,
+    });
+    fireEvent(timeline, timelineWheel);
+    expect(timelineWheel.defaultPrevented).toBe(true);
     expect(screen.getByText('Zoom ×1.3')).toBeInTheDocument();
     const rangeStartBeforePan = playhead.getAttribute('min');
     fireEvent.pointerDown(timeline, { button: 1, clientX: 400, pointerId: 1 });
