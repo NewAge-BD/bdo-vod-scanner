@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the approved target architecture for the MVP. The application shell and quality foundation exist; domain features and adapters are implemented incrementally by milestone.
+This document describes the approved target architecture for the MVP. The application shell, quality foundation, event domain, exact log parser, and event search exist; remaining domain features and adapters are implemented incrementally by milestone.
 
 ## Architectural style
 

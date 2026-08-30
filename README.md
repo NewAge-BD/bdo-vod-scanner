@@ -22,7 +22,7 @@ BDO VOD Scanner is an unofficial community project and is not affiliated with or
 
 ## Current status
 
-The React/TypeScript application shell, quality tooling, CI checks, internationalization foundation, and initial project-overview screen are in place. Local project persistence, file import, synchronization, timelines, and exports remain upcoming milestones.
+The React/TypeScript application shell, quality tooling, CI checks, internationalization foundation, initial project-overview screen, exact BDO log parser, and domain-level event search are in place. Local project persistence, interactive file import, synchronization, timelines, and exports remain upcoming milestones.
 
 See the [development guide](docs/DEVELOPMENT.md) to run the current application locally.
 

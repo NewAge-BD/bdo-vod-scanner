@@ -38,6 +38,7 @@ exports/
 
 # Permit deliberately reviewed synthetic media fixtures later
 !src/test/fixtures/*.mp4
+!src/test/fixtures/*.log
 !test/fixtures/*.mp4
 
 # Operating systems and editors
