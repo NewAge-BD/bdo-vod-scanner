@@ -57,6 +57,7 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ### Documentation
 
+- Specified desktop-only Explorer reveal buttons for successful clip exports and documented why the browser cannot safely provide the same operating-system action.
 - Added the initial product requirements, architecture, workflow, security, media-support, and project-format documentation.
 - Added the experimental browser clip-export spike comparing Mediabunny and MP4Box.js, with a recommended lossless packet-copy architecture, keyframe policy, streaming constraints, license impact, and prototype acceptance criteria.
 

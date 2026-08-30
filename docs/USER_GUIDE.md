@@ -83,6 +83,8 @@ The clip is saved locally with its source perspective, exact range, duration, ac
 
 This browser export is experimental and prioritizes losslessness. It copies the original encoded video and audio without re-encoding, so the effective start may move to the preceding safe video keyframe and the end may extend to the following keyframe. The completed result shows the effective range. When one clip fails or the batch is cancelled, completed earlier clips remain in the chosen folder and a newly created incomplete file is removed.
 
+After a successful browser export, the result lists the generated filename and effective range. A website cannot reveal the private absolute directory path or launch Windows Explorer from its protected directory handle. The planned desktop application will add a folder icon to every successful clip result and reveal that file directly in Explorer.
+
 **Export to DaVinci Resolve** creates an FCPXML file with one gapless edit timeline. It follows the saved manual clip order, keeps every clip attached to its original VOD time range, and includes video and source audio. Adjust timeline frame rate, width, and height before exporting; these values are saved with the project. The default is 60 FPS and the largest detected VOD resolution.
 
 In Resolve, use **File → Import → Timeline** and select the exported `.fcpxml` file. The website intentionally stores only source filenames, not private full paths. If Resolve reports missing media, point its relink action at the folder containing the original VODs.

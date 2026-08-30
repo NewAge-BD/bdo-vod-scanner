@@ -190,6 +190,7 @@ Mediabunny 1.55.4 is approved for the isolated experimental browser clip exporte
 - Default to 60 FPS and the largest imported VOD resolution; allow overrides.
 - In the website, reference filenames/metadata, attempt matching where possible, and support manual relinking.
 - Future desktop exports may use full paths after a privacy warning.
+- In the future Windows desktop app, show a folder icon for every successful clip export. It must reveal the generated file directly in Windows Explorer. Do not emulate this in the website with `file://` URLs; browser directory handles do not expose a trusted absolute path or an operating-system reveal action.
 - The browser implementation uses FCPXML 1.10, rational frame times, composite video/audio asset clips, stored manual ordering, and sequential edits without gaps.
 - Select and document the exact interchange format only after a compatibility test.
 - Request approval before adding an export dependency.

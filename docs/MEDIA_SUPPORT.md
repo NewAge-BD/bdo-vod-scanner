@@ -88,4 +88,4 @@ The repository may contain one very small, fully synthetic MP4 fixture with no g
 
 ## Future desktop support
 
-The planned Windows application may add FFmpeg-based processing, full local paths, more reliable relinking, broader codecs and containers, stronger frame inspection, and complete offline operation.
+The planned Windows application may add FFmpeg-based processing, full local paths, more reliable relinking, broader codecs and containers, stronger frame inspection, and complete offline operation. Every successful desktop clip export should provide an accessible folder icon that reveals the generated file directly in Windows Explorer. The website must not imitate this with a blocked `file://` link or claim access to an absolute path the browser does not expose.
