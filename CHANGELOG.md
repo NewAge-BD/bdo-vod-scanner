@@ -63,7 +63,7 @@ The project intends to follow Semantic Versioning once releases begin.
 ### Fixed
 
 - Made bundled timeline markers seekable and added zoom-independent 15-second kill-streak notifications to user-created clipping name timelines, styled after the Challenger, Invader, Slayer, and Conqueror in-game hierarchy.
-- Consolidated each kill burst into one centered, staggered banner spanning its first through final kill, and moved video controls into a dedicated bar outside the picture.
+- Consolidated each kill burst into one centered, staggered banner spanning its first through final kill, enlarged its title for unclipped readability, and moved video controls into a dedicated bar outside the picture.
 - Rate-limited held-arrow frame stepping so large local recordings do not accumulate expensive seek requests and freeze the player.
 - Made playback, frame stepping, and clipping shortcuts work without focusing the video first while preserving normal typing inside text-entry controls.
 - Previewed the active clip in/out frame in the player while dragging a range handle, then restored the normal timeline cursor when the handle was released.
