@@ -280,6 +280,18 @@ describe('App', () => {
     expect(screen.getByLabelText('Timeline width')).toHaveValue(1920);
     expect(screen.getByLabelText('Timeline height')).toHaveValue(1080);
     expect(screen.getByRole('button', { name: 'Export to DaVinci Resolve' })).toBeEnabled();
+    const clippingVideo = screen.getByLabelText<HTMLVideoElement>(
+      'Synthetic Perspective video perspective',
+    );
+    const previewPlay = vi.spyOn(clippingVideo, 'play');
+    const previewPause = vi.spyOn(clippingVideo, 'pause');
+    await user.click(screen.getByRole('button', { name: 'Preview' }));
+    expect(clippingVideo.currentTime).toBe(55);
+    expect(previewPlay).toHaveBeenCalled();
+    clippingVideo.currentTime = 70;
+    fireEvent.timeUpdate(clippingVideo);
+    expect(previewPause).toHaveBeenCalled();
+    expect(screen.getByText('00:01:10.000')).toBeInTheDocument();
 
     const clipTitle = screen.getByLabelText('Clip title');
     await user.clear(clipTitle);

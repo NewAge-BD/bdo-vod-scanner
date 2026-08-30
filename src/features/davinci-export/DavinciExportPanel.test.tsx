@@ -45,6 +45,10 @@ describe('DavinciExportPanel', () => {
     });
     render(<DavinciExportPanel onDefaultsChange={onDefaultsChange} project={project} />);
 
+    expect(screen.getByText('How to import the timeline')).toBeInTheDocument();
+    expect(
+      screen.getByText('In DaVinci Resolve, choose File → Import → Timeline.'),
+    ).toBeInTheDocument();
     const frameRate = screen.getByLabelText('Timeline frame rate');
     await user.clear(frameRate);
     await user.type(frameRate, '59.94');

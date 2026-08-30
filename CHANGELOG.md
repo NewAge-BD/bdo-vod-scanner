@@ -10,6 +10,7 @@ The project intends to follow Semantic Versioning once releases begin.
 
 - Added persistent drag-and-drop clip ordering with accessible move-up and move-down controls.
 - Added local FCPXML export for DaVinci Resolve with persisted frame-rate and resolution settings, source audio, manual clip order, and gapless edits.
+- Added an in-app DaVinci Resolve import guide and one-click clip previews that stop at the saved out-point.
 - Expanded the clipping workspace width and improved player height, event-lane density, marker targets, and differentiated clip handles.
 - Added a persistent per-name split control that separates a selected-name timeline into dedicated kill and death lanes.
 - Added the React, strict TypeScript, Vite, internationalization, and custom-CSS application foundation.

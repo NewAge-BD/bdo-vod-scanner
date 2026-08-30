@@ -156,7 +156,7 @@ Minimum keyboard controls:
 
 Each clip stores ID, project and VOD IDs, source metadata, editable title, in/out points, duration, search-term snapshot, matching event IDs/count, manual order, creation time, and useful export state/error code.
 
-Support button/keyboard in/out marking, draggable refinement on one shared visible time scale, multiple clips per VOD, chronological sorting, and persisted manual drag ordering. Provide accessible move-up/down equivalents. Use a collapsible panel showing title, perspective, range, duration, matching-event count, and export status. Confirm before removing a VOD that owns clips. Later search changes must not mutate existing clips.
+Support button/keyboard in/out marking, draggable refinement on one shared visible time scale, multiple clips per VOD, chronological sorting, and persisted manual drag ordering. Provide accessible move-up/down equivalents. Use a collapsible panel showing title, perspective, range, duration, matching-event count, export status, and a preview action. Preview in the main player from the saved in-point through the out-point, switch to the source perspective when needed, and stop automatically. Confirm before removing a VOD that owns clips. Later search changes must not mutate existing clips.
 
 ### Experimental direct export
 

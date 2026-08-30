@@ -6,19 +6,23 @@ import type { Clip, PortableProject } from '../../domain/projects';
 import { DavinciExportPanel } from '../davinci-export';
 
 interface ClipPanelProps {
+  readonly linkedVodIds: ReadonlySet<string>;
   readonly project: PortableProject;
   readonly onCollapsedChange: (collapsed: boolean) => Promise<boolean>;
   readonly onDavinciDefaultsChange: (settings: DaVinciTimelineSettings) => Promise<boolean>;
   readonly onDeleteClip: (clipId: string) => Promise<boolean>;
+  readonly onPreviewClip: (clip: Clip) => void;
   readonly onReorderClips: (clipOrder: readonly string[]) => Promise<boolean>;
   readonly onRenameClip: (clipId: string, title: string) => Promise<boolean>;
 }
 
 export function ClipPanel({
+  linkedVodIds,
   project,
   onCollapsedChange,
   onDavinciDefaultsChange,
   onDeleteClip,
+  onPreviewClip,
   onReorderClips,
   onRenameClip,
 }: ClipPanelProps) {
@@ -128,11 +132,13 @@ export function ClipPanel({
                 onDrop={() => dropClip(clip.id)}
                 onMoveDown={() => moveClip(clip.id, 1)}
                 onMoveUp={() => moveClip(clip.id, -1)}
+                onPreview={() => onPreviewClip(clip)}
                 onRename={onRenameClip}
                 perspectiveName={
                   project.vods.find((vod) => vod.id === clip.vodId)?.displayName ??
                   t('clips.missingPerspective')
                 }
+                previewDisabled={!linkedVodIds.has(clip.vodId)}
               />
             ))}
           </div>
@@ -159,7 +165,9 @@ function ClipCard({
   onDrop,
   onMoveDown,
   onMoveUp,
+  onPreview,
   onRename,
+  previewDisabled,
 }: {
   readonly clip: Clip;
   readonly perspectiveName: string;
@@ -175,7 +183,9 @@ function ClipCard({
   readonly onDrop: () => void;
   readonly onMoveDown: () => void;
   readonly onMoveUp: () => void;
+  readonly onPreview: () => void;
   readonly onRename: (clipId: string, title: string) => Promise<boolean>;
+  readonly previewDisabled: boolean;
 }) {
   const { t } = useTranslation();
   const [title, setTitle] = useState(clip.title);
@@ -249,6 +259,15 @@ function ClipCard({
             ↓
           </button>
         </div>
+        <button
+          className="clip-card__preview"
+          disabled={previewDisabled}
+          onClick={onPreview}
+          title={previewDisabled ? t('clips.previewUnavailable') : t('clips.previewTooltip')}
+          type="button"
+        >
+          <span aria-hidden="true">▶</span> {t('clips.preview')}
+        </button>
         <button
           className="clip-card__delete"
           onClick={() => {

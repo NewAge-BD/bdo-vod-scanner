@@ -14,6 +14,10 @@ Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
   configurable: true,
   value: vi.fn(),
 });
+Object.defineProperty(HTMLMediaElement.prototype, 'play', {
+  configurable: true,
+  value: vi.fn(() => Promise.resolve()),
+});
 
 afterEach(() => {
   cleanup();

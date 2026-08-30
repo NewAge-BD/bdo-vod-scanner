@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import type { CreateClipInput, UpdateClipInput } from '../../domain/clips';
 import type { DaVinciTimelineSettings } from '../../domain/davinci-export';
 import { parseBdoLog, searchEvents, type BdoEvent } from '../../domain/events';
-import type { PortableProject, VodReference } from '../../domain/projects';
+import type { Clip, PortableProject, VodReference } from '../../domain/projects';
 import {
   mapSessionTimeToVideoTime,
   mapVideoTimeToSessionTime,
@@ -89,6 +89,7 @@ export function VideoSynchronization({
     'idle',
   );
   const [eventSeekRequest, setEventSeekRequest] = useState<EventSeekRequest>();
+  const clippingPlayerRef = useRef<HTMLDivElement>(null);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [videoTime, setVideoTime] = useState(
@@ -200,6 +201,26 @@ export function VideoSynchronization({
       next.delete(vodId);
       return next;
     });
+  }
+
+  function previewClip(clip: Clip) {
+    const vod = project.vods.find((candidate) => candidate.id === clip.vodId);
+    if (vod === undefined || !vodFiles.has(vod.id)) {
+      return;
+    }
+    if (vod.id !== activeVod?.id) {
+      selectPerspective(vod.id);
+    }
+    setIsMainPlaying(true);
+    setVideoTime(clip.inPointSeconds);
+    setEventSeekRequest((current) => ({
+      playUntilSeconds: clip.outPointSeconds,
+      sequence: (current?.sequence ?? 0) + 1,
+      videoTimeSeconds: clip.inPointSeconds,
+    }));
+    requestAnimationFrame(() =>
+      clippingPlayerRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }),
+    );
   }
 
   function addSyncSearchTerm() {
@@ -488,6 +509,9 @@ export function VideoSynchronization({
         }}
         onMarkClipBoundary={markClipBoundary}
         onPlaybackChange={setIsMainPlaying}
+        onPreviewComplete={(sequence) =>
+          setEventSeekRequest((current) => (current?.sequence === sequence ? undefined : current))
+        }
         onPromotePerspective={selectPerspective}
         onReady={setIsVideoReady}
         onRemoveSearchTerm={(term) => void removeClipSearchTerm(term)}
@@ -529,11 +553,15 @@ export function VideoSynchronization({
         </div>
         <p className="clipping-workspace__description">{t('clipping.description')}</p>
         {renderPerspectiveTabs(true)}
-        <div className="clipping-workspace__player">{renderPlayer(true)}</div>
+        <div className="clipping-workspace__player" ref={clippingPlayerRef}>
+          {renderPlayer(true)}
+        </div>
         <ClipPanel
+          linkedVodIds={new Set(vodFiles.keys())}
           onCollapsedChange={onClipPanelCollapsedChange}
           onDavinciDefaultsChange={onDavinciDefaultsChange}
           onDeleteClip={onDeleteClip}
+          onPreviewClip={previewClip}
           onReorderClips={onReorderClips}
           onRenameClip={(clipId, title) => onUpdateClip(clipId, { title })}
           project={project}
@@ -728,6 +756,7 @@ function SynchronizedVideoPlayer({
   onClipRangeChange,
   onMarkClipBoundary,
   onPlaybackChange,
+  onPreviewComplete,
   onPromotePerspective,
   onReady,
   onRemoveSearchTerm,
@@ -758,6 +787,7 @@ function SynchronizedVideoPlayer({
   readonly onClipRangeChange: (range: ClipDraftRange) => void;
   readonly onMarkClipBoundary: (boundary: 'in' | 'out', time: number) => void;
   readonly onPlaybackChange: (isPlaying: boolean) => void;
+  readonly onPreviewComplete: (sequence: number) => void;
   readonly onPromotePerspective: (vodId: string) => void;
   readonly onReady: (ready: boolean) => void;
   readonly onRemoveSearchTerm: (term: string) => void;
@@ -879,6 +909,9 @@ function SynchronizedVideoPlayer({
     video.currentTime = safeTime;
     setDisplayTime(safeTime);
     setTimelineCenter(safeTime);
+    if (eventSeekRequest.playUntilSeconds !== undefined) {
+      void video.play().catch(() => undefined);
+    }
   }, [eventSeekRequest, mediaDuration]);
 
   useEffect(() => {
@@ -945,6 +978,23 @@ function SynchronizedVideoPlayer({
     ) {
       setTimelineCenter(time);
     }
+  }
+
+  function handleTimeUpdate(video: HTMLVideoElement) {
+    const previewEnd = eventSeekRequest?.playUntilSeconds;
+    const previewSequence = eventSeekRequest?.sequence;
+    if (
+      previewEnd !== undefined &&
+      previewSequence !== undefined &&
+      video.currentTime >= previewEnd
+    ) {
+      video.currentTime = previewEnd;
+      video.pause();
+      updateTime(previewEnd, true);
+      onPreviewComplete(previewSequence);
+      return;
+    }
+    updateTime(video.currentTime, true);
   }
 
   function seekTo(time: number) {
@@ -1166,7 +1216,7 @@ function SynchronizedVideoPlayer({
               setIsPlaying(true);
               onPlaybackChange(true);
             }}
-            onTimeUpdate={(event) => updateTime(event.currentTarget.currentTime, true)}
+            onTimeUpdate={(event) => handleTimeUpdate(event.currentTarget)}
             ref={videoRef}
             src={objectUrl}
             style={{
@@ -1797,6 +1847,7 @@ interface SecondaryPerspective {
 }
 
 interface EventSeekRequest {
+  readonly playUntilSeconds?: number;
   readonly sequence: number;
   readonly videoTimeSeconds: number;
 }

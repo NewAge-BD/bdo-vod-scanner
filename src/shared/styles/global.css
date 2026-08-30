@@ -2010,6 +2010,13 @@ h1 {
   color: #ff9aab !important;
 }
 
+.clip-card__preview {
+  align-self: flex-end;
+  color: var(--accent) !important;
+  border-color: rgb(216 254 69 / 34%) !important;
+  white-space: nowrap;
+}
+
 .clip-card dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2107,6 +2114,27 @@ h1 {
 
 .davinci-export__error {
   color: var(--death);
+}
+
+.davinci-export__how-to {
+  margin-top: 0.7rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.davinci-export__how-to summary {
+  width: fit-content;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 780;
+}
+
+.davinci-export__how-to ol {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.6rem 0 0;
+  padding-left: 1.25rem;
+  line-height: 1.5;
 }
 
 .empty-state {

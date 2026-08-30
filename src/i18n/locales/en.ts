@@ -127,6 +127,9 @@ export const en = {
     moveUp: 'Move up',
     outPoint: 'Out point',
     perspective: 'Perspective',
+    preview: 'Preview',
+    previewTooltip: 'Play this clip in the main player',
+    previewUnavailable: 'Reselect this clip’s source VOD to preview it',
     range: 'Range',
     rangeHandleIn: 'Clip in-point handle',
     rangeHandleOut: 'Clip out-point handle',
@@ -167,6 +170,13 @@ export const en = {
     exporting: 'Preparing timeline…',
     frameRate: 'Timeline frame rate',
     height: 'Timeline height',
+    howToExport: 'Choose Export to DaVinci Resolve and save the .fcpxml file.',
+    howToImport: 'In DaVinci Resolve, choose File → Import → Timeline.',
+    howToPrepare: 'Set the clip order, timeline frame rate, width, and height.',
+    howToRelink:
+      'If media is offline, use Relink Selected Clips and select the folder containing the original VODs.',
+    howToSelect: 'Select the exported .fcpxml file and confirm the timeline import.',
+    howToTitle: 'How to import the timeline',
     kicker: 'EDIT TIMELINE',
     relinkNote:
       'The FCPXML contains source filenames only. Import it in Resolve, then relink missing media to your original VOD folder.',

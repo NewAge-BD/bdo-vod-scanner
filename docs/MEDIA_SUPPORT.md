@@ -78,7 +78,7 @@ The implemented browser exporter creates FCPXML 1.10:
 - The default is 60 FPS and the largest imported VOD resolution; users may override and persist frame rate and resolution.
 - Only source filenames are referenced because the website does not persist private full paths.
 - Manual media relinking in Resolve is the reliable browser workflow.
-- Direct timeline import should be compatibility-tested against the installed free Resolve version before public release.
+- Manual testing has confirmed successful FCPXML timeline import, clip order, media relinking, and source audio in the current development workflow. Repeat the compatibility check before a public release or a major Resolve update.
 
 ## Synthetic test media
 

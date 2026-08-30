@@ -11,11 +11,14 @@ describe('ClipPanel', () => {
     const project = projectWithTwoClips();
     const [firstId, secondId] = project.clipOrder;
     const onReorderClips = vi.fn().mockResolvedValue(true);
+    const onPreviewClip = vi.fn();
     render(
       <ClipPanel
+        linkedVodIds={new Set(project.vods.map((vod) => vod.id))}
         onCollapsedChange={vi.fn().mockResolvedValue(true)}
         onDavinciDefaultsChange={vi.fn().mockResolvedValue(true)}
         onDeleteClip={vi.fn().mockResolvedValue(true)}
+        onPreviewClip={onPreviewClip}
         onRenameClip={vi.fn().mockResolvedValue(true)}
         onReorderClips={onReorderClips}
         project={project}
@@ -34,6 +37,8 @@ describe('ClipPanel', () => {
     fireEvent.drop(secondCard, { dataTransfer });
 
     await waitFor(() => expect(onReorderClips).toHaveBeenCalledWith([secondId, firstId]));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Preview' })[0]!);
+    expect(onPreviewClip).toHaveBeenCalledWith(project.clips.find((clip) => clip.id === firstId));
   });
 });
 

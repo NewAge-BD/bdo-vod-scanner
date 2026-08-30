@@ -101,6 +101,16 @@ export function DavinciExportPanel({ project, onDefaultsChange }: DavinciExportP
         </button>
       </div>
       <p className="davinci-export__relink-note">{t('davinci.relinkNote')}</p>
+      <details className="davinci-export__how-to">
+        <summary>{t('davinci.howToTitle')}</summary>
+        <ol>
+          <li>{t('davinci.howToPrepare')}</li>
+          <li>{t('davinci.howToExport')}</li>
+          <li>{t('davinci.howToImport')}</li>
+          <li>{t('davinci.howToSelect')}</li>
+          <li>{t('davinci.howToRelink')}</li>
+        </ol>
+      </details>
       {exportState === 'error' && (
         <p className="davinci-export__error" role="alert">
           {t('davinci.error')}

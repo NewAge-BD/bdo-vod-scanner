@@ -75,7 +75,7 @@ The timeline contains shared **Kills** and **Deaths** rows. The video playhead a
 
 Pause on the desired start and choose **Set in (I)**, then move to the desired end and choose **Set out (O)**. The `I` and `O` keys perform the same actions while the video is focused in the clipping workspace. Refine both boundaries with the larger timeline handles: lime marks the in-point and blue marks the out-point. Both remain aligned to the visible timeline while zooming. Choose **Add clip** when the range is ready.
 
-The clip is saved locally with its source perspective, exact range, duration, active-name snapshot, and matching events inside the range. Its generated title uses the active names when available and can be edited in **Marked clips**. Drag the grip on a clip onto another clip to change the saved order. The up/down buttons provide the same operation without dragging. Clips can be deleted and the panel can be collapsed. Later search changes do not modify existing clip snapshots.
+The clip is saved locally with its source perspective, exact range, duration, active-name snapshot, and matching events inside the range. Its generated title uses the active names when available and can be edited in **Marked clips**. Choose **Preview** to switch to the source perspective, seek to the clip's in-point, play it in the main player, and pause automatically at its out-point. Drag the grip on a clip onto another clip to change the saved order. The up/down buttons provide the same operation without dragging. Clips can be deleted and the panel can be collapsed. Later search changes do not modify existing clip snapshots.
 
 ### 7. Export
 
