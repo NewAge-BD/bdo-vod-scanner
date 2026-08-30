@@ -150,6 +150,7 @@ Minimum keyboard controls:
 - Left/right: approximate previous/next frame while paused.
 - `I`: set clip in-point.
 - `O`: set clip out-point.
+- Keep these video controls active without requiring prior focus on the player. Suspend them only while the user is typing in a text-entry control or editable text element.
 - Document shortcuts for previous/next matching event and perspective switching.
 - Provide accessible button equivalents for every shortcut.
 

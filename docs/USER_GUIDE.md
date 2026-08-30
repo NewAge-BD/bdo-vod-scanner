@@ -91,10 +91,11 @@ Projects autosave locally in the current browser. Use **Export** on a project ca
 
 ## Keyboard controls
 
-- Space: play/pause
-- Left/right arrow while the video is focused: approximate previous/next frame and pause
-- `I` while the video is focused: set clip in-point
-- `O` while the video is focused: set clip out-point
+- Space: play/pause from anywhere in the synchronization or clipping workspace
+- Left/right arrow: approximate previous/next frame and pause
+- `I`: set the clip in-point in the clipping workspace
+- `O`: set the clip out-point in the clipping workspace
+- Shortcuts are suspended while typing in a text field, text area, or editable text element.
 - Documented shortcuts will be provided for previous/next matching event and perspective switching.
 
 All keyboard actions will also have accessible buttons.

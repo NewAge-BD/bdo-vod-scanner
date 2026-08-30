@@ -73,9 +73,18 @@ describe('App', () => {
     expect(screen.getByText('Linked for this session')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Synchronize VODs' })).toBeInTheDocument();
 
-    fireEvent.loadedMetadata(screen.getByLabelText('Synthetic Perspective video perspective'));
+    const videoElement = screen.getByLabelText<HTMLVideoElement>(
+      'Synthetic Perspective video perspective',
+    );
+    const playSpy = vi.spyOn(videoElement, 'play');
+    fireEvent.loadedMetadata(videoElement);
     expect(screen.getByLabelText('Shared log event timeline')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /3 log events around video time/ })).toBeVisible();
+    fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+    expect(playSpy).toHaveBeenCalledTimes(1);
+    const shortcutSearchInput = screen.getByLabelText('Find a family, character, or guild name');
+    fireEvent.keyDown(shortcutSearchInput, { code: 'Space', key: ' ' });
+    expect(playSpy).toHaveBeenCalledTimes(1);
     const videoViewport = screen.getByLabelText('Zoomable video viewport');
     vi.spyOn(videoViewport, 'getBoundingClientRect').mockReturnValue({
       bottom: 450,

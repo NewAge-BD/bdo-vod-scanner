@@ -62,6 +62,7 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ### Fixed
 
+- Made playback, frame stepping, and clipping shortcuts work without focusing the video first while preserving normal typing inside text-entry controls.
 - Previewed the active clip in/out frame in the player while dragging a range handle, then restored the normal timeline cursor when the handle was released.
 - Preserved AV1/AAC recorder audio that begins slightly before a safe video keyframe by rebasing the clip to the earliest copied packet instead of producing a rejected negative timestamp.
 - Reported the complete effective MP4 range when the final lossless AAC packet extends a few milliseconds beyond the safe video boundary.

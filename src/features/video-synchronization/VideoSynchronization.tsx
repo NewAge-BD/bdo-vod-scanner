@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useEffectEvent,
   useMemo,
   useRef,
   useState,
@@ -829,6 +830,45 @@ function SynchronizedVideoPlayer({
     [alignmentEventId, alignmentEventTime, alignmentVideoTime, events, searchTerms, timelineWindow],
   );
 
+  const handleGlobalVideoKeyDown = useEffectEvent((event: KeyboardEvent) => {
+    if (
+      event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      isTextEntryTarget(event.target)
+    ) {
+      return;
+    }
+
+    if (event.code === 'Space') {
+      event.preventDefault();
+      if (!event.repeat) {
+        togglePlayback();
+      }
+      return;
+    }
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      stepFrame(event.key === 'ArrowLeft' ? -1 : 1);
+      return;
+    }
+    if (clippingMode && event.key.toLocaleLowerCase() === 'i') {
+      event.preventDefault();
+      markClipBoundary('in');
+      return;
+    }
+    if (clippingMode && event.key.toLocaleLowerCase() === 'o') {
+      event.preventDefault();
+      markClipBoundary('out');
+    }
+  });
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleGlobalVideoKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalVideoKeyDown);
+  }, []);
+
   useEffect(() => {
     if (eventSeekRequest === undefined) {
       return;
@@ -1148,21 +1188,6 @@ function SynchronizedVideoPlayer({
             aria-label={t('synchronization.videoLabel', { name: vod.displayName })}
             onClick={togglePlayback}
             onError={() => onReady(false)}
-            onKeyDown={(event) => {
-              if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-                event.preventDefault();
-                stepFrame(event.key === 'ArrowLeft' ? -1 : 1);
-              } else if (event.key === ' ') {
-                event.preventDefault();
-                togglePlayback();
-              } else if (clippingMode && event.key.toLocaleLowerCase() === 'i') {
-                event.preventDefault();
-                markClipBoundary('in');
-              } else if (clippingMode && event.key.toLocaleLowerCase() === 'o') {
-                event.preventDefault();
-                markClipBoundary('out');
-              }
-            }}
             onLoadedMetadata={(event) => {
               const duration = Number.isFinite(event.currentTarget.duration)
                 ? event.currentTarget.duration
@@ -1724,6 +1749,33 @@ function formatSignedTime(seconds: number): string {
 
 function formatZoom(factor: number): string {
   return factor < 10 ? factor.toFixed(1) : factor.toFixed(0);
+}
+
+function isTextEntryTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  if (target instanceof HTMLTextAreaElement || target.isContentEditable) {
+    return true;
+  }
+  if (target.closest('[contenteditable="true"]') !== null) {
+    return true;
+  }
+  if (!(target instanceof HTMLInputElement)) {
+    return false;
+  }
+  return ![
+    'button',
+    'checkbox',
+    'color',
+    'file',
+    'hidden',
+    'image',
+    'radio',
+    'range',
+    'reset',
+    'submit',
+  ].includes(target.type);
 }
 
 function clampToVod(time: number, vod: VodReference | undefined): number {
