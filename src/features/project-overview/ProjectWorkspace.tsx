@@ -38,6 +38,7 @@ export function ProjectWorkspace({
   const createClip = useProjectStore((state) => state.createClip);
   const updateClip = useProjectStore((state) => state.updateClip);
   const deleteClip = useProjectStore((state) => state.deleteClip);
+  const deleteVod = useProjectStore((state) => state.deleteVod);
   const setClipPanelCollapsed = useProjectStore((state) => state.setClipPanelCollapsed);
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<
@@ -69,6 +70,25 @@ export function ProjectWorkspace({
     } finally {
       setIsImporting(false);
     }
+  }
+
+  async function handleDeleteVod(vodId: string): Promise<boolean> {
+    const vod = project.vods.find((candidate) => candidate.id === vodId);
+    if (vod === undefined) {
+      return false;
+    }
+    const clipCount = project.clips.filter((clip) => clip.vodId === vodId).length;
+    if (
+      !window.confirm(
+        t('sources.deleteVodConfirmation', {
+          count: clipCount,
+          name: vod.displayName,
+        }),
+      )
+    ) {
+      return false;
+    }
+    return deleteVod(project.id, vodId);
   }
 
   return (
@@ -113,11 +133,16 @@ export function ProjectWorkspace({
       )}
 
       <FileDropZone disabled={isImporting} onFiles={handleFiles} />
-      <SourceOverview linkedVodIds={linkedVodIds} project={project} />
+      <SourceOverview
+        linkedVodIds={linkedVodIds}
+        onDeleteVod={(vodId) => void handleDeleteVod(vodId)}
+        project={project}
+      />
       <VideoSynchronization
         onClipPanelCollapsedChange={(collapsed) => setClipPanelCollapsed(project.id, collapsed)}
         onCreateClip={(vodId, input) => createClip(project.id, vodId, input)}
         onDeleteClip={(clipId) => deleteClip(project.id, clipId)}
+        onDeleteVod={handleDeleteVod}
         onSearchTermsChange={(vodId, searchTerms) =>
           saveVodSearchTerms(project.id, vodId, searchTerms)
         }

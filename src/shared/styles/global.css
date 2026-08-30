@@ -638,6 +638,48 @@ h1 {
   border-color: rgb(110 231 163 / 22%);
 }
 
+.vod-delete-button,
+.perspective-delete {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: #ff6b78;
+  background: rgb(255 77 94 / 7%);
+  border: 1px solid rgb(255 77 94 / 28%);
+  cursor: pointer;
+}
+
+.vod-delete-button {
+  width: 2rem;
+  height: 2rem;
+  margin-left: 0.15rem;
+  border-radius: 0.35rem;
+}
+
+.vod-delete-button svg,
+.perspective-delete svg {
+  width: 1rem;
+  height: 1rem;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.vod-delete-button:hover,
+.perspective-delete:hover {
+  color: #fff;
+  background: #c92f42;
+  border-color: #ee5365;
+}
+
+.vod-delete-button:focus-visible,
+.perspective-delete:focus-visible {
+  outline: 2px solid #ff6b78;
+  outline-offset: 2px;
+}
+
 .source-card__facts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -813,17 +855,32 @@ h1 {
   border-color: var(--accent);
 }
 
+.perspective-tab-actions {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 1.65rem;
+  background: #0c0f14;
+  border-top: 1px solid var(--border);
+}
+
 .perspective-visibility {
-  width: 100%;
+  flex: 1 1 auto;
   padding: 0.35rem 0.8rem;
   color: var(--quiet);
   text-align: left;
   background: #0c0f14;
   border: 0;
-  border-top: 1px solid var(--border);
   cursor: pointer;
   font-size: 0.6rem;
   font-weight: 750;
+}
+
+.perspective-delete {
+  width: 2rem;
+  min-height: 1.65rem;
+  border: 0;
+  border-left: 1px solid rgb(255 77 94 / 25%);
+  border-radius: 0;
 }
 
 .perspective-visibility[aria-pressed='true'] {

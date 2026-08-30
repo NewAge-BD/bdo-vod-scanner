@@ -218,6 +218,23 @@ describe('App', () => {
     expect(screen.queryByLabelText('Clip title')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Expand' }));
     expect(await screen.findByDisplayValue('Opening pick')).toBeInTheDocument();
+
+    const confirmDeletion = vi.spyOn(window, 'confirm').mockReturnValueOnce(false);
+    const deleteVodButtons = screen.getAllByRole('button', {
+      name: 'Delete Synthetic Perspective',
+    });
+    expect(deleteVodButtons).toHaveLength(2);
+    await user.click(deleteVodButtons[0]!);
+    expect(confirmDeletion).toHaveBeenCalledWith(expect.stringContaining('1 marked clip'));
+    expect(screen.getByRole('heading', { name: 'Synthetic Perspective' })).toBeInTheDocument();
+
+    confirmDeletion.mockReturnValueOnce(true);
+    await user.click(deleteVodButtons[1]!);
+    expect(
+      screen.queryByRole('heading', { name: 'Synthetic Perspective' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Marked clips' })).not.toBeInTheDocument();
+    confirmDeletion.mockRestore();
   });
 
   it('coordinates, promotes, hides, and restores synchronized perspectives', async () => {

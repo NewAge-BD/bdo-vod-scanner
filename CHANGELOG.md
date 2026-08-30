@@ -45,6 +45,7 @@ The project intends to follow Semantic Versioning once releases begin.
 - Added an accessible collapsible clip list with source perspective, range, duration, and deletion.
 - Added a dedicated full-width clipping workspace opened from the synchronization panel.
 - Added one source row per VOD plus separate Kills, Deaths, and Selected names event rows to the clipping timeline.
+- Added confirmed per-VOD deletion from source cards and perspective tabs, including safe cleanup of owned clips and local file links.
 
 ### Documentation
 

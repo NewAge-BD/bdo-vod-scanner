@@ -54,6 +54,7 @@ export const en = {
       sources: 'The imported source information could not be saved locally.',
       storage: 'Local project storage is unavailable. Check browser storage permissions.',
       synchronization: 'The synchronization point could not be saved locally.',
+      vods: 'The VOD could not be removed from this project.',
     },
     foundationStatus: 'LOCAL & PRIVATE',
     import: 'Import project',
@@ -144,6 +145,13 @@ export const en = {
   sources: {
     codecs: 'Codecs',
     date: 'Session date',
+    deleteVod: 'Delete {{name}}',
+    deleteVodConfirmation_one:
+      'Delete “{{name}}”? This permanently removes this VOD reference, its synchronization, search filters, and {{count}} marked clip. The original MP4 file is not deleted.',
+    deleteVodConfirmation_other:
+      'Delete “{{name}}”? This permanently removes this VOD reference, its synchronization, search filters, and {{count}} marked clips. The original MP4 file is not deleted.',
+    deleteVodConfirmation_zero:
+      'Delete “{{name}}”? This permanently removes this VOD reference, its synchronization, and search filters. The original MP4 file is not deleted.',
     duration: 'Duration',
     embeddedLog: 'Parsed and embedded in this project',
     events: 'Events',

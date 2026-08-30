@@ -25,6 +25,8 @@ The same files can be selected with **Choose log and MP4 files**. The log is val
 
 For every VOD, the application displays filename, size, duration, resolution, available frame-rate/codec information, synchronization status, and current file-link state. Native browsers often do not expose frame rate or codec names; the UI reports this rather than guessing.
 
+Use the red trash button on a VOD source card or its perspective tab to remove that perspective from the project. A confirmation explains which synchronization, filters, and marked clips will be removed. The original MP4 file on disk is never deleted.
+
 Only metadata is saved for VODs. After reloading the app, **Reselect required** means the original local MP4 must be selected again. A matching filename, size, and last-modified time safely relinks the file without creating a duplicate VOD. The raw log is small and is embedded in the project.
 
 ### 3. Synchronize every VOD

@@ -23,6 +23,7 @@ import {
   type TimelineWindow,
 } from '../../domain/timeline';
 import { clampVideoPan, zoomVideoAtPoint, type ViewportPoint } from '../../domain/viewport';
+import { TrashIcon } from '../../shared/components/TrashIcon';
 import { ClipPanel } from '../clip-editor';
 import { SynchronizedMiniPlayer } from './SynchronizedMiniPlayer';
 import { useObjectUrl } from './useObjectUrl';
@@ -37,6 +38,7 @@ interface VideoSynchronizationProps {
   readonly onClipPanelCollapsedChange: (collapsed: boolean) => Promise<boolean>;
   readonly onCreateClip: (vodId: string, input: CreateClipInput) => Promise<boolean>;
   readonly onDeleteClip: (clipId: string) => Promise<boolean>;
+  readonly onDeleteVod: (vodId: string) => Promise<boolean>;
   readonly onSearchTermsChange: (vodId: string, searchTerms: readonly string[]) => Promise<boolean>;
   readonly onSynchronize: (vodId: string, anchor: SynchronizationAnchorInput) => Promise<boolean>;
   readonly onUpdateClip: (clipId: string, input: UpdateClipInput) => Promise<boolean>;
@@ -48,6 +50,7 @@ export function VideoSynchronization({
   onClipPanelCollapsedChange,
   onCreateClip,
   onDeleteClip,
+  onDeleteVod,
   onSearchTermsChange,
   onSynchronize,
   onUpdateClip,
@@ -302,6 +305,28 @@ export function VideoSynchronization({
     setSaveState(saved ? 'saved' : 'error');
   }
 
+  async function deleteVod(vodId: string) {
+    if (!(await onDeleteVod(vodId))) {
+      return;
+    }
+    setHiddenVodIds((current) => {
+      const next = new Set(current);
+      next.delete(vodId);
+      return next;
+    });
+    if (vodId === activeVod?.id) {
+      const nextVod = project.vods.find((vod) => vod.id !== vodId);
+      setActiveVodId(nextVod?.id);
+      setWorkspaceMode('synchronization');
+      setSelectedEventId(nextVod?.synchronizationAnchor?.eventId ?? firstEventId);
+      setClipDraft({});
+      setClipSaveState('idle');
+      setSaveState('idle');
+      setIsVideoReady(false);
+      setVideoTime(nextVod?.synchronizationAnchor?.videoTimeSeconds ?? 0);
+    }
+  }
+
   function renderPerspectiveTabs(clippingMode: boolean) {
     return (
       <div className="perspective-tabs" role="group" aria-label={t('synchronization.perspectives')}>
@@ -325,18 +350,29 @@ export function VideoSynchronization({
                 <span>{vod.displayName}</span>
                 <small>{synchronizationStatus}</small>
               </button>
-              {!clippingMode && !isActive && (
+              <div className="perspective-tab-actions">
+                {!clippingMode && !isActive && (
+                  <button
+                    aria-pressed={isVisible}
+                    className="perspective-visibility"
+                    onClick={() => setPerspectiveVisible(vod.id, !isVisible)}
+                    type="button"
+                  >
+                    {isVisible
+                      ? t('synchronization.hideMiniPlayer')
+                      : t('synchronization.showMiniPlayer')}
+                  </button>
+                )}
                 <button
-                  aria-pressed={isVisible}
-                  className="perspective-visibility"
-                  onClick={() => setPerspectiveVisible(vod.id, !isVisible)}
+                  aria-label={t('sources.deleteVod', { name: vod.displayName })}
+                  className="perspective-delete"
+                  onClick={() => void deleteVod(vod.id)}
+                  title={t('sources.deleteVod', { name: vod.displayName })}
                   type="button"
                 >
-                  {isVisible
-                    ? t('synchronization.hideMiniPlayer')
-                    : t('synchronization.showMiniPlayer')}
+                  <TrashIcon />
                 </button>
-              )}
+              </div>
             </div>
           );
         })}

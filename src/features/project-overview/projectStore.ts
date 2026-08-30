@@ -10,6 +10,7 @@ import {
 } from '../../domain/clips';
 import {
   createProject,
+  deleteProjectVod,
   parseProjectFile,
   renameProject,
   setVodSearchTerms,
@@ -48,6 +49,7 @@ export interface ProjectStoreState {
     vodId: string,
     searchTerms: readonly string[],
   ) => Promise<boolean>;
+  readonly deleteVod: (projectId: string, vodId: string) => Promise<boolean>;
   readonly createClip: (
     projectId: string,
     vodId: string,
@@ -231,6 +233,34 @@ export function createProjectStore(repository: ProjectRepository) {
         return true;
       } catch {
         set({ errorMessage: 'projects.errors.searchTerms' });
+        return false;
+      }
+    },
+
+    deleteVod: async (projectId, vodId) => {
+      const project = get().projects.find((candidate) => candidate.id === projectId);
+      if (project === undefined) {
+        set({ errorMessage: 'projects.errors.missing' });
+        return false;
+      }
+
+      try {
+        const updatedProject = deleteProjectVod(project, vodId);
+        await repository.save(updatedProject);
+        const updatedVodFiles = new Map(get().vodFiles);
+        updatedVodFiles.delete(vodId);
+        set({
+          projects: sortProjects(
+            get().projects.map((candidate) =>
+              candidate.id === projectId ? updatedProject : candidate,
+            ),
+          ),
+          vodFiles: updatedVodFiles,
+          errorMessage: undefined,
+        });
+        return true;
+      } catch {
+        set({ errorMessage: 'projects.errors.vods' });
         return false;
       }
     },

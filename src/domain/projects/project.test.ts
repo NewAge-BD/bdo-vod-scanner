@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   createProject,
+  deleteProjectVod,
   getProjectExportFileName,
   renameProject,
   setVodSearchTerms,
@@ -72,6 +73,57 @@ describe('project domain', () => {
     expect(projectWithVod.vods[0]?.searchTerms).toEqual([]);
     expect(updated.vods[0]?.searchTerms).toEqual(['EmberVale', 'rivERwarden']);
     expect(updated.updatedAt).toBe('2026-08-30T13:00:00.000Z');
+  });
+
+  it('deletes one VOD and only the clips owned by that perspective', () => {
+    const project = createProject('Delete perspective', new Date('2026-08-30T12:00:00.000Z'));
+    const removedVodId = '11111111-1111-4111-8111-111111111111';
+    const retainedVodId = '22222222-2222-4222-8222-222222222222';
+    const removedClipId = '33333333-3333-4333-8333-333333333333';
+    const retainedClipId = '44444444-4444-4444-8444-444444444444';
+    const vod = (id: string, name: string) => ({
+      id,
+      displayName: name,
+      fileName: `${name}.mp4`,
+      fileSizeBytes: 12,
+      lastModifiedMs: 100,
+      durationSeconds: 60,
+      width: 1920,
+      height: 1080,
+      nominalFrameRate: 60,
+      variableFrameRate: false,
+      videoCodec: null,
+      audioCodec: null,
+      synchronizationAnchor: null,
+      searchTerms: [],
+    });
+    const clip = (id: string, vodId: string, order: number) => ({
+      id,
+      vodId,
+      title: `Clip ${order}`,
+      inPointSeconds: 1,
+      outPointSeconds: 2,
+      searchTermsSnapshot: [],
+      matchingEventIds: [],
+      order,
+      createdAt: '2026-08-30T12:00:00.000Z',
+      exportStatus: 'notExported' as const,
+      lastErrorCode: null,
+    });
+    const populated = portableProjectSchema.parse({
+      ...project,
+      vods: [vod(removedVodId, 'Removed'), vod(retainedVodId, 'Retained')],
+      clips: [clip(removedClipId, removedVodId, 0), clip(retainedClipId, retainedVodId, 1)],
+      clipOrder: [removedClipId, retainedClipId],
+    });
+
+    const updated = deleteProjectVod(populated, removedVodId, new Date('2026-08-30T13:00:00.000Z'));
+
+    expect(updated.vods.map((candidate) => candidate.id)).toEqual([retainedVodId]);
+    expect(updated.clips.map((candidate) => candidate.id)).toEqual([retainedClipId]);
+    expect(updated.clipOrder).toEqual([retainedClipId]);
+    expect(updated.updatedAt).toBe('2026-08-30T13:00:00.000Z');
+    expect(populated.vods).toHaveLength(2);
   });
 
   it('round-trips a portable project', () => {

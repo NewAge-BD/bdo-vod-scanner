@@ -69,6 +69,27 @@ export function setVodSearchTerms(
   });
 }
 
+export function deleteProjectVod(
+  project: PortableProject,
+  vodId: string,
+  now = new Date(),
+): PortableProject {
+  if (!project.vods.some((vod) => vod.id === vodId)) {
+    throw new Error('The selected VOD does not exist in this project.');
+  }
+  const removedClipIds = new Set(
+    project.clips.filter((clip) => clip.vodId === vodId).map((clip) => clip.id),
+  );
+
+  return portableProjectSchema.parse({
+    ...project,
+    updatedAt: now.toISOString(),
+    vods: project.vods.filter((vod) => vod.id !== vodId),
+    clips: project.clips.filter((clip) => clip.vodId !== vodId),
+    clipOrder: project.clipOrder.filter((clipId) => !removedClipIds.has(clipId)),
+  });
+}
+
 export function getProjectExportFileName(project: PortableProject): string {
   const nameWithoutReservedCharacters = project.name
     .normalize('NFKC')

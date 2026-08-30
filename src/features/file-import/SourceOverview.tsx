@@ -3,13 +3,15 @@ import { useTranslation } from 'react-i18next';
 
 import { parseBdoLog } from '../../domain/events';
 import type { PortableProject, VodReference } from '../../domain/projects';
+import { TrashIcon } from '../../shared/components/TrashIcon';
 
 interface SourceOverviewProps {
   readonly project: PortableProject;
   readonly linkedVodIds: ReadonlySet<string>;
+  readonly onDeleteVod: (vodId: string) => void;
 }
 
-export function SourceOverview({ project, linkedVodIds }: SourceOverviewProps) {
+export function SourceOverview({ project, linkedVodIds, onDeleteVod }: SourceOverviewProps) {
   const { t } = useTranslation();
   const parsedLog = useMemo(() => {
     if (project.rawLog === null || project.sessionDate === null) {
@@ -58,7 +60,12 @@ export function SourceOverview({ project, linkedVodIds }: SourceOverviewProps) {
       {project.vods.length > 0 && (
         <div className="vod-list">
           {project.vods.map((vod) => (
-            <VodCard key={vod.id} linked={linkedVodIds.has(vod.id)} vod={vod} />
+            <VodCard
+              key={vod.id}
+              linked={linkedVodIds.has(vod.id)}
+              onDelete={() => onDeleteVod(vod.id)}
+              vod={vod}
+            />
           ))}
         </div>
       )}
@@ -66,7 +73,15 @@ export function SourceOverview({ project, linkedVodIds }: SourceOverviewProps) {
   );
 }
 
-function VodCard({ vod, linked }: { readonly vod: VodReference; readonly linked: boolean }) {
+function VodCard({
+  vod,
+  linked,
+  onDelete,
+}: {
+  readonly vod: VodReference;
+  readonly linked: boolean;
+  readonly onDelete: () => void;
+}) {
   const { t, i18n } = useTranslation();
   const numberFormatter = new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 });
 
@@ -87,6 +102,15 @@ function VodCard({ vod, linked }: { readonly vod: VodReference; readonly linked:
         >
           {vod.synchronizationAnchor === null ? t('sources.syncRequired') : t('sources.synced')}
         </span>
+        <button
+          aria-label={t('sources.deleteVod', { name: vod.displayName })}
+          className="vod-delete-button"
+          onClick={onDelete}
+          title={t('sources.deleteVod', { name: vod.displayName })}
+          type="button"
+        >
+          <TrashIcon />
+        </button>
       </div>
       <dl className="source-card__facts source-card__facts--video">
         <Fact label={t('sources.size')} value={formatBytes(vod.fileSizeBytes, numberFormatter)} />

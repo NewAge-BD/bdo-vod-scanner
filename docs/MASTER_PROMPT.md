@@ -105,6 +105,8 @@ Preserve raw line and line number. Assign an event ID independent of timestamp. 
 
 Show filename, size, duration, resolution, frame-rate information, variable-frame-rate indication when discoverable, video/audio codecs, sync status, and sync offset.
 
+Provide a red, accessible trash action for each VOD in both its imported-source card and perspective tab. Always confirm before deleting a VOD. The action removes only that VOD reference, its synchronization/search state, local file link, and clips owned by that perspective; it never deletes the original MP4, log, project, or other VODs.
+
 Expected sources include NVIDIA ShadowPlay, AMD Adrenalin, and OBS. Do not infer codec from the MP4 container.
 
 Every VOD has its own synchronization anchor and offset. Highlight an unsynchronized VOD's Sync button. Propose the first event, but allow another event to be searched and selected. Let the user navigate visually frame by frame, stop on the matching event, and confirm.
