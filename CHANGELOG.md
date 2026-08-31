@@ -9,6 +9,7 @@ The project intends to follow Semantic Versioning once releases begin.
 ### Changed
 
 - Reworked the public README into a concise quick-start guide.
+- Expanded the core compatibility target and automated smoke tests to Chromium, Firefox, and WebKit, with capability-based fallback messaging for direct clip export.
 
 ## [0.2.0] - 2026-08-31
 

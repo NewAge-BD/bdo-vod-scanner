@@ -272,9 +272,9 @@ Unit-test log parsing, midnight rollover, duplicate timestamps, search, time map
 
 Component/integration tests cover import, sync, perspective switching, search, timeline/clip interaction, confirmations, projects, failures, and accessibility.
 
-Playwright Chromium flows cover synthetic log/MP4 import, synchronization, search/jump, perspective preservation, clip editing, project roundtrip, DaVinci export, experimental multi-clip export, collisions, cancellation, and partial failure.
+Playwright Chromium, Firefox, and WebKit flows cover the central synthetic project/import workflow. Chromium additionally remains the reference engine for browser-specific writable-folder export paths.
 
-Use only synthetic names and one tiny synthetic MP4 fixture. Never commit the real supplied log or VOD. No fixed coverage percentage is required, but critical domain/persistence logic needs thorough coverage. Support current stable Chrome, Brave, and Edge plus a reasonable previous Chromium generation. Use a release checklist across those browsers; real large VOD manual testing is not required for every task.
+Use only synthetic names and one tiny synthetic MP4 fixture. Never commit the real supplied log or VOD. No fixed coverage percentage is required, but critical domain/persistence logic needs thorough coverage. Support current stable Chrome, Edge, Firefox, and Brave plus a reasonable previous Chromium generation. Use automated Chromium, Firefox, and WebKit smoke tests, with WebKit treated as a Safari-adjacent signal rather than a guarantee for branded Safari. Use a release checklist across supported browsers; real large VOD manual testing is not required for every task.
 
 ## Documentation
 
@@ -345,7 +345,7 @@ Public GitHub Pages deployment and AGPL-3.0-or-later licensing were separately a
 
 - Reference VOD is about 58 GB; VODs may reach about 100 GB.
 - No fixed VOD-count limit; hardware limits visible simultaneous decoding.
-- Codec support depends on Chromium and Windows.
+- Codec support depends on the browser and operating-system installation.
 - Browser frame stepping is visual/approximate.
 - Lossless cuts may expand to keyframes.
 - Directory writing is capability-limited and permission-based.

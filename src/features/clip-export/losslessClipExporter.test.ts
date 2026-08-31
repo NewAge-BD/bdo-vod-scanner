@@ -5,6 +5,7 @@ import {
   createClipExportFileName,
   exportLosslessClip,
   reserveUniqueOutputFile,
+  supportsLosslessClipExport,
 } from './losslessClipExporter';
 import type { ClipExportWorkerResponse } from './types';
 
@@ -13,6 +14,15 @@ afterEach(() => {
 });
 
 describe('losslessClipExporter', () => {
+  it('detects writable-folder and worker support instead of assuming a browser family', () => {
+    vi.stubGlobal('showDirectoryPicker', vi.fn());
+    vi.stubGlobal('Worker', class {});
+    expect(supportsLosslessClipExport()).toBe(true);
+
+    vi.stubGlobal('showDirectoryPicker', undefined);
+    expect(supportsLosslessClipExport()).toBe(false);
+  });
+
   it('creates a safe date, title, and event-count filename', () => {
     expect(createClipExportFileName('2026-08-29', 'NewAge: Finals?', 3)).toBe(
       '2026-08-29_NewAge_ Finals_3.mp4',

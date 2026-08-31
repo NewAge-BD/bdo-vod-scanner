@@ -17,7 +17,7 @@ Stable compatible patch versions are locked in `package-lock.json`. TypeScript 6
 - Prettier 3.9
 - Vitest 4
 - React Testing Library 16
-- Playwright 1.62 using Chromium
+- Playwright 1.62 using Chromium, Firefox, and WebKit
 
 ## Local setup
 
@@ -41,11 +41,11 @@ npm run test:e2e
 npm run build
 ```
 
-Playwright requires its local Chromium binary. Install it once with `npx playwright install chromium` when the smoke test reports that the executable is missing.
+Playwright requires local browser binaries. Install them once with `npx playwright install chromium firefox webkit` when a smoke test reports that an executable is missing. Run a single engine with `npm run test:e2e:chromium`, `npm run test:e2e:firefox`, or `npm run test:e2e:webkit`.
 
 ## Required verification
 
-Relevant changes must pass formatting, linting, type checking, affected unit/integration tests, Chromium smoke tests for central workflows, and a production build.
+Relevant changes must pass formatting, linting, type checking, affected unit/integration tests, Chromium, Firefox, and WebKit smoke tests for central workflows, and a production build.
 
 Use a small synthetic log and a tiny synthetic MP4 fixture. Never add the supplied real log, real names, or large VODs to the repository.
 

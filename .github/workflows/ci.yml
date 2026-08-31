@@ -39,7 +39,7 @@ jobs:
       - name: Build
         run: npm run build
 
-  chromium-smoke:
+  browser-smoke:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -54,8 +54,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium firefox webkit
 
-      - name: Run Chromium smoke tests
+      - name: Run cross-browser smoke tests
         run: npm run test:e2e

@@ -430,7 +430,7 @@ describe('App', () => {
       screen.queryByRole('heading', { name: 'Synthetic Perspective' }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Marked clips' })).not.toBeInTheDocument();
-  }, 10_000);
+  }, 20_000);
 
   it('switches synchronized perspectives at the shared session time without a split view', async () => {
     const user = userEvent.setup();

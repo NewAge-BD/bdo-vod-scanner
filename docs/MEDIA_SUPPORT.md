@@ -3,14 +3,17 @@
 ## MVP support target
 
 - Windows desktop
-- Current stable Chrome, Brave, and Edge
+- Current stable Chrome, Edge, Firefox, and Brave
 - A reasonable previous stable Chromium generation
+- Automated WebKit coverage as a Safari-adjacent compatibility signal
 - MP4 containers only
 - Recordings commonly produced by NVIDIA ShadowPlay, AMD Adrenalin, and OBS
 
+The central project, import, synchronization, search, clipping, portable-project, and DaVinci Resolve workflows are smoke-tested in Chromium, Firefox, and WebKit. Chrome and Edge provide the complete workflow. Firefox and Brave support the core workflow but not direct large-file clip export. WebKit is tested as an engine-level signal; real Safari remains best-effort because Playwright WebKit is not branded Safari and media support varies by operating system.
+
 Container support does not guarantee codec support. An MP4 may contain H.264, HEVC, or another codec whose playback availability depends on the browser and Windows installation.
 
-The current importer verifies the MP4 `ftyp` file signature and asks the browser for native metadata. Duration and resolution are stored when available. Chromium's native video element does not expose reliable frame-rate, variable-frame-rate, or codec names, so those fields remain visibly unavailable instead of being guessed. Deeper MP4 inspection is a later milestone and may require an approved media dependency.
+The current importer verifies the MP4 `ftyp` file signature and asks the browser for native metadata. Duration and resolution are stored when available. Native video elements do not expose reliable frame-rate, variable-frame-rate, or codec names consistently across supported browsers, so those fields remain visibly unavailable instead of being guessed. Deeper MP4 inspection is a later milestone and may require an approved media dependency.
 
 ## File-size requirements
 
@@ -64,7 +67,7 @@ Direct browser export is experimental.
 - Support progress, cancellation, partial success, and per-clip errors.
 - Keep finished outputs when a later clip fails or the batch is cancelled.
 
-The user selects an output directory when the browser capability is available. Directory access requires explicit permission and may not be available in embedded preview browsers even when they display a folder dialog. Brave intentionally disables the required File System Access API. Direct users to open the local URL in Chrome or Edge and provide an actionable DaVinci Resolve fallback. General playback, synchronization, clipping, project storage, and FCPXML export remain supported in Brave.
+The user selects an output directory when the browser capability is available. Directory access requires explicit permission and may not be available in embedded preview browsers even when they display a folder dialog. Firefox and Safari do not provide this directory-writing API, and Brave intentionally disables it. Direct users to open the local URL in Chrome or Edge and provide an actionable DaVinci Resolve fallback. General playback, synchronization, clipping, project storage, and FCPXML export remain available when direct export is unsupported.
 
 The approved [technical spike](./CLIP_EXPORT_SPIKE.md) selected Mediabunny 1.55.4. The experimental implementation uses its low-level encoded-packet APIs in a Web Worker and streams each MP4 directly to the selected folder. The high-level `Conversion` trim API is not used for a non-zero lossless start because that path currently forces transcoding. MP4Box.js remains a fallback candidate for focused MP4 diagnostics.
 

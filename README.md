@@ -21,7 +21,7 @@ BDO VOD Scanner is a local-first browser tool for Black Desert Online players an
 
 ## Quick start
 
-1. Open the [web application](https://newage-bd.github.io/bdo-vod-scanner/) in a current Chromium-based desktop browser.
+1. Open the [web application](https://newage-bd.github.io/bdo-vod-scanner/) in a current desktop browser.
 2. Create a project and add one supported event log plus one or more MP4 perspectives.
 3. Synchronize each VOD to a visible combat-log message. Auto Sync can scan a marked in-game chat area locally and propose a matching frame.
 4. Open the clipping workspace, add name timelines, select events, and refine the suggested clip ranges.
@@ -50,8 +50,10 @@ No cropped image or recognized chat text leaves the browser or is saved in the p
 ## Browser and export notes
 
 - Current Chrome and Edge provide the complete browser workflow, including writable-folder access for direct clip export.
-- Brave can use the core project, synchronization, clipping, and DaVinci features, but intentionally disables the writable-folder API required by direct clip export.
-- Codec support depends on the browser and Windows installation.
+- Current Firefox is tested for the core project, synchronization, clipping, and DaVinci workflow. It does not provide the writable-folder API required by direct clip export.
+- Brave supports the same core workflow but intentionally disables that writable-folder API.
+- WebKit receives an automated Safari-adjacent smoke test. Real Safari remains best-effort because media codecs and file APIs vary by operating system.
+- Codec support depends on the browser and operating-system installation.
 - Browser frame stepping is approximate, and lossless cuts may expand to nearby safe keyframes.
 - VOD files can be very large; the application keeps references instead of loading complete recordings into memory.
 
