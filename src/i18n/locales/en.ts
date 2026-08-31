@@ -102,7 +102,7 @@ export const en = {
   sourceImport: {
     chooseFiles: 'Choose log and MP4 files',
     dropDescription:
-      'Drop one dated .log or .ikusa.json and any number of MP4 perspectives. Large videos stay on this device.',
+      'Drop one dated .log or .ikusa.json and any number of MP4 perspectives. Everything is processed locally. Nothing is uploaded.',
     dropTitle: 'Add local source files',
     errorTitle: 'Files were not imported',
     fileInputLabel: 'Local log and MP4 files',
