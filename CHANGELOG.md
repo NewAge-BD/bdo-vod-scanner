@@ -6,6 +6,8 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-31
+
 ### Added
 
 - Added an experimental privacy-first Auto Sync workflow with a user-defined chat crop, bounded local OCR sampling, fuzzy kill-line matching, refinement to the first visible matched kill, progress, cancellation, and a confirmable anchor suggestion.
