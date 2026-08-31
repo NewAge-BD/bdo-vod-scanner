@@ -25,6 +25,8 @@ Imported logs, VODs, project data, and generated clips remain on the user's devi
 - [Media and browser support](docs/MEDIA_SUPPORT.md)
 - [Privacy and security](docs/PRIVACY_AND_SECURITY.md)
 - [Changelog](CHANGELOG.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
 
 ## Current status
 

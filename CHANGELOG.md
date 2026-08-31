@@ -4,6 +4,12 @@ All notable user-facing changes to BDO VOD Scanner will be documented in this fi
 
 The project intends to follow Semantic Versioning once releases begin.
 
+## [Unreleased]
+
+### Added
+
+- Added privacy-safe contribution, security-reporting, bug-report, and feature-request guidance for the public repository.
+
 ## [0.1.0] - 2026-08-31
 
 ### Added

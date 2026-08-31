@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/NewAge-BD/bdo-vod-scanner/security
+    about: Review the security policy and use private vulnerability reporting when available.

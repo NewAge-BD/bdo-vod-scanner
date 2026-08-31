@@ -1,0 +1,43 @@
+name: Feature request
+description: Propose a focused improvement to the documented product scope.
+title: '[Feature]: '
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the workflow and user value rather than only a technical implementation. Do not include real logs, names, local paths, VODs, project files, or screenshots containing private data.
+  - type: textarea
+    id: workflow
+    attributes:
+      label: User workflow
+      description: What is the user trying to accomplish?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed improvement
+      description: Describe the smallest useful behavior and UI outcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe current workarounds or other approaches.
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Relevant constraints
+      description: Browser, codec, file-size, accessibility, privacy, or compatibility considerations.
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I removed private or identifying data from this request.
+          required: true
+        - label: I searched the existing issues for a similar request.
+          required: true
