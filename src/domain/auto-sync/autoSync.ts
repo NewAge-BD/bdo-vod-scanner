@@ -19,6 +19,12 @@ export interface AutoSyncMatch {
   readonly line: string;
 }
 
+interface RecognitionCandidate {
+  readonly line: string;
+  readonly lineIndex: number;
+  readonly scoringText: string;
+}
+
 export function buildCenteredSampleTimes(
   durationSeconds: number,
   centerSeconds: number,
@@ -83,18 +89,15 @@ export function findBestAutoSyncMatch(
   recognizedText: string,
   events: readonly BdoEvent[],
 ): AutoSyncMatch | undefined {
-  const lines = recognizedText
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+  const candidatesWithContext = buildRecognitionCandidates(recognizedText);
   const candidates: Array<AutoSyncMatch & { readonly lineIndex: number }> = [];
 
-  for (const [lineIndex, line] of lines.entries()) {
+  for (const { line, lineIndex, scoringText } of candidatesWithContext) {
     for (const event of events) {
       if (event.verb !== 'killed') {
         continue;
       }
-      const confidence = scoreLineForEvent(line, event);
+      const confidence = scoreLineForEvent(scoringText, event);
       if (confidence >= MIN_MATCH_CONFIDENCE) {
         candidates.push({ confidence, event, line, lineIndex });
       }
@@ -111,9 +114,9 @@ export function findBestAutoSyncMatch(
 }
 
 export function isAutoSyncEventVisible(recognizedText: string, event: BdoEvent): boolean {
-  return recognizedText
-    .split(/\r?\n/)
-    .some((line) => scoreLineForEvent(line, event) >= MIN_MATCH_CONFIDENCE);
+  return buildRecognitionCandidates(recognizedText).some(
+    ({ scoringText }) => scoreLineForEvent(scoringText, event) >= MIN_MATCH_CONFIDENCE,
+  );
 }
 
 function scoreLineForEvent(line: string, event: BdoEvent): number {
@@ -122,16 +125,52 @@ function scoreLineForEvent(line: string, event: BdoEvent): number {
   const attacker = bestNameSimilarity(tokens, normalizedLine, [event.familyA, event.characterA]);
   const victim = bestNameSimilarity(tokens, normalizedLine, [event.familyB, event.characterB]);
 
-  if (attacker < MIN_NAME_SIMILARITY || victim < MIN_NAME_SIMILARITY) {
+  if (
+    attacker < MIN_NAME_SIMILARITY ||
+    victim < MIN_NAME_SIMILARITY ||
+    !hasMatchingVisibleMinute(line, event.clockTime)
+  ) {
     return 0;
   }
 
   const guild = bestNameSimilarity(tokens, normalizedLine, [event.guildB]);
   const verb = approximateTokenSimilarity(tokens, 'killed');
-  const minute = event.clockTime.slice(0, 5).replace(':', '');
-  const time = normalizedLine.replaceAll(' ', '').includes(minute) ? 1 : 0;
+  return attacker * 0.36 + victim * 0.36 + guild * 0.14 + verb * 0.14;
+}
 
-  return attacker * 0.32 + victim * 0.32 + guild * 0.12 + verb * 0.12 + time * 0.12;
+function buildRecognitionCandidates(recognizedText: string): readonly RecognitionCandidate[] {
+  const lines = recognizedText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  return lines.map((line, lineIndex) => {
+    const nextLine = lines[lineIndex + 1];
+    return {
+      line,
+      lineIndex,
+      scoringText:
+        nextLine !== undefined && isStandaloneChatTimestamp(nextLine)
+          ? `${line} ${nextLine}`
+          : line,
+    };
+  });
+}
+
+function hasMatchingVisibleMinute(line: string, clockTime: string): boolean {
+  const expectedHour = Number(clockTime.slice(0, 2));
+  const expectedMinute = Number(clockTime.slice(3, 5));
+  if (!Number.isInteger(expectedHour) || !Number.isInteger(expectedMinute)) {
+    return false;
+  }
+
+  return Array.from(line.matchAll(/(?:^|\D)([0-2]?\d)\D{0,3}([0-5]\d)(?=\D|$)/g)).some(
+    (match) => Number(match[1]) === expectedHour && Number(match[2]) === expectedMinute,
+  );
+}
+
+function isStandaloneChatTimestamp(line: string): boolean {
+  return /^\W*[0-2]?\d\D{0,3}[0-5]\d\W*$/.test(line);
 }
 
 function bestNameSimilarity(

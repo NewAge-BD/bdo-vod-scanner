@@ -71,4 +71,12 @@ describe('automatic synchronization matching', () => {
     ).toBe(true);
     expect(findBestAutoSyncMatch('System: Guild mission completed.', events)).toBeUndefined();
   });
+
+  it('requires the visible chat minute to match the log event', () => {
+    const killLine = '[StoneRaven] killed [EmberWarden] of the [MoonGuard] alliance.';
+
+    expect(findBestAutoSyncMatch(`${killLine} (20:25)`, events)).toBeUndefined();
+    expect(findBestAutoSyncMatch(killLine, events)).toBeUndefined();
+    expect(findBestAutoSyncMatch(`${killLine}\n(20:26)`, events)?.event.id).toBe('match');
+  });
 });

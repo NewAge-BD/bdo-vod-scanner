@@ -1,6 +1,7 @@
 import { useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react';
 
 import type { AutoSyncRegion } from '../../domain/auto-sync';
+import type { ViewportPoint } from '../../domain/viewport';
 
 const MINIMUM_REGION_SIZE = 0.03;
 const KEYBOARD_STEP = 0.01;
@@ -8,13 +9,17 @@ const KEYBOARD_STEP = 0.01;
 export function VideoCropSelector({
   label,
   onChange,
+  pan,
   region,
   videoRef,
+  zoom,
 }: {
   readonly label: string;
   readonly onChange: (region: AutoSyncRegion) => void;
+  readonly pan: ViewportPoint;
   readonly region: AutoSyncRegion | undefined;
   readonly videoRef: RefObject<HTMLVideoElement | null>;
+  readonly zoom: number;
 }) {
   const [drag, setDrag] = useState<SelectionDrag>();
   const draftRegion = drag?.region ?? region;
@@ -23,7 +28,7 @@ export function VideoCropSelector({
     if (event.button !== 0) {
       return;
     }
-    const point = getNormalizedVideoPoint(event, videoRef.current);
+    const point = getNormalizedVideoPoint(event, videoRef.current, zoom, pan);
     if (point === undefined) {
       return;
     }
@@ -40,7 +45,7 @@ export function VideoCropSelector({
     if (drag === undefined || drag.pointerId !== event.pointerId) {
       return;
     }
-    const point = getNormalizedVideoPoint(event, videoRef.current);
+    const point = getNormalizedVideoPoint(event, videoRef.current, zoom, pan);
     if (point === undefined) {
       return;
     }
@@ -94,17 +99,22 @@ export function VideoCropSelector({
       role="application"
       tabIndex={0}
     >
-      {draftRegion !== undefined && draftRegion.width > 0 && draftRegion.height > 0 && (
-        <span
-          className="video-crop-selector__selection"
-          style={{
-            height: `${draftRegion.height * 100}%`,
-            left: `${draftRegion.x * 100}%`,
-            top: `${draftRegion.y * 100}%`,
-            width: `${draftRegion.width * 100}%`,
-          }}
-        />
-      )}
+      <span
+        className="video-crop-selector__content"
+        style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})` }}
+      >
+        {draftRegion !== undefined && draftRegion.width > 0 && draftRegion.height > 0 && (
+          <span
+            className="video-crop-selector__selection"
+            style={{
+              height: `${draftRegion.height * 100}%`,
+              left: `${draftRegion.x * 100}%`,
+              top: `${draftRegion.y * 100}%`,
+              width: `${draftRegion.width * 100}%`,
+            }}
+          />
+        )}
+      </span>
     </div>
   );
 }
@@ -112,6 +122,8 @@ export function VideoCropSelector({
 function getNormalizedVideoPoint(
   event: PointerEvent<HTMLDivElement>,
   video: HTMLVideoElement | null,
+  zoom: number,
+  pan: ViewportPoint,
 ): NormalizedPoint | undefined {
   if (video === null || video.videoWidth === 0 || video.videoHeight === 0) {
     return undefined;
@@ -123,9 +135,13 @@ function getNormalizedVideoPoint(
     video.videoWidth,
     video.videoHeight,
   );
+  const pointerX =
+    (event.clientX - bounds.left - bounds.width / 2 - pan.x) / zoom + bounds.width / 2;
+  const pointerY =
+    (event.clientY - bounds.top - bounds.height / 2 - pan.y) / zoom + bounds.height / 2;
   return {
-    x: clamp((event.clientX - bounds.left - content.x) / content.width, 0, 1),
-    y: clamp((event.clientY - bounds.top - content.y) / content.height, 0, 1),
+    x: clamp((pointerX - content.x) / content.width, 0, 1),
+    y: clamp((pointerY - content.y) / content.height, 0, 1),
   };
 }
 

@@ -27,7 +27,7 @@ export const en = {
       'Chat area selector. Drag to redraw. Arrow keys move the area; Shift plus arrow keys resize it.',
     defineRegion: 'Define chat area',
     description:
-      'Mark the in-game chat once. Local OCR samples this recording and proposes a matching log anchor.',
+      'Mark the in-game chat once. Local OCR samples this recording and proposes a matching log anchor. For clearer recognition, place the chat on a solid grey in-game background before drawing the area.',
     drawHint: 'Drag a rectangle around only the chat messages in the video.',
     error: 'Auto Sync could not scan this recording. You can still synchronize it manually.',
     experimental: 'EXPERIMENTAL',

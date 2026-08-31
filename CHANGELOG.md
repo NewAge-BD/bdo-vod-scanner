@@ -14,6 +14,8 @@ The project intends to follow Semantic Versioning once releases begin.
 ### Fixed
 
 - Auto Sync now finds when the matched chat message first appears instead of anchoring to an older frame where a long-lived message is merely still visible.
+- Auto Sync now requires the visible chat timestamp to match the log event and preserves image zoom while selecting the chat area.
+- Every secondary VOD in clipping split screen now supports independent wheel zoom, middle-button pan, and double-click reset.
 
 ## [0.1.1] - 2026-08-31
 

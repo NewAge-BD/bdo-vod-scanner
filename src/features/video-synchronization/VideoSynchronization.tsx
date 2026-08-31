@@ -1353,9 +1353,7 @@ function SynchronizedVideoPlayer({
             ref={videoRef}
             src={objectUrl}
             style={{
-              transform: isSelectingAutoSyncRegion
-                ? 'translate3d(0, 0, 0) scale(1)'
-                : `translate3d(${videoPan.x}px, ${videoPan.y}px, 0) scale(${videoZoom})`,
+              transform: `translate3d(${videoPan.x}px, ${videoPan.y}px, 0) scale(${videoZoom})`,
             }}
             tabIndex={0}
           />
@@ -1363,8 +1361,10 @@ function SynchronizedVideoPlayer({
             <VideoCropSelector
               label={t('autoSync.cropSelectorLabel')}
               onChange={onAutoSyncRegionChange}
+              pan={videoPan}
               region={autoSyncRegion}
               videoRef={videoRef}
+              zoom={videoZoom}
             />
           )}
           <span className="video-viewport__zoom" aria-live="polite">
@@ -1825,6 +1825,11 @@ function SynchronizedPerspectivePreview({
 }) {
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<DragState | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState<ViewportPoint>({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
   const objectUrl = useObjectUrl(perspective.file);
   const anchor = perspective.vod.synchronizationAnchor;
   const targetTime = clampToVod(
@@ -1847,8 +1852,95 @@ function SynchronizedPerspectivePreview({
     }
   }, [isPlaying, targetTime]);
 
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (viewport === null) {
+      return;
+    }
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const bounds = viewport.getBoundingClientRect();
+      const nextZoom = Math.min(
+        MAX_VIDEO_ZOOM,
+        Math.max(1, zoom * Math.exp(-event.deltaY * 0.0015)),
+      );
+      setPan(
+        zoomVideoAtPoint({
+          currentZoom: zoom,
+          nextZoom,
+          currentPan: pan,
+          pointer: { x: event.clientX - bounds.left, y: event.clientY - bounds.top },
+          viewport: { width: bounds.width, height: bounds.height },
+        }),
+      );
+      setZoom(nextZoom);
+    };
+    viewport.addEventListener('wheel', handleWheel, { passive: false });
+    return () => viewport.removeEventListener('wheel', handleWheel);
+  }, [pan, zoom]);
+
+  function resetViewport() {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  }
+
+  function beginPan(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.button !== 1 || zoom === 1) {
+      return;
+    }
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      origin: pan,
+    };
+    setIsPanning(true);
+  }
+
+  function movePan(event: ReactPointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current;
+    const viewport = viewportRef.current;
+    if (drag === null || drag.pointerId !== event.pointerId || viewport === null) {
+      return;
+    }
+    const bounds = viewport.getBoundingClientRect();
+    setPan(
+      clampVideoPan(
+        {
+          x: drag.origin.x + event.clientX - drag.startX,
+          y: drag.origin.y + event.clientY - drag.startY,
+        },
+        { width: bounds.width, height: bounds.height },
+        zoom,
+      ),
+    );
+  }
+
+  function endPan(event: ReactPointerEvent<HTMLDivElement>) {
+    if (dragRef.current?.pointerId !== event.pointerId) {
+      return;
+    }
+    dragRef.current = null;
+    setIsPanning(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
+
   return (
-    <div className="perspective-multi-item">
+    <div
+      aria-label={t('synchronization.videoViewport')}
+      className={`perspective-multi-item${isPanning ? ' perspective-multi-item--panning' : ''}`}
+      onDoubleClick={resetViewport}
+      onPointerCancel={endPan}
+      onPointerDown={beginPan}
+      onPointerMove={movePan}
+      onPointerUp={endPan}
+      ref={viewportRef}
+      title={t('synchronization.videoViewportHint')}
+    >
       <video
         aria-label={t('synchronization.videoLabel', { name: perspective.vod.displayName })}
         muted={!audible}
@@ -1861,8 +1953,12 @@ function SynchronizedPerspectivePreview({
         playsInline
         ref={videoRef}
         src={objectUrl}
+        style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})` }}
       />
-      <span>{perspective.vod.displayName}</span>
+      <span className="perspective-multi-item__name">{perspective.vod.displayName}</span>
+      <span className="video-viewport__zoom" aria-live="polite">
+        {t('synchronization.videoZoom', { factor: formatZoom(zoom) })}
+      </span>
     </div>
   );
 }
