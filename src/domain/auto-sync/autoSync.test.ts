@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { BdoEvent } from '../events';
 import {
+  buildBackwardVisibilityProbeTimes,
   buildCenteredSampleTimes,
   findBestAutoSyncMatch,
   isAutoSyncEventVisible,
@@ -41,6 +42,14 @@ const events: readonly BdoEvent[] = [
 describe('automatic synchronization matching', () => {
   it('samples outward from the current video position without duplicates', () => {
     expect(buildCenteredSampleTimes(100, 50, 30, 5)).toEqual([50, 80, 20, 100, 0]);
+  });
+
+  it('searches backward beyond long-lived chat messages until reaching the video start', () => {
+    expect(buildBackwardVisibilityProbeTimes(1_000)).toEqual([
+      995, 990, 980, 960, 920, 840, 680, 360, 0,
+    ]);
+    expect(buildBackwardVisibilityProbeTimes(0)).toEqual([]);
+    expect(buildBackwardVisibilityProbeTimes(Number.NaN)).toEqual([]);
   });
 
   it('matches a BDO chat kill line against character names, guild, and minute', () => {

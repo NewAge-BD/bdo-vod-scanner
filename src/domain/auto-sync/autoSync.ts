@@ -2,6 +2,7 @@ import type { BdoEvent } from '../events';
 
 const DEFAULT_SAMPLE_SPACING_SECONDS = 30;
 const DEFAULT_MAX_SAMPLE_COUNT = 120;
+const INITIAL_VISIBILITY_LOOKBACK_SECONDS = 5;
 const MIN_NAME_SIMILARITY = 0.68;
 const MIN_MATCH_CONFIDENCE = 0.62;
 
@@ -54,6 +55,28 @@ export function buildCenteredSampleTimes(
   }
 
   return samples;
+}
+
+export function buildBackwardVisibilityProbeTimes(
+  initialVisibleTimeSeconds: number,
+): readonly number[] {
+  if (!Number.isFinite(initialVisibleTimeSeconds)) {
+    return [];
+  }
+
+  const initialTime = Math.max(0, initialVisibleTimeSeconds);
+  if (initialTime === 0) {
+    return [];
+  }
+
+  const times: number[] = [];
+  let lookback = INITIAL_VISIBILITY_LOOKBACK_SECONDS;
+  while (lookback < initialTime) {
+    times.push(initialTime - lookback);
+    lookback *= 2;
+  }
+  times.push(0);
+  return times;
 }
 
 export function findBestAutoSyncMatch(

@@ -1,4 +1,5 @@
 export {
+  buildBackwardVisibilityProbeTimes,
   buildCenteredSampleTimes,
   findBestAutoSyncMatch,
   isAutoSyncEventVisible,

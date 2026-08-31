@@ -1,4 +1,5 @@
 import {
+  buildBackwardVisibilityProbeTimes,
   buildCenteredSampleTimes,
   findBestAutoSyncMatch,
   isAutoSyncEventVisible,
@@ -6,8 +7,8 @@ import {
 } from '../../domain/auto-sync';
 import type { BdoEvent } from '../../domain/events';
 
-const REFINEMENT_STEP_SECONDS = 5;
-const MAX_REFINEMENT_LOOKBACK_SECONDS = 120;
+const MAXIMUM_BINARY_REFINEMENT_ITERATIONS = 20;
+const MINIMUM_REFINEMENT_INTERVAL_SECONDS = 0.1;
 
 export type AutoSyncScanPhase = 'loading' | 'sampling' | 'refining';
 
@@ -133,14 +134,14 @@ async function refineFirstVisibleTime({
   readonly video: HTMLVideoElement;
   readonly worker: Awaited<ReturnType<(typeof import('tesseract.js'))['createWorker']>>;
 }): Promise<number> {
-  const maximumSteps = Math.ceil(MAX_REFINEMENT_LOOKBACK_SECONDS / REFINEMENT_STEP_SECONDS);
+  const probeTimes = buildBackwardVisibilityProbeTimes(initialVisibleTime);
+  const totalSteps = probeTimes.length + MAXIMUM_BINARY_REFINEMENT_ITERATIONS;
   let firstVisible = initialVisibleTime;
-  let lastHidden = Math.max(0, initialVisibleTime - REFINEMENT_STEP_SECONDS);
+  let lastHidden: number | undefined;
 
-  for (let step = 1; step <= maximumSteps; step += 1) {
+  for (const [probeIndex, time] of probeTimes.entries()) {
     throwIfAborted(signal);
-    onProgress({ completed: step - 1, phase: 'refining', total: maximumSteps });
-    const time = Math.max(0, initialVisibleTime - step * REFINEMENT_STEP_SECONDS);
+    onProgress({ completed: probeIndex, phase: 'refining', total: totalSteps });
     const sample = await recognizeAtTime(video, time, region, worker, signal);
     if (!isAutoSyncEventVisible(sample.text, event)) {
       lastHidden = time;
@@ -152,16 +153,27 @@ async function refineFirstVisibleTime({
     }
   }
 
-  for (let iteration = 0; iteration < 3; iteration += 1) {
-    const midpoint = (lastHidden + firstVisible) / 2;
-    if (firstVisible - lastHidden < 0.5) {
+  if (lastHidden === undefined) {
+    return firstVisible;
+  }
+
+  let hiddenTime: number = lastHidden;
+  for (let iteration = 0; iteration < MAXIMUM_BINARY_REFINEMENT_ITERATIONS; iteration += 1) {
+    throwIfAborted(signal);
+    const midpoint: number = (hiddenTime + firstVisible) / 2;
+    if (firstVisible - hiddenTime < MINIMUM_REFINEMENT_INTERVAL_SECONDS) {
       break;
     }
+    onProgress({
+      completed: probeTimes.length + iteration,
+      phase: 'refining',
+      total: totalSteps,
+    });
     const sample = await recognizeAtTime(video, midpoint, region, worker, signal);
     if (isAutoSyncEventVisible(sample.text, event)) {
       firstVisible = midpoint;
     } else {
-      lastHidden = midpoint;
+      hiddenTime = midpoint;
     }
   }
 
