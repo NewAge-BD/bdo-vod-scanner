@@ -33,6 +33,10 @@ describe('App', () => {
     expect(screen.getByText('Local processing only')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'New project' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Import project' })).toBeEnabled();
+    expect(screen.getByRole('link', { name: 'Source code · AGPL-3.0-or-later' })).toHaveAttribute(
+      'href',
+      'https://github.com/NewAge-BD/bdo-vod-scanner',
+    );
   });
 
   it('creates a named project and opens its local workspace', async () => {

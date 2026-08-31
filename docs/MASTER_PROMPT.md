@@ -12,7 +12,7 @@ BDO VOD Scanner is a local-first desktop-oriented web application that synchroni
 
 Users align each VOD to a visible log event, search names across the log, jump every synchronized perspective to matching moments, switch perspectives, mark multiple clip ranges, export experimental lossless clips, and create a prepared edit timeline for the free version of DaVinci Resolve.
 
-Development is initially local and private. The project is an unofficial community project and is not affiliated with Pearl Abyss.
+The project is publicly available as an AGPL-3.0-or-later licensed GitHub Pages application. Imported logs, VODs, projects, and exports remain local. The project is an unofficial community project and is not affiliated with Pearl Abyss.
 
 ## Goals
 
@@ -38,7 +38,7 @@ Current scope excludes:
 - Professional guaranteed browser frame indexing.
 - Second synchronization anchors or drift correction.
 - Containers other than MP4 or guaranteed support for every MP4 codec.
-- Public deployment or a client-side password gate during private development.
+- Accounts, authentication, or a client-side password gate.
 
 ## Users & Use Cases
 
@@ -242,7 +242,7 @@ There is no backend API. Capability-detect browser File/Drag-and-Drop, IndexedDB
 
 ## Authentication & Authorization
 
-There are no accounts, roles, login, OAuth, or password gate. Keep development local and the repository private. Do not deploy until explicitly approved. A later protected preview must use genuine authenticated hosting after approval.
+There are no accounts, roles, login, OAuth, or password gate. The public GitHub Pages application is static and does not provide private access control. A future protected preview must use genuine authenticated hosting after approval.
 
 ## UI/UX
 
@@ -280,11 +280,11 @@ Keep English documentation current: concise README, separate user/development gu
 
 ## Git & Version Control
 
-Keep the repository private until release approval. Once initialized, use stable `main`, optional local feature branches, and English Conventional Commits. Codex commits completed tasks locally after checks. Never push, publish, release, deploy, make public, or choose a license without approval. Never commit sensitive/imported/generated data. Keep build output ignored unless an approved deployment explicitly requires it.
+The repository is public under AGPL-3.0-or-later. Use stable `main`, optional local feature branches, and English Conventional Commits. Codex commits completed tasks locally after checks. Never push, publish, release, deploy, make public, or change the license without approval. Never commit sensitive/imported/generated data. Keep build output ignored; the approved Pages workflow publishes only its generated artifact.
 
 ## Deployment
 
-Current state is local-only, with no password and no Pages publication. Future public deployment is a static GitHub Pages site built by Actions after approval, using the normal Pages address, HTTPS, no external assets, no backend, and no PWA requirement. Never treat a private source repository as access control for a published Pages site.
+The public deployment is a static GitHub Pages site built from `main` by Actions, using the normal Pages address, HTTPS, no external runtime assets, no backend, and no PWA requirement. Imported content and application data stay in the browser or user-selected local files. Never treat repository visibility as access control for a published Pages site.
 
 ## Codex Workflow
 
@@ -326,7 +326,7 @@ Build the web MVP in controlled milestones:
 10. Experimental lossless browser export.
 11. Accessibility, diagnostics, security hardening, and release readiness.
 
-Do not deploy publicly within the MVP unless separately approved.
+Public GitHub Pages deployment and AGPL-3.0-or-later licensing were separately approved for version 0.1.0.
 
 ## Future Scope
 
@@ -335,7 +335,7 @@ Do not deploy publicly within the MVP unless separately approved.
 - Secondary sync anchors and drift correction.
 - Automatic AI/image event recognition.
 - Additional log event types, languages, containers, and codecs.
-- Public GitHub Pages deployment.
+- Optional authenticated preview hosting if it is ever required.
 - Genuinely authenticated preview hosting if required.
 
 ## Known Constraints
@@ -350,7 +350,7 @@ Do not deploy publicly within the MVP unless separately approved.
 - Multiple events may share a timestamp.
 - The website need not relaunch offline.
 - GitHub Pages is not temporary password-protected hosting.
-- No license is selected; remain private until that decision.
+- The project is AGPL-3.0-or-later licensed; license changes require approval.
 
 ## Open Decisions
 
@@ -358,7 +358,7 @@ Do not decide these silently:
 
 - Browser MP4 parsing/remuxing library after a spike.
 - Resolve interchange format after compatibility testing.
-- Open-source license before public release.
+- Any future license change or dual-licensing approach.
 - Desktop framework and FFmpeg distribution strategy.
 - Excessive-VOD warning heuristics.
 - AI recognition design.

@@ -88,14 +88,14 @@ Confirm before:
 
 ## Hosting and access control
 
-The repository remains private and the application remains local during development. Do not publish GitHub Pages until explicitly approved.
+The repository and static GitHub Pages application are public. GitHub hosts only the application bundle; imported logs, VODs, projects, browser databases, and generated media remain local and are not included in the deployment artifact.
 
 A client-side password prompt is not an authentication boundary and must not be implemented as protection. If a protected online preview is later required, evaluate a genuinely authenticated hosting solution after approval.
 
-Before public release:
+Public-release controls:
 
-- Select an Open Source license.
-- Review dependencies and licenses.
-- Enable HTTPS.
-- Verify deployment permissions and least-privilege GitHub Actions.
+- Use the approved AGPL-3.0-or-later license.
+- Review dependencies and licenses before releases.
+- Require HTTPS through GitHub Pages.
+- Keep GitHub Actions deployment permissions least-privilege.
 - Confirm that no real data or secret exists in repository history or build artifacts.

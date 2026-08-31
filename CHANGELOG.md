@@ -4,10 +4,11 @@ All notable user-facing changes to BDO VOD Scanner will be documented in this fi
 
 The project intends to follow Semantic Versioning once releases begin.
 
-## [Unreleased]
+## [0.1.0] - 2026-08-31
 
 ### Added
 
+- Prepared the public AGPL-3.0-or-later release with a visible source link and an automated GitHub Pages deployment.
 - Added an experimental worker-based, keyframe-aligned MP4 packet-copy exporter with source audio, direct-to-disk streaming, batch progress, cancellation, partial-failure handling, and collision-safe filenames.
 - Added per-clip export selection and an **Export selected clips** action that preserves the saved manual clip order.
 - Added persistent drag-and-drop clip ordering with accessible move-up and move-down controls.

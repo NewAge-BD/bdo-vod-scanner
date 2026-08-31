@@ -4,6 +4,7 @@ export const en = {
   },
   app: {
     disclaimer: 'Unofficial community project — not affiliated with Pearl Abyss.',
+    sourceCode: 'Source code · AGPL-3.0-or-later',
     eyebrow: 'LOCAL VOD WORKSPACE',
     name: 'BDO VOD Scanner',
     version: 'Version {{version}}',

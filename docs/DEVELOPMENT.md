@@ -72,4 +72,4 @@ Compatible upgrades may be applied after verification. Major upgrades require ap
 
 ## Deployment status
 
-Development is local only. Do not configure an active public GitHub Pages deployment without explicit approval. A private repository does not make a published Pages site private.
+The public static application is deployed from `main` to GitHub Pages through `.github/workflows/pages.yml`. The workflow builds with the repository subpath and deploys only the generated `dist` directory. Imported logs, VODs, browser databases, and generated media are never part of the deployment artifact.
