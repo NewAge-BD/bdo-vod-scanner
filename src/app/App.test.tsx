@@ -69,12 +69,17 @@ describe('App', () => {
       'Synthetic Perspective.mp4',
       { type: 'video/mp4', lastModified: 100 },
     );
-    await user.upload(screen.getByLabelText('Local log and MP4 files'), [log, video]);
+    const secondVideo = new File(
+      [new Uint8Array([0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109])],
+      'Second Perspective.mp4',
+      { type: 'video/mp4', lastModified: 200 },
+    );
+    await user.upload(screen.getByLabelText('Local log and MP4 files'), [log, video, secondVideo]);
 
     expect(await screen.findByRole('heading', { name: 'Imported sources' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '2026-08-29.log' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Synthetic Perspective' })).toBeInTheDocument();
-    expect(screen.getByText('Linked for this session')).toBeInTheDocument();
+    expect(screen.getAllByText('Linked for this session')).toHaveLength(2);
     expect(screen.getByRole('heading', { name: 'Synchronize VODs' })).toBeInTheDocument();
 
     const videoElement = screen.getByLabelText<HTMLVideoElement>(
@@ -234,6 +239,14 @@ describe('App', () => {
     expect(await screen.findByText('1 matching event')).toBeInTheDocument();
     expect(screen.queryByText('EmberVale')).not.toBeInTheDocument();
 
+    await user.click(screen.getByRole('button', { name: 'Second Perspective, Sync required' }));
+    const secondVideoElement = screen.getByLabelText<HTMLVideoElement>(
+      'Second Perspective video perspective',
+    );
+    fireEvent.loadedMetadata(secondVideoElement);
+    await user.click(screen.getByRole('button', { name: 'Set synchronization point' }));
+    await user.click(screen.getByRole('button', { name: 'Synthetic Perspective, Synchronized' }));
+
     await user.click(screen.getByRole('button', { name: 'Start Clipping' }));
     expect(screen.getByRole('heading', { name: 'Clipping workspace' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Back to synchronization' })).toBeInTheDocument();
@@ -245,6 +258,22 @@ describe('App', () => {
     expect(screen.getByLabelText('Video timeline controls')).toHaveClass(
       'video-timeline--clipping',
     );
+    expect(
+      screen.getByLabelText('Video timeline controls').querySelector('.video-timeline__filmstrip'),
+    ).toBeInTheDocument();
+    const splitScreenButton = screen.getByRole('button', { name: 'Split screen' });
+    await user.click(splitScreenButton);
+    expect(screen.getByRole('button', { name: 'Single view' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    const splitSecondVideo = screen.getByLabelText<HTMLVideoElement>(
+      'Second Perspective video perspective',
+    );
+    expect(splitSecondVideo.muted).toBe(true);
+    await user.click(screen.getByRole('button', { name: 'Unmute Second Perspective' }));
+    expect(splitSecondVideo.muted).toBe(false);
+    expect(screen.getByRole('button', { name: 'Mute Second Perspective' })).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Kills')).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Deaths')).toBeInTheDocument();
     expect(within(clippingTimeline).getByText('Selected names')).toBeInTheDocument();
@@ -260,6 +289,9 @@ describe('App', () => {
     expect(within(challengerBanner).getByText('I').parentElement).toHaveClass(
       'log-timeline__streak-emblem',
     );
+    await user.click(challengerBanner);
+    expect(screen.getByLabelText('Clip in-point handle')).toHaveValue('45');
+    expect(screen.getByLabelText('Clip out-point handle')).toHaveValue('70');
     await user.click(within(clippingTimeline).getByRole('button', { name: 'Remove er timeline' }));
     expect(
       within(clippingTimeline).queryByRole('button', { name: /I: Challenger!/ }),
@@ -301,9 +333,9 @@ describe('App', () => {
       within(clippingTimeline).queryByRole('button', { name: 'Remove CopperGrove timeline' }),
     ).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Set in (I)' }));
+    await user.click(screen.getByRole('button', { name: 'Set start (I)' }));
     fireEvent.change(clippingPlayhead, { target: { value: '65' } });
-    await user.click(screen.getByRole('button', { name: 'Set out (O)' }));
+    await user.click(screen.getByRole('button', { name: 'Set end (O)' }));
     const inHandle = screen.getByLabelText('Clip in-point handle');
     const outHandle = screen.getByLabelText('Clip out-point handle');
     expect(inHandle).toHaveAttribute('min', clippingPlayhead.getAttribute('min'));
@@ -319,7 +351,7 @@ describe('App', () => {
     expect(clippingVideo.currentTime).toBe(70);
     fireEvent.pointerUp(outHandle, { button: 0, pointerId: 7 });
     expect(clippingVideo.currentTime).toBe(65);
-    await user.click(screen.getByRole('button', { name: 'Add clip' }));
+    await user.click(screen.getByRole('button', { name: 'Save clip' }));
 
     expect(await screen.findByText('Clip saved locally.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Marked clips' })).toBeInTheDocument();
@@ -355,22 +387,21 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Imported sources' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Source import' })).toBeInTheDocument();
 
-    const confirmDeletion = vi.spyOn(window, 'confirm').mockReturnValueOnce(false);
     const deleteVodButtons = screen.getAllByRole('button', {
       name: 'Delete Synthetic Perspective',
     });
     expect(deleteVodButtons).toHaveLength(2);
     await user.click(deleteVodButtons[0]!);
-    expect(confirmDeletion).toHaveBeenCalledWith(expect.stringContaining('1 marked clip'));
+    expect(screen.getByRole('dialog')).toHaveTextContent('1 marked clip');
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByRole('heading', { name: 'Synthetic Perspective' })).toBeInTheDocument();
 
-    confirmDeletion.mockReturnValueOnce(true);
     await user.click(deleteVodButtons[1]!);
+    await user.click(screen.getByRole('button', { name: 'Delete VOD' }));
     expect(
       screen.queryByRole('heading', { name: 'Synthetic Perspective' }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Marked clips' })).not.toBeInTheDocument();
-    confirmDeletion.mockRestore();
   }, 10_000);
 
   it('switches synchronized perspectives at the shared session time without a split view', async () => {

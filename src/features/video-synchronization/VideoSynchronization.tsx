@@ -29,9 +29,11 @@ import {
 } from '../../domain/timeline';
 import { clampVideoPan, zoomVideoAtPoint, type ViewportPoint } from '../../domain/viewport';
 import { SplitTimelineIcon } from '../../shared/components/SplitTimelineIcon';
+import { SpeakerIcon } from '../../shared/components/SpeakerIcon';
 import { TrashIcon } from '../../shared/components/TrashIcon';
 import { ClipPanel } from '../clip-editor';
 import { useObjectUrl } from './useObjectUrl';
+import { VideoTimelineFilmstrip } from './VideoTimelineFilmstrip';
 
 const MAX_VISIBLE_EVENTS = 50;
 const MAX_VIDEO_ZOOM = 8;
@@ -99,6 +101,9 @@ export function VideoSynchronization({
     project.vods[0]?.synchronizationAnchor?.videoTimeSeconds ?? 0,
   );
   const [isMainPlaying, setIsMainPlaying] = useState(false);
+  const [audibleVodIds, setAudibleVodIds] = useState<ReadonlySet<string>>(
+    () => new Set(project.vods[0] === undefined ? [] : [project.vods[0].id]),
+  );
   const [clipDraft, setClipDraft] = useState<ClipDraftRange>({});
   const [clipSaveState, setClipSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [workspaceMode, setWorkspaceMode] = useState<'synchronization' | 'clipping'>(
@@ -419,6 +424,28 @@ export function VideoSynchronization({
                 <small>{synchronizationStatus}</small>
               </button>
               <div className="perspective-tab-actions">
+                {clippingMode && (
+                  <button
+                    aria-label={t(
+                      audibleVodIds.has(vod.id)
+                        ? 'clipping.mutePerspective'
+                        : 'clipping.unmutePerspective',
+                      { name: vod.displayName },
+                    )}
+                    aria-pressed={!audibleVodIds.has(vod.id)}
+                    className="perspective-audio"
+                    onClick={() => togglePerspectiveAudio(vod.id)}
+                    title={t(
+                      audibleVodIds.has(vod.id)
+                        ? 'clipping.mutePerspective'
+                        : 'clipping.unmutePerspective',
+                      { name: vod.displayName },
+                    )}
+                    type="button"
+                  >
+                    <SpeakerIcon muted={!audibleVodIds.has(vod.id)} />
+                  </button>
+                )}
                 <button
                   aria-label={t('sources.deleteVod', { name: vod.displayName })}
                   className="perspective-delete"
@@ -436,6 +463,18 @@ export function VideoSynchronization({
     );
   }
 
+  function togglePerspectiveAudio(vodId: string) {
+    setAudibleVodIds((current) => {
+      const next = new Set(current);
+      if (next.has(vodId)) {
+        next.delete(vodId);
+      } else {
+        next.add(vodId);
+      }
+      return next;
+    });
+  }
+
   function renderPlayer(clippingMode: boolean) {
     if (file === undefined || activeVod === undefined) {
       return (
@@ -447,6 +486,20 @@ export function VideoSynchronization({
     }
     return (
       <SynchronizedVideoPlayer
+        additionalPerspectives={project.vods.flatMap((vod) => {
+          const perspectiveFile = vodFiles.get(vod.id);
+          return vod.id !== activeVod.id &&
+            vod.synchronizationAnchor !== null &&
+            perspectiveFile !== undefined
+            ? [
+                {
+                  file: perspectiveFile,
+                  vod: { ...vod, synchronizationAnchor: vod.synchronizationAnchor },
+                },
+              ]
+            : [];
+        })}
+        audibleVodIds={audibleVodIds}
         clippingMode={clippingMode}
         estimatedFrameRate={estimatedFrameRate}
         events={events}
@@ -462,6 +515,7 @@ export function VideoSynchronization({
           setClipSaveState('idle');
         }}
         onMarkClipBoundary={markClipBoundary}
+        onPerspectiveAudioToggle={togglePerspectiveAudio}
         onPlaybackChange={setIsMainPlaying}
         onPreviewComplete={(sequence) =>
           setEventSeekRequest((current) => (current?.sequence === sequence ? undefined : current))
@@ -678,6 +732,8 @@ export function VideoSynchronization({
 }
 
 function SynchronizedVideoPlayer({
+  additionalPerspectives,
+  audibleVodIds,
   clippingMode,
   file,
   vod,
@@ -695,6 +751,7 @@ function SynchronizedVideoPlayer({
   selectedEvent,
   onClipRangeChange,
   onMarkClipBoundary,
+  onPerspectiveAudioToggle,
   onPlaybackChange,
   onPreviewComplete,
   onReady,
@@ -706,6 +763,8 @@ function SynchronizedVideoPlayer({
   onTimeChange,
   onSaveClip,
 }: {
+  readonly additionalPerspectives: readonly SynchronizedPerspective[];
+  readonly audibleVodIds: ReadonlySet<string>;
   readonly clippingMode: boolean;
   readonly file: File;
   readonly vod: VodReference;
@@ -723,6 +782,7 @@ function SynchronizedVideoPlayer({
   readonly selectedEvent: BdoEvent | undefined;
   readonly onClipRangeChange: (range: ClipDraftRange) => void;
   readonly onMarkClipBoundary: (boundary: 'in' | 'out', time: number) => void;
+  readonly onPerspectiveAudioToggle: (vodId: string) => void;
   readonly onPlaybackChange: (isPlaying: boolean) => void;
   readonly onPreviewComplete: (sequence: number) => void;
   readonly onReady: (ready: boolean) => void;
@@ -736,6 +796,7 @@ function SynchronizedVideoPlayer({
 }) {
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const perspectiveStageRef = useRef<HTMLDivElement>(null);
   const videoViewportRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineScaleRef = useRef<HTMLDivElement>(null);
@@ -752,7 +813,7 @@ function SynchronizedVideoPlayer({
   const [isVideoPanning, setIsVideoPanning] = useState(false);
   const [isTimelinePanning, setIsTimelinePanning] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isSplitScreen, setIsSplitScreen] = useState(false);
   const objectUrl = useObjectUrl(file);
   const zoomFactor = zoomLevelToFactor(zoomLevel);
   const timelineWindow = useMemo(
@@ -765,6 +826,10 @@ function SynchronizedVideoPlayer({
   const alignmentEventTime =
     storedAnchor?.eventSessionTimeSeconds ?? selectedEvent?.sessionTimeSeconds;
   const alignmentVideoTime = storedAnchor?.videoTimeSeconds ?? displayTime;
+  const sharedSessionTime =
+    storedAnchor === null || storedAnchor === undefined
+      ? undefined
+      : mapVideoTimeToSessionTime(storedAnchor, displayTime);
   const logMarkers = useMemo(() => {
     if (alignmentEventId === undefined || alignmentEventTime === undefined) {
       return [];
@@ -1171,11 +1236,26 @@ function SynchronizedVideoPlayer({
     onSelectEvent(marker.representativeEventId);
     setTimelineCenter(marker.videoTimeSeconds);
     seekTo(marker.videoTimeSeconds);
+    if (clippingMode) {
+      onClipRangeChange({
+        inPointSeconds: Math.max(
+          0,
+          (marker.rangeStartVideoTimeSeconds ?? marker.videoTimeSeconds) - 10,
+        ),
+        outPointSeconds: Math.min(
+          mediaDuration,
+          (marker.rangeEndVideoTimeSeconds ?? marker.videoTimeSeconds) + 10,
+        ),
+      });
+    }
   }
 
   return (
     <>
-      <div className="perspective-stage perspective-stage--single">
+      <div
+        className={`perspective-stage ${isSplitScreen ? 'perspective-stage--multi' : 'perspective-stage--single'}`}
+        ref={perspectiveStageRef}
+      >
         <div
           aria-label={t('synchronization.videoViewport')}
           className={`video-viewport${isVideoPanning ? ' video-viewport--panning' : ''}`}
@@ -1214,6 +1294,7 @@ function SynchronizedVideoPlayer({
               onPlaybackChange(true);
             }}
             onTimeUpdate={(event) => handleTimeUpdate(event.currentTarget)}
+            muted={!audibleVodIds.has(vod.id)}
             ref={videoRef}
             src={objectUrl}
             style={{
@@ -1225,32 +1306,46 @@ function SynchronizedVideoPlayer({
             {t('synchronization.videoZoom', { factor: formatZoom(videoZoom) })}
           </span>
           <span className="video-viewport__hint">{t('synchronization.videoViewportHint')}</span>
+          {isSplitScreen && (
+            <span className="video-viewport__perspective-name">{vod.displayName}</span>
+          )}
         </div>
+        {isSplitScreen &&
+          sharedSessionTime !== undefined &&
+          additionalPerspectives.map((perspective) => (
+            <SynchronizedPerspectivePreview
+              audible={audibleVodIds.has(perspective.vod.id)}
+              isPlaying={isPlaying}
+              key={perspective.vod.id}
+              perspective={perspective}
+              sessionTimeSeconds={sharedSessionTime}
+            />
+          ))}
         <div className="video-viewport__controls">
           <button onClick={togglePlayback} type="button">
             {isPlaying ? t('synchronization.pause') : t('synchronization.play')}
           </button>
-          <button
-            onClick={() => {
-              const video = videoRef.current;
-              if (video !== null) {
-                video.muted = !isMuted;
-                setIsMuted(video.muted);
-              }
-            }}
-            type="button"
-          >
-            {isMuted ? t('synchronization.unmute') : t('synchronization.mute')}
+          <button onClick={() => onPerspectiveAudioToggle(vod.id)} type="button">
+            {audibleVodIds.has(vod.id) ? t('synchronization.mute') : t('synchronization.unmute')}
           </button>
           <button disabled={videoZoom === 1} onClick={resetVideoViewport} type="button">
             {t('synchronization.resetView')}
           </button>
           <button
-            onClick={() => void videoViewportRef.current?.requestFullscreen?.()}
+            onClick={() => void perspectiveStageRef.current?.requestFullscreen?.()}
             type="button"
           >
             {t('synchronization.fullscreen')}
           </button>
+          {clippingMode && additionalPerspectives.length > 0 && (
+            <button
+              aria-pressed={isSplitScreen}
+              onClick={() => setIsSplitScreen((current) => !current)}
+              type="button"
+            >
+              {isSplitScreen ? t('clipping.singlePerspective') : t('clipping.allPerspectives')}
+            </button>
+          )}
         </div>
       </div>
       <div
@@ -1283,6 +1378,13 @@ function SynchronizedVideoPlayer({
           <time>{formatTime(timelineWindow.endSeconds)}</time>
         </div>
         <div className="video-timeline__scrubber" ref={timelineScaleRef}>
+          {clippingMode && objectUrl !== undefined && (
+            <VideoTimelineFilmstrip
+              endTimeSeconds={timelineWindow.endSeconds}
+              source={objectUrl}
+              startTimeSeconds={timelineWindow.startSeconds}
+            />
+          )}
           <input
             aria-label={t('synchronization.videoTimeline')}
             max={timelineWindow.endSeconds}
@@ -1361,18 +1463,26 @@ function SynchronizedVideoPlayer({
 
         {clippingMode && (
           <div className="clip-mark-controls" aria-label={t('clips.kicker')}>
-            <button onClick={() => markClipBoundary('in')} type="button">
-              {t('clips.markIn')}
-            </button>
-            <span>
-              {t('clips.inPoint')}: {formatOptionalTime(clipDraft.inPointSeconds)}
-            </span>
-            <button onClick={() => markClipBoundary('out')} type="button">
-              {t('clips.markOut')}
-            </button>
-            <span>
-              {t('clips.outPoint')}: {formatOptionalTime(clipDraft.outPointSeconds)}
-            </span>
+            <div className="clip-mark-controls__intro">
+              <strong>{t('clips.rangeTitle')}</strong>
+              <span>{t('clips.rangeHint')}</span>
+            </div>
+            <div className="clip-mark-controls__boundary clip-mark-controls__boundary--in">
+              <button onClick={() => markClipBoundary('in')} type="button">
+                {t('clips.markIn')}
+              </button>
+              <span>
+                {t('clips.inPoint')}: {formatOptionalTime(clipDraft.inPointSeconds)}
+              </span>
+            </div>
+            <div className="clip-mark-controls__boundary clip-mark-controls__boundary--out">
+              <button onClick={() => markClipBoundary('out')} type="button">
+                {t('clips.markOut')}
+              </button>
+              <span>
+                {t('clips.outPoint')}: {formatOptionalTime(clipDraft.outPointSeconds)}
+              </span>
+            </div>
             <button
               className="clip-mark-controls__add"
               disabled={
@@ -1637,6 +1747,61 @@ function buildAlignedMarkers(
   );
 }
 
+function SynchronizedPerspectivePreview({
+  audible,
+  isPlaying,
+  perspective,
+  sessionTimeSeconds,
+}: {
+  readonly audible: boolean;
+  readonly isPlaying: boolean;
+  readonly perspective: SynchronizedPerspective;
+  readonly sessionTimeSeconds: number;
+}) {
+  const { t } = useTranslation();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const objectUrl = useObjectUrl(perspective.file);
+  const anchor = perspective.vod.synchronizationAnchor;
+  const targetTime = clampToVod(
+    mapSessionTimeToVideoTime(anchor, sessionTimeSeconds),
+    perspective.vod,
+  );
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video === null) {
+      return;
+    }
+    if (Math.abs(video.currentTime - targetTime) > 0.2) {
+      video.currentTime = targetTime;
+    }
+    if (isPlaying) {
+      void video.play().catch(() => undefined);
+    } else {
+      video.pause();
+    }
+  }, [isPlaying, targetTime]);
+
+  return (
+    <div className="perspective-multi-item">
+      <video
+        aria-label={t('synchronization.videoLabel', { name: perspective.vod.displayName })}
+        muted={!audible}
+        onLoadedMetadata={(event) => {
+          event.currentTarget.currentTime = targetTime;
+          if (isPlaying) {
+            void event.currentTarget.play().catch(() => undefined);
+          }
+        }}
+        playsInline
+        ref={videoRef}
+        src={objectUrl}
+      />
+      <span>{perspective.vod.displayName}</span>
+    </div>
+  );
+}
+
 function EventTimelineLane({
   actionLabel,
   emptyLabel,
@@ -1890,6 +2055,13 @@ interface EventSeekRequest {
 interface ClipDraftRange {
   readonly inPointSeconds?: number;
   readonly outPointSeconds?: number;
+}
+
+interface SynchronizedPerspective {
+  readonly file: File;
+  readonly vod: VodReference & {
+    readonly synchronizationAnchor: NonNullable<VodReference['synchronizationAnchor']>;
+  };
 }
 
 function findAdjacentMatchingEvent(

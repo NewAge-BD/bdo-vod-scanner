@@ -9,6 +9,17 @@ The project intends to follow Semantic Versioning once releases begin.
 ### Added
 
 - Added privacy-safe contribution, security-reporting, bug-report, and feature-request guidance for the public repository.
+- Added a local thumbnail filmstrip to the clipping playhead and clearer start, end, and save controls.
+- Added automatic editable clip drafts spanning ten seconds before and after a selected timeline event.
+- Added an optional clipping split screen for every synchronized, locally linked perspective.
+- Added individual speaker controls for every perspective in clipping split-screen mode.
+
+### Fixed
+
+- Fixed the GitHub Pages header symbol path and made kill-streak markers seek to the first kill in the series.
+- Replaced the easily missed browser confirmation with an explicit VOD deletion dialog.
+- Extended automatic kill-streak clip drafts through ten seconds after the final combined kill.
+- Reworked the project overview copy around the kill-streak clipping workflow.
 
 ## [0.1.0] - 2026-08-31
 

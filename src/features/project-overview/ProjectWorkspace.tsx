@@ -16,6 +16,7 @@ import {
 } from '../../infrastructure/media';
 import { useProjectStore } from './useProjectStore';
 import { VideoSynchronization } from '../video-synchronization';
+import { VodDeleteDialog } from './VodDeleteDialog';
 
 const defaultMetadataInspector = new NativeVideoMetadataInspector();
 
@@ -49,6 +50,7 @@ export function ProjectWorkspace({
   >();
   const [lastImport, setLastImport] = useState<SourceImportResult>();
   const [isClipping, setIsClipping] = useState(false);
+  const [pendingVodDeletion, setPendingVodDeletion] = useState<PendingVodDeletion>();
   const linkedVodIds = useMemo(() => new Set(vodFiles.keys()), [vodFiles]);
 
   async function handleFiles(files: readonly File[]) {
@@ -82,17 +84,31 @@ export function ProjectWorkspace({
       return false;
     }
     const clipCount = project.clips.filter((clip) => clip.vodId === vodId).length;
-    if (
-      !window.confirm(
-        t('sources.deleteVodConfirmation', {
+    return new Promise((resolve) => {
+      setPendingVodDeletion({
+        message: t('sources.deleteVodConfirmation', {
           count: clipCount,
           name: vod.displayName,
         }),
-      )
-    ) {
-      return false;
+        resolve,
+        vodId,
+      });
+    });
+  }
+
+  function cancelVodDeletion() {
+    pendingVodDeletion?.resolve(false);
+    setPendingVodDeletion(undefined);
+  }
+
+  async function confirmVodDeletion() {
+    if (pendingVodDeletion === undefined) {
+      return;
     }
-    return deleteVod(project.id, vodId);
+    const request = pendingVodDeletion;
+    const deleted = await deleteVod(project.id, request.vodId);
+    request.resolve(deleted);
+    setPendingVodDeletion(undefined);
   }
 
   function handleClippingModeChange(active: boolean) {
@@ -176,6 +192,19 @@ export function ProjectWorkspace({
         project={project}
         vodFiles={vodFiles}
       />
+      {pendingVodDeletion !== undefined && (
+        <VodDeleteDialog
+          message={pendingVodDeletion.message}
+          onCancel={cancelVodDeletion}
+          onConfirm={confirmVodDeletion}
+        />
+      )}
     </main>
   );
+}
+
+interface PendingVodDeletion {
+  readonly message: string;
+  readonly resolve: (deleted: boolean) => void;
+  readonly vodId: string;
 }

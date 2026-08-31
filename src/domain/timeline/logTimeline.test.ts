@@ -72,10 +72,12 @@ describe('log timeline markers', () => {
       killStreakCount: killCount,
       killStreakTier: expectedTier,
       rangeEndPositionRatio: (30 + killCount - 1) / 100,
+      rangeEndVideoTimeSeconds: 30 + killCount - 1,
       rangeStartPositionRatio: 0.3,
-      representativeEventId: `kill-${killCount - 1}`,
+      rangeStartVideoTimeSeconds: 30,
+      representativeEventId: 'kill-0',
       type: 'bundle',
-      videoTimeSeconds: 30 + killCount - 1,
+      videoTimeSeconds: 30,
     });
   });
 

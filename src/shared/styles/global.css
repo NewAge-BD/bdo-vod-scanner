@@ -385,6 +385,25 @@ h1 {
   padding: 1.75rem;
 }
 
+.vod-delete-dialog {
+  padding: 1.75rem;
+}
+
+.vod-delete-dialog > p:not(.section-kicker) {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.vod-delete-dialog__confirm {
+  color: #fff;
+  background: #b62939;
+  border-color: #e04c5d;
+}
+
+.vod-delete-dialog__confirm:hover:not(:disabled) {
+  background: #cf3345;
+}
+
 .project-dialog h2 {
   margin-bottom: 1.5rem;
   font-size: 1.6rem;
@@ -875,12 +894,39 @@ h1 {
   border-top: 1px solid var(--border);
 }
 
+.perspective-audio,
 .perspective-delete {
+  display: grid;
   width: 2rem;
   min-height: 1.65rem;
+  place-items: center;
+  padding: 0;
   border: 0;
-  border-left: 1px solid rgb(255 77 94 / 25%);
+  border-left: 1px solid var(--border);
   border-radius: 0;
+}
+
+.perspective-audio {
+  color: #b9c5d4;
+  background: transparent;
+}
+
+.perspective-audio[aria-pressed='true'] {
+  color: var(--quiet);
+  background: rgb(122 147 176 / 8%);
+}
+
+.perspective-audio svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.perspective-delete {
+  border-left-color: rgb(255 77 94 / 25%);
 }
 
 .video-sync__workspace {
@@ -911,6 +957,59 @@ h1 {
 
 .perspective-stage--single {
   grid-template-columns: 1fr;
+}
+
+.perspective-stage--multi {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: #05070a;
+}
+
+.perspective-stage--multi > .video-viewport {
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  border-right: 1px solid var(--border);
+}
+
+.perspective-multi-item {
+  position: relative;
+  min-width: 0;
+  background: #030405;
+  border: 1px solid var(--border);
+  aspect-ratio: 16 / 9;
+}
+
+.perspective-multi-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.perspective-multi-item span,
+.video-viewport__perspective-name {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.45rem;
+  max-width: calc(100% - 0.9rem);
+  overflow: hidden;
+  padding: 0.25rem 0.4rem;
+  color: var(--text);
+  background: rgb(5 7 10 / 78%);
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 0.25rem;
+  font-size: 0.64rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.video-viewport__perspective-name {
+  z-index: 2;
+}
+
+.perspective-stage--multi > .video-viewport__controls {
+  grid-column: 1 / -1;
 }
 
 .video-viewport {
@@ -1129,6 +1228,30 @@ h1 {
   border-radius: 0.4rem;
 }
 
+.video-timeline__filmstrip {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.62;
+}
+
+.video-timeline__filmstrip::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(6 9 13 / 10%), rgb(6 9 13 / 42%));
+  content: '';
+}
+
+.video-timeline__filmstrip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-right: 1px solid rgb(255 255 255 / 12%);
+}
+
 .video-timeline__scrubber::before {
   position: absolute;
   top: 0;
@@ -1248,16 +1371,52 @@ h1 {
 
 .clip-mark-controls {
   display: grid;
-  grid-template-columns: auto minmax(7.5rem, 1fr) auto minmax(7.5rem, 1fr) auto;
-  align-items: center;
+  grid-template-columns: minmax(14rem, 1.4fr) minmax(12rem, 1fr) minmax(12rem, 1fr) auto;
+  align-items: stretch;
   gap: 0.45rem;
   margin-top: 0.55rem;
+  padding: 0.65rem;
+  background: rgb(21 26 34 / 72%);
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+}
+
+.clip-mark-controls__intro,
+.clip-mark-controls__boundary {
+  display: grid;
+  align-content: center;
+  gap: 0.28rem;
+}
+
+.clip-mark-controls__intro strong {
+  color: var(--text);
+  font-size: 0.75rem;
 }
 
 .clip-mark-controls span {
   color: var(--muted);
-  font-family: 'Cascadia Mono', Consolas, monospace;
   font-size: 0.65rem;
+}
+
+.clip-mark-controls__boundary {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 0.35rem;
+}
+
+.clip-mark-controls__boundary span {
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  text-align: center;
+}
+
+.clip-mark-controls__boundary--in {
+  border-color: rgb(216 254 69 / 34%);
+}
+
+.clip-mark-controls__boundary--out {
+  border-color: rgb(124 200 255 / 34%);
 }
 
 .clip-mark-controls__add {
@@ -2478,11 +2637,15 @@ h1 {
   }
 
   .clip-mark-controls {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .clip-mark-controls__add {
-    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .perspective-stage--multi {
+    grid-template-columns: 1fr;
   }
 
   .clip-card {

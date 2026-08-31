@@ -8,6 +8,10 @@ test('manages a portable private local project', async ({ page }) => {
     'href',
     /\/(?:bdo-vod-scanner\/)?website-symbol\.png$/,
   );
+  await expect(page.locator('.brand-mark')).toHaveAttribute(
+    'src',
+    /\/(?:bdo-vod-scanner\/)?website-symbol\.png$/,
+  );
   await expect(page.getByRole('heading', { level: 1, name: 'Your projects' })).toBeVisible();
   await expect(page.getByText('Local processing only')).toBeVisible();
 

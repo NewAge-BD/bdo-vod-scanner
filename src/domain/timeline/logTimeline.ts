@@ -18,7 +18,9 @@ export interface LogTimelineMarker {
   readonly killStreakTier: KillStreakTier | null;
   readonly positionRatio: number;
   readonly rangeEndPositionRatio: number | null;
+  readonly rangeEndVideoTimeSeconds: number | null;
   readonly rangeStartPositionRatio: number | null;
+  readonly rangeStartVideoTimeSeconds: number | null;
   readonly representativeEventId: string;
   readonly videoTimeSeconds: number;
   readonly type: 'kill' | 'death' | 'bundle';
@@ -114,7 +116,9 @@ export function buildLogTimelineMarkers(
         Math.max(0, (videoTimeSeconds - window.startSeconds) / window.durationSeconds),
       ),
       rangeEndPositionRatio: null,
+      rangeEndVideoTimeSeconds: null,
       rangeStartPositionRatio: null,
+      rangeStartVideoTimeSeconds: null,
       representativeEventId: representativeEntry.event.id,
       videoTimeSeconds,
       type: onlyEvent === undefined ? 'bundle' : onlyEvent.verb === 'killed' ? 'kill' : 'death',
@@ -129,7 +133,7 @@ export function buildLogTimelineMarkers(
     )
     .map((summary) => {
       const firstEntry = summary.entries[0]!;
-      const representativeEntry = summary.entries.at(-1)!;
+      const finalEntry = summary.entries.at(-1)!;
       const startPositionRatio = clampRatio(
         (summary.startVideoTimeSeconds - window.startSeconds) / window.durationSeconds,
       );
@@ -137,7 +141,7 @@ export function buildLogTimelineMarkers(
         (summary.endVideoTimeSeconds - window.startSeconds) / window.durationSeconds,
       );
       return {
-        id: `kill-streak-${firstEntry.event.id}-${representativeEntry.event.id}`,
+        id: `kill-streak-${firstEntry.event.id}-${finalEntry.event.id}`,
         eventIds: summary.entries.map((entry) => entry.event.id),
         eventCount: summary.entries.length,
         killCount: summary.entries.length,
@@ -145,9 +149,11 @@ export function buildLogTimelineMarkers(
         killStreakTier: summary.tier,
         positionRatio: (startPositionRatio + endPositionRatio) / 2,
         rangeEndPositionRatio: endPositionRatio,
+        rangeEndVideoTimeSeconds: summary.endVideoTimeSeconds,
         rangeStartPositionRatio: startPositionRatio,
-        representativeEventId: representativeEntry.event.id,
-        videoTimeSeconds: representativeEntry.videoTimeSeconds,
+        rangeStartVideoTimeSeconds: summary.startVideoTimeSeconds,
+        representativeEventId: firstEntry.event.id,
+        videoTimeSeconds: firstEntry.videoTimeSeconds,
         type: 'bundle' as const,
       };
     });
