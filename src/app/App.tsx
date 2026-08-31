@@ -50,7 +50,7 @@ function AppContent({
       <ProjectOverview metadataInspector={metadataInspector} />
 
       <footer className="app-footer">
-        <span>{t('app.version', { version: '0.1.0' })}</span>
+        <span>{t('app.version', { version: '0.1.1' })}</span>
         <span>{t('app.disclaimer')}</span>
         <a href="https://github.com/NewAge-BD/bdo-vod-scanner" rel="noreferrer" target="_blank">
           {t('app.sourceCode')}

@@ -15,7 +15,7 @@ body:
     attributes:
       label: App version
       description: The version shown in the application footer.
-      placeholder: 0.1.0
+      placeholder: 0.1.1
     validations:
       required: true
   - type: input

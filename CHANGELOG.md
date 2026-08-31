@@ -6,6 +6,8 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-31
+
 ### Added
 
 - Added privacy-safe contribution, security-reporting, bug-report, and feature-request guidance for the public repository.
@@ -96,7 +98,3 @@ The project intends to follow Semantic Versioning once releases begin.
 - Prevented mouse-wheel zoom over the video or timeline from scrolling the surrounding page.
 - Kept the timeline time beneath the mouse pointer stationary while zooming at off-center positions.
 - Kept synchronized and sync-required status colors stable when selecting another perspective.
-
-## [0.1.0] - Planned
-
-- Initial public MVP. This release has not been implemented or published.
