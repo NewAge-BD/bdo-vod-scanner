@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +23,7 @@ import {
 import {
   buildLogTimelineMarkers,
   calculatePointerAnchoredZoomCenter,
+  calculateTimelineNavigatorCenter,
   calculateTimelineWindow,
   findCollidingKillStreakMarkerIds,
   zoomLevelToFactor,
@@ -848,8 +850,10 @@ function SynchronizedVideoPlayer({
   const videoViewportRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineScaleRef = useRef<HTMLDivElement>(null);
+  const timelineOverviewRef = useRef<HTMLDivElement>(null);
   const videoDragRef = useRef<DragState | null>(null);
   const timelineDragRef = useRef<TimelineDragState | null>(null);
+  const timelineOverviewDragRef = useRef<TimelineOverviewDragState | null>(null);
   const clipHandleDragRef = useRef<{ pointerId: number; returnTime: number } | null>(null);
   const lastFrameStepAtRef = useRef(0);
   const [displayTime, setDisplayTime] = useState(initialTime);
@@ -860,6 +864,7 @@ function SynchronizedVideoPlayer({
   const [videoPan, setVideoPan] = useState<ViewportPoint>({ x: 0, y: 0 });
   const [isVideoPanning, setIsVideoPanning] = useState(false);
   const [isTimelinePanning, setIsTimelinePanning] = useState(false);
+  const [isTimelineOverviewDragging, setIsTimelineOverviewDragging] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSplitScreen, setIsSplitScreen] = useState(false);
   const objectUrl = useObjectUrl(file);
@@ -1287,6 +1292,90 @@ function SynchronizedVideoPlayer({
     }
   }
 
+  function moveTimelineFromOverview(clientX: number, grabOffsetSeconds: number) {
+    const overview = timelineOverviewRef.current;
+    if (overview === null || mediaDuration === 0) {
+      return;
+    }
+    const bounds = overview.getBoundingClientRect();
+    const pointerRatio = bounds.width <= 0 ? 0.5 : (clientX - bounds.left) / bounds.width;
+    const nextCenter = calculateTimelineNavigatorCenter(
+      mediaDuration,
+      timelineWindow.durationSeconds,
+      pointerRatio,
+      grabOffsetSeconds,
+    );
+    setTimelineCenter(nextCenter);
+    seekTo(nextCenter);
+  }
+
+  function beginTimelineOverviewDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.button !== 0 || mediaDuration === 0 || zoomLevel === 1) {
+      return;
+    }
+    const overview = timelineOverviewRef.current;
+    if (overview === null) {
+      return;
+    }
+    const bounds = overview.getBoundingClientRect();
+    const pointerRatio = bounds.width <= 0 ? 0.5 : (event.clientX - bounds.left) / bounds.width;
+    const pointerTime = Math.min(1, Math.max(0, pointerRatio)) * mediaDuration;
+    const pointerInsideWindow =
+      pointerTime >= timelineWindow.startSeconds && pointerTime <= timelineWindow.endSeconds;
+    const grabOffsetSeconds = pointerInsideWindow
+      ? pointerTime - timelineWindow.startSeconds
+      : timelineWindow.durationSeconds / 2;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    timelineOverviewDragRef.current = { grabOffsetSeconds, pointerId: event.pointerId };
+    setIsTimelineOverviewDragging(true);
+    moveTimelineFromOverview(event.clientX, grabOffsetSeconds);
+  }
+
+  function moveTimelineOverviewDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    const drag = timelineOverviewDragRef.current;
+    if (drag === null || drag.pointerId !== event.pointerId) {
+      return;
+    }
+    moveTimelineFromOverview(event.clientX, drag.grabOffsetSeconds);
+  }
+
+  function endTimelineOverviewDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (timelineOverviewDragRef.current?.pointerId !== event.pointerId) {
+      return;
+    }
+    timelineOverviewDragRef.current = null;
+    setIsTimelineOverviewDragging(false);
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    }
+  }
+
+  function handleTimelineOverviewKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>) {
+    const step = timelineWindow.durationSeconds * (event.shiftKey ? 0.8 : 0.2);
+    let targetCenter: number | undefined;
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      targetCenter = timelineCenter + (event.key === 'ArrowLeft' ? -step : step);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      targetCenter = 0;
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      targetCenter = mediaDuration;
+    }
+    if (targetCenter !== undefined && mediaDuration > 0) {
+      const nextCenter = calculateTimelineNavigatorCenter(
+        mediaDuration,
+        timelineWindow.durationSeconds,
+        targetCenter / mediaDuration,
+        timelineWindow.durationSeconds / 2,
+      );
+      setTimelineCenter(nextCenter);
+      seekTo(nextCenter);
+    }
+  }
+
   function activateLogMarker(marker: LogTimelineMarker) {
     onSelectEvent(marker.representativeEventId);
     setTimelineCenter(marker.videoTimeSeconds);
@@ -1525,6 +1614,49 @@ function SynchronizedVideoPlayer({
               </div>
             )}
         </div>
+
+        {clippingMode && objectUrl !== undefined && (
+          <div className="video-timeline__overview-section">
+            <div className="video-timeline__overview-heading">
+              <span>{t('synchronization.timelineOverview')}</span>
+              <small>{t('synchronization.timelineOverviewHint')}</small>
+            </div>
+            <div
+              aria-label={t('synchronization.timelineOverview')}
+              className={`video-timeline__overview${isTimelineOverviewDragging ? ' video-timeline__overview--dragging' : ''}`}
+              onPointerCancel={endTimelineOverviewDrag}
+              onPointerDown={beginTimelineOverviewDrag}
+              onPointerMove={moveTimelineOverviewDrag}
+              onPointerUp={endTimelineOverviewDrag}
+              ref={timelineOverviewRef}
+            >
+              <VideoTimelineFilmstrip
+                endTimeSeconds={mediaDuration}
+                source={objectUrl}
+                startTimeSeconds={0}
+              />
+              <span
+                aria-hidden="true"
+                className="video-timeline__overview-playhead"
+                style={{
+                  left: `${mediaDuration === 0 ? 0 : (displayTime / mediaDuration) * 100}%`,
+                }}
+              />
+              <button
+                aria-label={t('synchronization.timelineOverviewWindow')}
+                aria-disabled={zoomLevel === 1}
+                className="video-timeline__overview-window"
+                onKeyDown={handleTimelineOverviewKeyDown}
+                style={{
+                  left: `${mediaDuration === 0 ? 0 : (timelineWindow.startSeconds / mediaDuration) * 100}%`,
+                  width: `${mediaDuration === 0 ? 100 : (timelineWindow.durationSeconds / mediaDuration) * 100}%`,
+                }}
+                title={t('synchronization.timelineOverviewWindow')}
+                type="button"
+              />
+            </div>
+          </div>
+        )}
 
         {clippingMode && (
           <div className="clip-mark-controls" aria-label={t('clips.kicker')}>
@@ -2205,6 +2337,11 @@ interface TimelineDragState {
   readonly startX: number;
   readonly originCenter: number;
   readonly secondsPerPixel: number;
+}
+
+interface TimelineOverviewDragState {
+  readonly pointerId: number;
+  readonly grabOffsetSeconds: number;
 }
 
 interface EventSeekRequest {

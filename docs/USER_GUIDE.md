@@ -77,6 +77,8 @@ Select a timeline event to create a starting range from 10 seconds before throug
 
 The video timeline generates a small local frame overview for the currently visible time window. It samples only a limited number of frames from the selected VOD and does not upload or copy the recording.
 
+Below it, **Full video overview** shows a compact filmstrip for the complete recording. Its highlighted window represents the range currently enlarged in the main timeline. Drag that window to search an earlier or later part of the VOD without changing the current zoom level; the paused playhead follows at the center of the visible window. Clicking outside the window recenters it around that point. Keyboard users can focus the window and move it with the arrow keys; Shift moves it in larger steps, while Home and End jump to the beginning or end.
+
 The clip is saved locally with its source perspective, exact range, duration, active-name snapshot, and matching events inside the range. Its generated title uses the active names when available and can be edited in **Marked clips**. Choose **Preview** to switch to the source perspective, seek to the clip's in-point, play it in the main player, and pause automatically at its out-point. Drag the grip on a clip onto another clip to change the saved order. The up/down buttons provide the same operation without dragging. Clips can be deleted and the panel can be collapsed. Later search changes do not modify existing clip snapshots.
 
 ### 7. Export

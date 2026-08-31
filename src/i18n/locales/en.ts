@@ -375,6 +375,11 @@ export const en = {
     timelineControls: 'Video timeline controls',
     timelineHint:
       'Wheel: zoom time · Middle-drag: move time window · Double-click: reset · Drag the playhead to scrub.',
+    timelineOverview: 'Full video overview',
+    timelineOverviewHint:
+      'Drag the highlighted window to search the complete recording and move the playhead.',
+    timelineOverviewWindow:
+      'Visible timeline window. Drag it or use the arrow keys to search the full video and move the playhead to its center.',
     timelineZoom: 'Timeline zoom level',
     title: 'Synchronize VODs',
     update: 'Update synchronization point',

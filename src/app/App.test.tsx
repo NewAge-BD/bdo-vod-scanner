@@ -289,6 +289,56 @@ describe('App', () => {
     expect(
       screen.getByLabelText('Video timeline controls').querySelector('.video-timeline__filmstrip'),
     ).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Timeline zoom level'), { target: { value: '13' } });
+    const fullVideoOverview = screen.getByLabelText('Full video overview');
+    const visibleTimelineWindow = within(fullVideoOverview).getByRole('button', {
+      name: /Visible timeline window/,
+    });
+    expect(visibleTimelineWindow).toHaveAttribute('aria-disabled', 'false');
+    vi.spyOn(fullVideoOverview, 'getBoundingClientRect').mockReturnValue({
+      bottom: 50,
+      height: 50,
+      left: 0,
+      right: 800,
+      top: 0,
+      width: 800,
+      x: 0,
+      y: 0,
+      toJSON: () => undefined,
+    });
+    Object.assign(fullVideoOverview, {
+      hasPointerCapture: vi.fn(() => true),
+      releasePointerCapture: vi.fn(),
+      setPointerCapture: vi.fn(),
+    });
+    const clippingRangeStartBeforeOverviewDrag = clippingPlayhead.getAttribute('min');
+    fireEvent.pointerDown(fullVideoOverview, {
+      button: 0,
+      clientX: 200,
+      pointerId: 12,
+    });
+    fireEvent.pointerMove(fullVideoOverview, { clientX: 600, pointerId: 12 });
+    fireEvent.pointerUp(fullVideoOverview, { clientX: 600, pointerId: 12 });
+    expect(clippingPlayhead.getAttribute('min')).not.toBe(clippingRangeStartBeforeOverviewDrag);
+    expect(Number(clippingPlayhead.getAttribute('value'))).toBeCloseTo(
+      (Number(clippingPlayhead.getAttribute('min')) +
+        Number(clippingPlayhead.getAttribute('max'))) /
+        2,
+    );
+    const clippingRangeStartBeforeKeyboardPan = clippingPlayhead.getAttribute('min');
+    fireEvent.keyDown(visibleTimelineWindow, { key: 'ArrowLeft' });
+    expect(clippingPlayhead.getAttribute('min')).not.toBe(clippingRangeStartBeforeKeyboardPan);
+    expect(Number(clippingPlayhead.getAttribute('value'))).toBeCloseTo(
+      (Number(clippingPlayhead.getAttribute('min')) +
+        Number(clippingPlayhead.getAttribute('max'))) /
+        2,
+    );
+    fireEvent.keyDown(visibleTimelineWindow, { key: 'Home' });
+    expect(Number(clippingPlayhead.getAttribute('value'))).toBeCloseTo(
+      (Number(clippingPlayhead.getAttribute('min')) +
+        Number(clippingPlayhead.getAttribute('max'))) /
+        2,
+    );
     const splitScreenButton = screen.getByRole('button', { name: 'Split screen' });
     await user.click(splitScreenButton);
     expect(screen.getByRole('button', { name: 'Single view' })).toHaveAttribute(

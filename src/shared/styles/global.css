@@ -1377,6 +1377,103 @@ h1 {
   border-right: 1px solid rgb(255 255 255 / 12%);
 }
 
+.video-timeline__overview-section {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.video-timeline__overview-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--muted);
+  font-size: 0.62rem;
+}
+
+.video-timeline__overview-heading span {
+  color: var(--text-subtle);
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.video-timeline__overview {
+  position: relative;
+  height: 2.4rem;
+  overflow: hidden;
+  touch-action: none;
+  background: #0d1117;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.35rem;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.video-timeline__overview .video-timeline__filmstrip {
+  opacity: 0.42;
+  filter: saturate(0.72);
+}
+
+.video-timeline__overview-playhead {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  pointer-events: none;
+  background: #7cc8ff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 55%);
+  transform: translateX(-1px);
+}
+
+.video-timeline__overview-window {
+  position: absolute;
+  z-index: 1;
+  top: 0.15rem;
+  bottom: 0.15rem;
+  min-width: 0.75rem;
+  padding: 0;
+  touch-action: none;
+  background: rgb(216 254 69 / 13%);
+  border: 2px solid var(--accent);
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0 9999px rgb(4 7 11 / 44%);
+  cursor: grab;
+}
+
+.video-timeline__overview-window::before,
+.video-timeline__overview-window::after {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 0.9rem;
+  background: var(--accent);
+  border-radius: 999px;
+  content: '';
+  transform: translateY(-50%);
+}
+
+.video-timeline__overview-window::before {
+  left: 0.15rem;
+}
+
+.video-timeline__overview-window::after {
+  right: 0.15rem;
+}
+
+.video-timeline__overview-window[aria-disabled='true'] {
+  cursor: default;
+}
+
+.video-timeline__overview--dragging,
+.video-timeline__overview--dragging .video-timeline__overview-window {
+  cursor: grabbing;
+}
+
 .video-timeline__scrubber::before {
   position: absolute;
   top: 0;

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   calculatePointerAnchoredZoomCenter,
+  calculateTimelineNavigatorCenter,
   calculateTimelineWindow,
   zoomLevelToFactor,
 } from './videoTimeline';
@@ -52,5 +53,11 @@ describe('video timeline window', () => {
     const timeAfter = nextWindow.startSeconds + nextWindow.durationSeconds * 0.75;
     expect(timeAfter).toBeCloseTo(timeBefore, 10);
     expect(nextWindow.startSeconds).toBe(262.5);
+  });
+
+  it('moves a visible window from the full-video navigator while preserving its grab point', () => {
+    expect(calculateTimelineNavigatorCenter(600, 120, 0.75, 30)).toBe(480);
+    expect(calculateTimelineNavigatorCenter(600, 120, 0, 30)).toBe(60);
+    expect(calculateTimelineNavigatorCenter(600, 120, 1, 30)).toBe(540);
   });
 });

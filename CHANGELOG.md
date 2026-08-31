@@ -6,6 +6,10 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ## [Unreleased]
 
+### Added
+
+- Added a draggable full-video filmstrip navigator beneath the clipping timeline, with a centered following playhead and keyboard controls for moving the visible zoomed range.
+
 ### Changed
 
 - Reworked the public README into a concise quick-start guide.

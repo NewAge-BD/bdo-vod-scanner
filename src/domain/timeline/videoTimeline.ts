@@ -54,6 +54,26 @@ export function calculatePointerAnchoredZoomCenter(
   return nextStart + nextVisibleDuration / 2;
 }
 
+export function calculateTimelineNavigatorCenter(
+  mediaDurationSeconds: number,
+  visibleDurationSeconds: number,
+  pointerRatio: number,
+  grabOffsetSeconds: number,
+): number {
+  const duration = finiteNonNegative(mediaDurationSeconds);
+  if (duration === 0) {
+    return 0;
+  }
+  const visibleDuration = Math.min(duration, finiteNonNegative(visibleDurationSeconds));
+  const safeRatio = Number.isFinite(pointerRatio) ? Math.min(1, Math.max(0, pointerRatio)) : 0.5;
+  const safeGrabOffset = Number.isFinite(grabOffsetSeconds)
+    ? Math.min(visibleDuration, Math.max(0, grabOffsetSeconds))
+    : visibleDuration / 2;
+  const maximumStart = duration - visibleDuration;
+  const start = Math.min(maximumStart, Math.max(0, duration * safeRatio - safeGrabOffset));
+  return start + visibleDuration / 2;
+}
+
 function finiteNonNegative(value: number): number {
   return Number.isFinite(value) ? Math.max(0, value) : 0;
 }

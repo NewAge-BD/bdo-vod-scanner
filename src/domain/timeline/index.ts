@@ -2,6 +2,7 @@ export { buildLogTimelineMarkers, findCollidingKillStreakMarkerIds } from './log
 export type { LogTimelineMarker, TimelineLogEvent } from './logTimeline';
 export {
   calculatePointerAnchoredZoomCenter,
+  calculateTimelineNavigatorCenter,
   calculateTimelineWindow,
   zoomLevelToFactor,
 } from './videoTimeline';
