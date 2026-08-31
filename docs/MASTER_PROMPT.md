@@ -55,6 +55,8 @@ Primary flow:
 8. Export media clips or a DaVinci timeline.
 9. Export a portable project when required.
 
+On the first visit, open a non-blocking guided tour that explains this complete workflow step by step and highlights the relevant visible UI where possible. Give synchronization dedicated steps for selecting a perspective, zooming and panning the video to find chat, defining the chat crop, running Auto Sync, refining the result to the exact first notification frame with arrow keys or frame buttons, using manual event search as a fallback, and saving the anchor. Explain the clipping workspace from top to bottom, covering its perspective controls, player, frame transport, visible filmstrip, full-video navigator, clip builder, fixed event rows, selected-name rows and kill streaks, time navigation, marked clips, and both export paths. Store only the completed-tour preference locally. Keep a **Guide Me** action in the application header so the tour can be restarted at any time. The tour must remain keyboard accessible and must never perform project, file, synchronization, clipping, or export actions on the user's behalf.
+
 ## Functional Requirements
 
 ### Projects and import

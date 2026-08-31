@@ -89,8 +89,8 @@ export function ClipPanel({
   }
 
   return (
-    <section className="clip-panel" aria-labelledby="clip-panel-title">
-      <div className="clip-panel__heading">
+    <section className="clip-panel" aria-labelledby="clip-panel-title" data-guide="clip-panel">
+      <div className="clip-panel__heading" data-guide="marked-clips">
         <div>
           <p className="section-kicker">{t('clips.kicker')}</p>
           <h3 id="clip-panel-title">{t('clips.title')}</h3>
@@ -161,12 +161,14 @@ export function ClipPanel({
         ))}
       {!collapsed && (
         <>
-          <LosslessClipExportPanel
-            project={project}
-            selectedClipIds={selectedClipIds}
-            vodFiles={vodFiles}
-          />
-          <DavinciExportPanel onDefaultsChange={onDavinciDefaultsChange} project={project} />
+          <div data-guide="clip-export">
+            <LosslessClipExportPanel
+              project={project}
+              selectedClipIds={selectedClipIds}
+              vodFiles={vodFiles}
+            />
+            <DavinciExportPanel onDefaultsChange={onDavinciDefaultsChange} project={project} />
+          </div>
         </>
       )}
     </section>

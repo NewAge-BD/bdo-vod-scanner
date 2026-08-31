@@ -5,6 +5,7 @@ import type { VideoMetadataInspector } from '../infrastructure/media';
 import { BrandMark } from '../shared/components/BrandMark';
 import { ProjectOverview } from '../features/project-overview/ProjectOverview';
 import { ProjectStoreProvider } from '../features/project-overview/ProjectStoreProvider';
+import { GuidedTour } from '../features/guided-tour';
 
 interface AppProps {
   readonly repository?: ProjectRepository;
@@ -41,9 +42,12 @@ function AppContent({
           </div>
         </div>
 
-        <div className="local-status" aria-label={t('privacy.statusLabel')}>
-          <span className="local-status__dot" aria-hidden="true" />
-          {t('privacy.localOnly')}
+        <div className="app-header__actions">
+          <GuidedTour />
+          <div className="local-status" aria-label={t('privacy.statusLabel')}>
+            <span className="local-status__dot" aria-hidden="true" />
+            {t('privacy.localOnly')}
+          </div>
         </div>
       </header>
 

@@ -95,7 +95,7 @@ export function AutoSyncPanel({
       : Math.round((progress.completed / progress.total) * 100);
 
   return (
-    <section className="auto-sync-panel" aria-labelledby="auto-sync-title">
+    <section className="auto-sync-panel" aria-labelledby="auto-sync-title" data-guide="auto-sync">
       <div className="auto-sync-panel__heading">
         <div>
           <span>{t('autoSync.experimental')}</span>

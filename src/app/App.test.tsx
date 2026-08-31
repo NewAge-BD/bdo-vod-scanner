@@ -92,7 +92,7 @@ describe('App', () => {
     expect(screen.queryByRole('button', { name: /I: Challenger!/ })).not.toBeInTheDocument();
     fireEvent.keyDown(window, { code: 'Space', key: ' ' });
     expect(playSpy).toHaveBeenCalledTimes(1);
-    const shortcutSearchInput = screen.getByLabelText('Find a family, character, or guild name');
+    const shortcutSearchInput = screen.getByLabelText('Find a specific family name');
     fireEvent.keyDown(shortcutSearchInput, { code: 'Space', key: ' ' });
     expect(playSpy).toHaveBeenCalledTimes(1);
     videoElement.currentTime = 10;
@@ -245,7 +245,7 @@ describe('App', () => {
     expect(await screen.findByText('Synchronization point saved locally.')).toBeInTheDocument();
     expect(screen.getByText('SYNCED')).toBeInTheDocument();
 
-    const searchInput = screen.getByLabelText('Find a family, character, or guild name');
+    const searchInput = screen.getByLabelText('Find a specific family name');
     await user.type(searchInput, 'EmberVale');
     await user.click(screen.getByRole('button', { name: 'Add name' }));
     expect(await screen.findByText('1 matching event')).toBeInTheDocument();
@@ -535,10 +535,7 @@ describe('App', () => {
       'perspective-tab--synchronized',
       'perspective-tab--active',
     );
-    await user.type(
-      screen.getByLabelText('Find a family, character, or guild name'),
-      'FrostCairn{Enter}',
-    );
+    await user.type(screen.getByLabelText('Find a specific family name'), 'FrostCairn{Enter}');
     expect(await screen.findByText('FrostCairn')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Video timeline playhead'), {

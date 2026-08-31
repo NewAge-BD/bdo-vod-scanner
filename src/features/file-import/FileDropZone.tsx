@@ -30,6 +30,7 @@ export function FileDropZone({ disabled, onFiles }: FileDropZoneProps) {
   return (
     <div
       className={`file-drop-zone${isDragging ? ' file-drop-zone--active' : ''}`}
+      data-guide="source-import"
       onDragEnter={(event) => {
         event.preventDefault();
         setIsDragging(true);

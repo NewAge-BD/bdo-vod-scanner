@@ -425,7 +425,12 @@ export function VideoSynchronization({
 
   function renderPerspectiveTabs(clippingMode: boolean) {
     return (
-      <div className="perspective-tabs" role="group" aria-label={t('synchronization.perspectives')}>
+      <div
+        className="perspective-tabs"
+        role="group"
+        aria-label={t('synchronization.perspectives')}
+        data-guide={clippingMode ? 'clipping-perspectives' : 'sync-perspectives'}
+      >
         {project.vods.map((vod) => {
           const isActive = vod.id === activeVod?.id;
           const synchronizationStatus =
@@ -572,7 +577,11 @@ export function VideoSynchronization({
 
   if (workspaceMode === 'clipping') {
     return (
-      <section className="video-sync clipping-workspace" aria-labelledby="clipping-workspace-title">
+      <section
+        className="video-sync clipping-workspace"
+        aria-labelledby="clipping-workspace-title"
+        data-guide="clipping-workspace"
+      >
         <div className="video-sync__heading clipping-workspace__heading">
           <div>
             <p className="section-kicker">{t('clipping.kicker')}</p>
@@ -609,7 +618,7 @@ export function VideoSynchronization({
   }
 
   return (
-    <section className="video-sync" aria-labelledby="video-sync-title">
+    <section className="video-sync" aria-labelledby="video-sync-title" data-guide="synchronization">
       <div className="video-sync__heading">
         <div>
           <p className="section-kicker">{t('synchronization.kicker')}</p>
@@ -662,7 +671,7 @@ export function VideoSynchronization({
               ))}
             </div>
           )}
-          <div className="search-term-entry">
+          <div className="search-term-entry" data-guide="sync-manual-search">
             <label className="search-term-entry__label" htmlFor="sync-event-search">
               {t('synchronization.addSearchTermLabel')}
             </label>
@@ -734,6 +743,7 @@ export function VideoSynchronization({
 
           <button
             className="button button--primary sync-confirm"
+            data-guide="sync-confirm"
             disabled={!isVideoReady || selectedEvent === undefined || saveState === 'saving'}
             onClick={() => void saveSynchronization()}
             type="button"
@@ -746,6 +756,7 @@ export function VideoSynchronization({
           </button>
           <button
             className="button clipping-start"
+            data-guide="start-clipping"
             disabled={activeVod?.synchronizationAnchor === null || file === undefined}
             onClick={() => {
               setWorkspaceMode('clipping');
@@ -1398,6 +1409,7 @@ function SynchronizedVideoPlayer({
     <>
       <div
         className={`perspective-stage ${isSplitScreen ? 'perspective-stage--multi' : 'perspective-stage--single'}`}
+        data-guide={clippingMode ? 'clipping-player' : 'sync-video'}
         ref={perspectiveStageRef}
       >
         <div
@@ -1515,7 +1527,10 @@ function SynchronizedVideoPlayer({
         onPointerUp={endTimelinePan}
         ref={timelineRef}
       >
-        <div className="video-timeline__transport">
+        <div
+          className="video-timeline__transport"
+          data-guide={clippingMode ? 'clipping-transport' : 'sync-fine-tune'}
+        >
           <button onClick={() => stepFrame(-1)} type="button">
             {t('synchronization.previousFrame')}
           </button>
@@ -1531,7 +1546,11 @@ function SynchronizedVideoPlayer({
           <span>{t('synchronization.visibleRange')}</span>
           <time>{formatTime(timelineWindow.endSeconds)}</time>
         </div>
-        <div className="video-timeline__scrubber" ref={timelineScaleRef}>
+        <div
+          className="video-timeline__scrubber"
+          data-guide={clippingMode ? 'clipping-visible-timeline' : undefined}
+          ref={timelineScaleRef}
+        >
           {clippingMode && objectUrl !== undefined && (
             <VideoTimelineFilmstrip
               endTimeSeconds={timelineWindow.endSeconds}
@@ -1616,7 +1635,7 @@ function SynchronizedVideoPlayer({
         </div>
 
         {clippingMode && objectUrl !== undefined && (
-          <div className="video-timeline__overview-section">
+          <div className="video-timeline__overview-section" data-guide="clipping-overview">
             <div className="video-timeline__overview-heading">
               <span>{t('synchronization.timelineOverview')}</span>
               <small>{t('synchronization.timelineOverviewHint')}</small>
@@ -1659,7 +1678,11 @@ function SynchronizedVideoPlayer({
         )}
 
         {clippingMode && (
-          <div className="clip-mark-controls" aria-label={t('clips.kicker')}>
+          <div
+            className="clip-mark-controls"
+            aria-label={t('clips.kicker')}
+            data-guide="clip-builder"
+          >
             <div className="clip-mark-controls__intro">
               <strong>{t('clips.rangeTitle')}</strong>
               <span>{t('clips.rangeHint')}</span>
@@ -1704,7 +1727,11 @@ function SynchronizedVideoPlayer({
         )}
 
         {clippingMode ? (
-          <div className="clipping-timeline" aria-label={t('clipping.timeline')}>
+          <div
+            className="clipping-timeline"
+            aria-label={t('clipping.timeline')}
+            data-guide="clipping-event-lanes"
+          >
             <EventTimelineLane
               emptyLabel={t('synchronization.noVisibleEvents')}
               events={events}
@@ -1721,7 +1748,10 @@ function SynchronizedVideoPlayer({
               onActivate={activateLogMarker}
               selectedEvent={selectedEvent}
             />
-            <div className="clipping-timeline__lane clipping-timeline__lane--name-entry">
+            <div
+              className="clipping-timeline__lane clipping-timeline__lane--name-entry"
+              data-guide="clipping-name-search"
+            >
               <label className="clipping-timeline__label" htmlFor={`clip-name-search-${vod.id}`}>
                 {t('clipping.selectedNames')}
               </label>
@@ -1870,7 +1900,7 @@ function SynchronizedVideoPlayer({
           </div>
         )}
 
-        <div className="video-timeline__zoom">
+        <div className="video-timeline__zoom" data-guide="clipping-timeline-navigation">
           <button
             disabled={zoomLevel === 1 || timelineWindow.startSeconds === 0}
             onClick={() => panTimeline(-1)}

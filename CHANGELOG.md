@@ -8,6 +8,7 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ### Added
 
+- Added a detailed first-run guided tour with contextual highlights, synchronization and manual-fallback instructions, a top-to-bottom clipping-workspace walkthrough, and a persistent **Guide Me** launcher.
 - Added a draggable full-video filmstrip navigator beneath the clipping timeline, with a centered following playhead and keyboard controls for moving the visible zoomed range.
 
 ### Changed

@@ -3,6 +3,10 @@
 > [!NOTE]
 > Local project management, source-file import, one sync point per perspective, synchronized perspective switching, event-name navigation, clip marking, manual clip ordering, DaVinci Resolve timeline export, and an experimental direct lossless clip exporter are available now.
 
+## Guided tour
+
+The guided tour opens automatically on the first visit and walks through the complete workflow without blocking the application or performing actions for you. Use **Back** and **Next** to move through its detailed steps; available parts of the interface are highlighted and brought into view. Synchronization covers image zoom, the chat crop, Auto Sync, exact frame refinement, manual fallback, and anchor confirmation. The clipping workspace is then explained from top to bottom, including every timeline and export area. Close or finish the tour to remember that choice locally. Choose **Guide Me** in the application header whenever you want to restart it.
+
 ## What BDO VOD Scanner does
 
 BDO VOD Scanner aligns one BDO event log with one or more local MP4 recordings. After synchronization, it lets users search event names, compare player perspectives at the same moment, mark clip ranges, export experimental lossless clips, and create a DaVinci Resolve timeline.
@@ -43,7 +47,7 @@ Use the video timeline below the player to find the matching frame:
 - Double-click the timeline to reset its time zoom.
 - Use **Zoom in** or the zoom slider to enlarge a short section around the current frame.
 - Use **Earlier** and **Later** to move through the recording while zoomed in.
-- Use **Previous frame** and **Next frame** for the final approximate frame adjustment.
+- Use **Previous frame** and **Next frame**, or the Left and Right Arrow keys, for the final approximate frame adjustment.
 
 To inspect a small visual detail such as the kill feed or chat, scroll the mouse wheel over the video image. While zoomed in, hold the middle mouse button and drag to move the image. Double-click the image or choose **Reset view** to return to the complete frame. Video-image zoom and timeline time zoom are independent.
 

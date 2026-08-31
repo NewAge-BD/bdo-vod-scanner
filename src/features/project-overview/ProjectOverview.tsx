@@ -75,7 +75,11 @@ export function ProjectOverview({ metadataInspector }: ProjectOverviewProps) {
           <p className="project-overview__summary">{t('projects.summary')}</p>
         </div>
 
-        <div className="project-overview__actions" aria-label={t('projects.actionsLabel')}>
+        <div
+          className="project-overview__actions"
+          aria-label={t('projects.actionsLabel')}
+          data-guide="project-actions"
+        >
           <input
             accept=".json,application/json"
             className="visually-hidden"

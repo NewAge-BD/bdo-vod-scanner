@@ -16,6 +16,114 @@ export const en = {
     export: 'Export',
     rename: 'Rename',
   },
+  guidedTour: {
+    back: 'Back',
+    close: 'Close guide',
+    finish: 'Finish guide',
+    kicker: 'GUIDED TOUR',
+    next: 'Next',
+    open: 'Guide Me',
+    progress: 'Step {{current}} of {{total}}',
+    waiting: 'This area appears after you complete the previous part of the workflow.',
+    steps: {
+      welcome: {
+        title: 'Welcome to BDO VOD Scanner',
+        body: 'This guide follows the complete local workflow: create a project, add your match files, synchronize perspectives, find moments, build clips, and export them.',
+      },
+      projects: {
+        title: 'Start with a project',
+        body: 'Create a new local project, open a saved one, or import a portable project. Projects contain metadata and the event log, but never copy your large VOD files.',
+      },
+      sources: {
+        title: 'Add the match log and VODs',
+        body: 'Choose one supported GuildYapper or Ikusa log plus one or more MP4 perspectives. Everything is processed locally and nothing is uploaded.',
+      },
+      syncPerspective: {
+        title: 'Choose a perspective to synchronize',
+        body: 'The tabs represent your imported VODs. Select one perspective at a time; its status changes from Sync required to Synchronized after you save a reliable anchor.',
+      },
+      syncNavigate: {
+        title: 'Find and enlarge the in-game chat',
+        body: 'Move near a readable combat moment. Use the mouse wheel over the video to zoom into the chat, middle-drag to pan, and double-click or Reset view to return to the full picture.',
+      },
+      syncChatArea: {
+        title: 'Define the chat area',
+        body: 'Choose Define chat area, then drag a tight rectangle around only the visible chat messages. Your current video zoom stays in place. Detection is much better in BDO crop mode with the chat placed on its grey area.',
+      },
+      syncScan: {
+        title: 'Run Auto Sync',
+        body: 'Choose Start Auto Sync. Local OCR samples this VOD near the playhead and matches fresh chat text, names, and the visible timestamp against the log. Nothing is uploaded.',
+      },
+      syncFineTune: {
+        title: 'Fine-tune the detected frame',
+        body: 'After a match, the player jumps to the proposed frame. Use Left and Right Arrow or Previous frame and Next frame to find the exact first frame where that chat notification appears—not a later frame where it is already old.',
+      },
+      syncManual: {
+        title: 'Manual synchronization is always available',
+        body: 'If recognition fails, search for a specific family name, select the matching log event, and manually move the video to the first frame where its chat notification appears. This produces the same synchronization anchor.',
+      },
+      syncSave: {
+        title: 'Save the synchronization point',
+        body: 'When the selected log event and exact video frame match, choose Set synchronization point. Repeat these synchronization steps for every perspective you want to compare.',
+      },
+      startClipping: {
+        title: 'Open the clipping workspace',
+        body: 'Start Clipping becomes available after the active VOD is synchronized. It opens the full-width review workspace; Back to synchronization returns here if an anchor needs correction.',
+      },
+      find: {
+        title: 'Find the moments worth clipping',
+        body: 'The clipping workspace is arranged from top to bottom: perspective controls, video player, detailed and full-video timelines, clip builder, event rows, timeline navigation, marked clips, and export tools. The next steps explain each area in that order.',
+      },
+      clipPerspectives: {
+        title: 'Choose the active perspective',
+        body: 'These tabs switch the main VOD while keeping the shared match moment. The active perspective owns the timeline and new clip. In split screen, its speaker button lets you mute or unmute each VOD individually.',
+      },
+      clipPlayer: {
+        title: 'Review the video',
+        body: 'Use Play, Mute, Reset view, and Fullscreen below the picture. The mouse wheel zooms the image and middle-drag pans it. Split screen displays all linked synchronized perspectives; each view can be zoomed independently.',
+      },
+      clipTransport: {
+        title: 'Step through exact frames',
+        body: 'Previous frame and Next frame move by the estimated frame duration, while the time display shows the current playhead position. Left and Right Arrow provide the same frame stepping when no text field is active.',
+      },
+      clipVisibleTimeline: {
+        title: 'Scrub the visible timeline',
+        body: 'This filmstrip shows only the currently enlarged time window. Drag the bright playhead to seek. A highlighted clip range and its two handles appear here after you select an event or define in and out points.',
+      },
+      clipOverview: {
+        title: 'Move through the full recording',
+        body: 'Full video overview represents the complete VOD. Drag its highlighted window to move the enlarged timeline without changing zoom; the playhead follows in the center. Click outside to recenter, or use its arrow, Home, and End keys.',
+      },
+      clipBuilder: {
+        title: 'Build and save a clip range',
+        body: 'Selecting an event proposes a range around it. Set start and Set end replace either boundary at the playhead; the I and O shortcuts do the same. Adjust the timeline handles, then choose Save clip.',
+      },
+      clipEvents: {
+        title: 'Use the Kills and Deaths rows',
+        body: 'Kills are green and deaths are red. A numbered neutral marker bundles dense nearby events. Select any marker to jump to its moment and create an editable starting range around that event.',
+      },
+      clipNames: {
+        title: 'Add selected-name timelines',
+        body: 'Enter a family, character, or guild name and choose Add name timeline. Each saved name adds an independent filtered row for the active perspective and can later be split into separate kill and death rows.',
+      },
+      clipNameLanes: {
+        title: 'Read name events and kill streaks',
+        body: 'Name rows show only matching events. Kill bursts within 15 seconds become Challenger, Invader, Slayer, or Conqueror banners. Dense banners collapse to Roman-numeral diamonds and expand again when enough horizontal space is available.',
+      },
+      clipNavigation: {
+        title: 'Zoom and move the event timelines',
+        body: 'Earlier window and Later window move through time. Zoom in separates dense events; Zoom out restores more context. You can also wheel over the timeline to zoom around the pointer and middle-drag to pan.',
+      },
+      markedClips: {
+        title: 'Review and order marked clips',
+        body: 'Marked clips can be collapsed, previewed in the main player, renamed, deleted, selected for export, and reordered by dragging. The arrow buttons provide an accessible alternative to drag-and-drop ordering.',
+      },
+      export: {
+        title: 'Export your edit',
+        body: 'Direct clip export copies selected source ranges without uploading them and requires supported folder access. DaVinci Resolve export creates an FCPXML timeline in the saved clip order and references the original VOD files.',
+      },
+    },
+  },
   privacy: {
     localOnly: 'Local processing only',
     statusLabel: 'Privacy status',
@@ -312,7 +420,7 @@ export const en = {
   },
   synchronization: {
     addSearchTerm: 'Add name',
-    addSearchTermLabel: 'Find a family, character, or guild name',
+    addSearchTermLabel: 'Find a specific family name',
     confirm: 'Set synchronization point',
     description:
       'Find the selected event in the video, pause on the matching frame, then save the anchor.',
