@@ -1433,7 +1433,7 @@ h1 {
 }
 
 .log-timeline__track--with-streaks {
-  height: 5.4rem;
+  height: 6.5rem;
 }
 
 .log-timeline__track--with-streaks > .log-timeline__marker:not(.log-timeline__marker--streak) {

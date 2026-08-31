@@ -1804,7 +1804,7 @@ function getTimelineMarkerStyle(marker: LogTimelineMarker, markerIndex: number):
   ) {
     style['--streak-span'] =
       `${Math.max(0, marker.rangeEndPositionRatio - marker.rangeStartPositionRatio) * 100}%`;
-    style['--streak-top'] = markerIndex % 2 === 0 ? '1rem' : '2.55rem';
+    style['--streak-top'] = markerIndex % 2 === 0 ? '1.55rem' : '3.35rem';
   }
   return style;
 }
