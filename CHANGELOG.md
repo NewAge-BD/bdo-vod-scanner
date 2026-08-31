@@ -6,6 +6,10 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ## [Unreleased]
 
+### Changed
+
+- Reworked the public README into a concise quick-start guide.
+
 ## [0.2.0] - 2026-08-31
 
 ### Added
