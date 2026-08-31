@@ -202,10 +202,7 @@ input:focus-visible {
   box-shadow:
     0 0 0 0.35rem rgb(216 254 69 / 14%),
     0 0 2rem rgb(216 254 69 / 22%);
-  transition:
-    inset 180ms ease,
-    width 180ms ease,
-    height 180ms ease;
+  will-change: top, left;
 }
 
 .guided-tour {
@@ -316,12 +313,6 @@ input:focus-visible {
 
 .guided-tour__actions .button {
   min-width: 6.5rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .guided-tour__spotlight {
-    transition: none;
-  }
 }
 
 .project-overview {

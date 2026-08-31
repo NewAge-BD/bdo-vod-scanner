@@ -16,6 +16,10 @@ The project intends to follow Semantic Versioning once releases begin.
 - Reworked the public README into a concise quick-start guide.
 - Expanded the core compatibility target and automated smoke tests to Chromium, Firefox, and WebKit, with capability-based fallback messaging for direct clip export.
 
+### Fixed
+
+- Kept the guided-tour highlighter locked to its target while the page scrolls.
+
 ## [0.2.0] - 2026-08-31
 
 ### Added
