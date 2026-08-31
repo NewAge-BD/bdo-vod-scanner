@@ -4,6 +4,7 @@ export {
   deleteProjectVod,
   getProjectExportFileName,
   renameProject,
+  renameVod,
   setDavinciDefaults,
   setVodSearchTerms,
   setVodSplitSearchTerms,

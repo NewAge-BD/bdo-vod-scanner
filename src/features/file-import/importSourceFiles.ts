@@ -119,6 +119,7 @@ export async function importSourceFiles(
     ...project,
     sessionDate,
     rawLog,
+    parserVersion: importedLog ? 2 : project.parserVersion,
     vods,
     updatedAt: importedLog || importedVodCount > 0 ? now.toISOString() : project.updatedAt,
     davinciDefaults:

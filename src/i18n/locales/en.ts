@@ -27,10 +27,12 @@ export const en = {
       'Chat area selector. Drag to redraw. Arrow keys move the area; Shift plus arrow keys resize it.',
     defineRegion: 'Define chat area',
     description:
-      'Mark the in-game chat once. Local OCR samples this recording and proposes a matching log anchor. For clearer recognition, place the chat on a solid grey in-game background before drawing the area.',
+      'Mark the in-game chat once. Local OCR samples this recording and proposes a matching log anchor. Recognition works much better when you use BDO’s in-game crop mode and place the chat in the grey area.',
     drawHint: 'Drag a rectangle around only the chat messages in the video.',
     error: 'Auto Sync could not scan this recording. You can still synchronize it manually.',
     experimental: 'EXPERIMENTAL',
+    fineTune:
+      'Final check: use Previous frame and Next frame to find the exact first frame where the kill notification appears. Then save the synchronization point below.',
     localOnly: 'LOCAL OCR',
     matchFound: 'Matching kill event found',
     notFound:
@@ -44,8 +46,8 @@ export const en = {
     redrawRegion: 'Redraw chat area',
     regionReady: 'Chat area ready. The scan begins near the current playhead.',
     start: 'Start Auto Sync',
+    showDetectedFrameAgain: 'Show detected frame again',
     title: 'Auto Sync',
-    useSuggestion: 'Preview suggested anchor',
   },
   projects: {
     actionsLabel: 'Project actions',
@@ -83,6 +85,7 @@ export const en = {
       storage: 'Local project storage is unavailable. Check browser storage permissions.',
       synchronization: 'The synchronization point could not be saved locally.',
       vods: 'The VOD could not be removed from this project.',
+      vodName: 'The VOD display name could not be saved locally.',
     },
     foundationStatus: 'LOCAL & PRIVATE',
     import: 'Import project',
@@ -99,7 +102,7 @@ export const en = {
   sourceImport: {
     chooseFiles: 'Choose log and MP4 files',
     dropDescription:
-      'Drop one YYYY-MM-DD.log and any number of MP4 perspectives. Large videos stay on this device.',
+      'Drop one dated .log or .ikusa.json and any number of MP4 perspectives. Large videos stay on this device.',
     dropTitle: 'Add local source files',
     errorTitle: 'Files were not imported',
     fileInputLabel: 'Local log and MP4 files',
@@ -115,6 +118,13 @@ export const en = {
       unexpected: 'An unexpected local file-reading error occurred. Try selecting the files again.',
     },
     inspecting: 'Inspecting files…',
+    logGuide: {
+      download: 'Choose the correct Node War or Siege and download the log.',
+      hoverName: 'Hover over your name in the top-right corner.',
+      openScores: 'Choose Scores.',
+      title: 'How to download a GuildYapper log',
+      visit: 'Open GuildYapper',
+    },
     issues: {
       duplicateVod: '{{fileName}} is already linked and was skipped.',
       invalidMp4: '{{fileName}} does not contain a valid MP4 file signature and was skipped.',
@@ -122,7 +132,8 @@ export const en = {
         '{{fileName}} was added, but this browser could not read its playback metadata.',
       relinkedVod: '{{fileName}} was safely relinked to its saved VOD reference.',
       tooManyVods: 'More than eight VODs may reduce playback performance on this device.',
-      unsupportedFile: '{{fileName}} is not a supported .log or .mp4 file and was skipped.',
+      unsupportedFile:
+        '{{fileName}} is not a supported .log, .ikusa.json, or .mp4 file and was skipped.',
     },
     logWarnings_one: 'The log contains {{count}} skipped or out-of-order line.',
     logWarnings_other: 'The log contains {{count}} skipped or out-of-order lines.',
@@ -290,10 +301,14 @@ export const en = {
     privateNote: 'Metadata is saved; video content is not copied.',
     reselectRequired: 'Reselect required',
     resolution: 'Resolution',
+    renameVod: 'Rename {{name}}',
+    saveVodName: 'Save',
+    savingVodName: 'Saving…',
     size: 'File size',
     syncRequired: 'SYNC REQUIRED',
     synced: 'SYNCED',
     title: 'Imported sources',
+    vodName: 'VOD display name',
   },
   synchronization: {
     addSearchTerm: 'Add name',

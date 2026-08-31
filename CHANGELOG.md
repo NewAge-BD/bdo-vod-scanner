@@ -10,12 +10,14 @@ The project intends to follow Semantic Versioning once releases begin.
 
 - Added an experimental privacy-first Auto Sync workflow with a user-defined chat crop, bounded local OCR sampling, fuzzy kill-line matching, refinement to the first visible matched kill, progress, cancellation, and a confirmable anchor suggestion.
 - Bundled the OCR worker, WebAssembly core, and English language data locally so recordings and chat crops never require a third-party service.
+- Added GuildYapper `has killed` logs with descriptive dates, validated Ikusa raw-session JSON v4 imports, an in-app GuildYapper download guide, and editable VOD display names.
 
 ### Fixed
 
 - Auto Sync now finds when the matched chat message first appears instead of anchoring to an older frame where a long-lived message is merely still visible.
 - Auto Sync now requires the visible chat timestamp to match the log event and preserves image zoom while selecting the chat area.
 - Every secondary VOD in clipping split screen now supports independent wheel zoom, middle-button pan, and double-click reset.
+- Successful Auto Sync scans now seek the player immediately and guide the user through final frame-by-frame notification alignment.
 
 ## [0.1.1] - 2026-08-31
 

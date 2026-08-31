@@ -5,6 +5,7 @@ import {
   deleteProjectVod,
   getProjectExportFileName,
   renameProject,
+  renameVod,
   setVodSearchTerms,
   setVodSplitSearchTerms,
   setDavinciDefaults,
@@ -38,6 +39,41 @@ describe('project domain', () => {
     expect(project.name).toBe('Draft');
     expect(renamed.name).toBe('Siege review');
     expect(renamed.updatedAt).toBe('2026-08-30T13:00:00.000Z');
+  });
+
+  it('renames only a VOD display name while preserving its source filename', () => {
+    const project = portableProjectSchema.parse({
+      ...createProject('Perspectives', new Date('2026-08-30T12:00:00.000Z')),
+      vods: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          displayName: 'Original display name',
+          fileName: 'Original recording.mp4',
+          fileSizeBytes: 12,
+          lastModifiedMs: 100,
+          durationSeconds: 60,
+          width: 1920,
+          height: 1080,
+          nominalFrameRate: 60,
+          variableFrameRate: false,
+          videoCodec: null,
+          audioCodec: null,
+          synchronizationAnchor: null,
+          searchTerms: [],
+        },
+      ],
+    });
+
+    const renamed = renameVod(
+      project,
+      project.vods[0]!.id,
+      'Main shotcaller',
+      new Date('2026-08-30T13:00:00.000Z'),
+    );
+
+    expect(renamed.vods[0]?.displayName).toBe('Main shotcaller');
+    expect(renamed.vods[0]?.fileName).toBe('Original recording.mp4');
+    expect(project.vods[0]?.displayName).toBe('Original display name');
   });
 
   it('stores normalized independent search terms on one VOD', () => {

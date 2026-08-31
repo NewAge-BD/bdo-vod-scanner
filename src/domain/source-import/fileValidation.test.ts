@@ -3,9 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { hasMp4FileSignature, isLogFileName, isMp4FileName } from './fileValidation';
 
 describe('source file validation', () => {
-  it.each(['2026-08-29.log', 'SESSION.LOG'])('recognizes log extensions for %s', (fileName) => {
-    expect(isLogFileName(fileName)).toBe(true);
-  });
+  it.each(['2026-08-29.log', 'SESSION.LOG', 'siege_2026-08-29.ikusa.json'])(
+    'recognizes log extensions for %s',
+    (fileName) => {
+      expect(isLogFileName(fileName)).toBe(true);
+    },
+  );
 
   it.each(['perspective.mp4', 'PERSPECTIVE.MP4'])(
     'recognizes MP4 extensions for %s',

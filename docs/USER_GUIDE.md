@@ -19,7 +19,7 @@ Use **Import project** to select a `.bdo-vod-project.json` file. Import opens th
 
 ### 2. Import files
 
-Drag one `YYYY-MM-DD.log` file and one or more MP4 VODs onto the import surface.
+Drag one dated `.log` or Ikusa `.ikusa.json` file and one or more MP4 VODs onto the import surface. Canonical `YYYY-MM-DD.log` files and descriptive `.log` filenames containing `YYYY-MM-DD` or `DD.MM.YYYY` are supported. Expand **How to download a GuildYapper log** for the exact four-step download path. Each imported VOD can be renamed on its source card; this changes only the name shown by the website, never the original MP4 filename.
 
 The same files can be selected with **Choose log and MP4 files**. The log is validated against the exact BDO event format. Invalid individual MP4s and unrelated files are skipped without discarding valid sources from the selection.
 
@@ -51,9 +51,9 @@ The **Log events** track shares the visible video-time scale. Kills are green, d
 
 Stop on the matching event and choose **Set synchronization point**.
 
-For an automatic suggestion, choose **Define chat area** in the experimental **Auto Sync** card and drag a rectangle around only the in-game chat messages. Your current image zoom and pan stay in place while selecting the area. For substantially clearer recognition, increase the in-game chat background opacity so the selected text sits on a solid grey surface. Start the scan near any useful point in the recording. Auto Sync samples the marked crop locally, searches for recognizable kill messages, and compares their names and visible hour-and-minute timestamps with the imported log. The first run loads the bundled recognition engine and may take longer. You can cancel at any time.
+For an automatic suggestion, choose **Define chat area** in the experimental **Auto Sync** card and drag a rectangle around only the in-game chat messages. Your current image zoom and pan stay in place while selecting the area. Recognition works much better when you use BDO's in-game crop mode and place the chat in its grey area. Start the scan near any useful point in the recording. Auto Sync samples the marked crop locally, searches for recognizable kill messages, and compares their names and visible hour-and-minute timestamps with the imported log. The first run loads the bundled recognition engine and may take longer. You can cancel at any time.
 
-When a reliable match is found, Auto Sync searches backward until that exact line has not appeared yet, then refines the transition to the first readable frame. This also works when the message remains visible in chat for several minutes. Review the cropped preview, log line, and confidence, then choose **Preview suggested anchor**. This seeks to the proposed fresh-message frame but does not save anything yet. Verify the frame and choose **Set synchronization point** as usual. If no match is found, redraw a tighter chat area, move the playhead near readable combat chat, or continue with manual synchronization. No screenshot or recognized text is uploaded or saved in the portable project.
+When a reliable match is found, Auto Sync searches backward until that exact line has not appeared yet, then refines the transition to the first readable frame. This also works when the message remains visible in chat for several minutes. The main player immediately jumps to the detected frame. Review the cropped preview, log line, and confidence, then use **Previous frame** and **Next frame** to select the exact first frame where the kill notification appears. Only then choose **Set synchronization point**. If no match is found, redraw a tighter chat area, move the playhead near readable combat chat, or continue with manual synchronization. No screenshot or recognized text is uploaded or saved in the portable project.
 
 Every VOD has its own synchronization offset. Select another perspective above the player to synchronize it independently. Existing points can be updated. The current browser implementation uses detected FPS when available and otherwise visibly estimates 60 FPS; it does not promise a professional frame index.
 

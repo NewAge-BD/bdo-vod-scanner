@@ -62,6 +62,9 @@ export function AutoSyncPanel({
         return;
       }
       setResult(nextResult);
+      if (nextResult !== undefined) {
+        onUseSuggestion(nextResult);
+      }
       setStatus(nextResult === undefined ? 'not-found' : 'idle');
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
@@ -156,12 +159,9 @@ export function AutoSyncPanel({
             <span>
               {t('autoSync.confidence', { confidence: Math.round(result.confidence * 100) })}
             </span>
-            <button
-              className="button button--primary"
-              onClick={() => onUseSuggestion(result)}
-              type="button"
-            >
-              {t('autoSync.useSuggestion')}
+            <p className="auto-sync-result__fine-tune">{t('autoSync.fineTune')}</p>
+            <button onClick={() => onUseSuggestion(result)} type="button">
+              {t('autoSync.showDetectedFrameAgain')}
             </button>
           </div>
         </div>

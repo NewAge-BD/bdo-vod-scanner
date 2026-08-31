@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { parseBdoLog } from '../../domain/events';
@@ -9,9 +9,15 @@ interface SourceOverviewProps {
   readonly project: PortableProject;
   readonly linkedVodIds: ReadonlySet<string>;
   readonly onDeleteVod: (vodId: string) => void;
+  readonly onRenameVod: (vodId: string, displayName: string) => Promise<boolean>;
 }
 
-export function SourceOverview({ project, linkedVodIds, onDeleteVod }: SourceOverviewProps) {
+export function SourceOverview({
+  project,
+  linkedVodIds,
+  onDeleteVod,
+  onRenameVod,
+}: SourceOverviewProps) {
   const { t } = useTranslation();
   const parsedLog = useMemo(() => {
     if (project.rawLog === null || project.sessionDate === null) {
@@ -64,6 +70,7 @@ export function SourceOverview({ project, linkedVodIds, onDeleteVod }: SourceOve
               key={vod.id}
               linked={linkedVodIds.has(vod.id)}
               onDelete={() => onDeleteVod(vod.id)}
+              onRename={(displayName) => onRenameVod(vod.id, displayName)}
               vod={vod}
             />
           ))}
@@ -77,13 +84,27 @@ function VodCard({
   vod,
   linked,
   onDelete,
+  onRename,
 }: {
   readonly vod: VodReference;
   readonly linked: boolean;
   readonly onDelete: () => void;
+  readonly onRename: (displayName: string) => Promise<boolean>;
 }) {
   const { t, i18n } = useTranslation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [nameDraft, setNameDraft] = useState(vod.displayName);
   const numberFormatter = new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 });
+
+  async function saveName(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSaving(true);
+    if (await onRename(nameDraft)) {
+      setIsEditing(false);
+    }
+    setIsSaving(false);
+  }
 
   return (
     <article className="source-card source-card--vod">
@@ -92,7 +113,46 @@ function VodCard({
           MP4
         </span>
         <div>
-          <h3>{vod.displayName}</h3>
+          {isEditing ? (
+            <form className="vod-rename-form" onSubmit={(event) => void saveName(event)}>
+              <label className="visually-hidden" htmlFor={`vod-name-${vod.id}`}>
+                {t('sources.vodName')}
+              </label>
+              <input
+                autoFocus
+                id={`vod-name-${vod.id}`}
+                maxLength={255}
+                onChange={(event) => setNameDraft(event.target.value)}
+                required
+                value={nameDraft}
+              />
+              <button disabled={isSaving} type="submit">
+                {isSaving ? t('sources.savingVodName') : t('sources.saveVodName')}
+              </button>
+              <button
+                disabled={isSaving}
+                onClick={() => {
+                  setNameDraft(vod.displayName);
+                  setIsEditing(false);
+                }}
+                type="button"
+              >
+                {t('common.cancel')}
+              </button>
+            </form>
+          ) : (
+            <div className="source-card__title-row">
+              <h3>{vod.displayName}</h3>
+              <button
+                aria-label={t('sources.renameVod', { name: vod.displayName })}
+                className="vod-rename-button"
+                onClick={() => setIsEditing(true)}
+                type="button"
+              >
+                {t('common.rename')}
+              </button>
+            </div>
+          )}
           <p>{vod.fileName}</p>
         </div>
         <span

@@ -39,7 +39,7 @@ The format must contain:
 
 ## Log data
 
-The raw log is embedded because it is small and permits deterministic reparsing.
+The raw event source is embedded because it is small and permits deterministic reparsing. Parser version `2` supports GuildYapper text logs and validated Ikusa raw-session JSON v4 while preserving the original source text unchanged.
 
 Every parsed event includes:
 
@@ -65,6 +65,7 @@ Store metadata, never media bytes:
 - Stable project-local VOD ID
 - Display name
 - Filename
+- User-editable display name, independent from the filename
 - File size
 - Last-modified timestamp when available
 - Duration

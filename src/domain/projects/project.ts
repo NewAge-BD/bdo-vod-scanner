@@ -13,7 +13,7 @@ export function createProject(name: string, now = new Date()): PortableProject {
     createdAt: timestamp,
     updatedAt: timestamp,
     rawLog: null,
-    parserVersion: 1,
+    parserVersion: 2,
     vods: [],
     clips: [],
     clipOrder: [],
@@ -37,6 +37,22 @@ export function renameProject(
     ...project,
     name,
     updatedAt: now.toISOString(),
+  });
+}
+
+export function renameVod(
+  project: PortableProject,
+  vodId: string,
+  displayName: string,
+  now = new Date(),
+): PortableProject {
+  if (!project.vods.some((vod) => vod.id === vodId)) {
+    throw new Error('The selected VOD does not exist in this project.');
+  }
+  return portableProjectSchema.parse({
+    ...project,
+    updatedAt: now.toISOString(),
+    vods: project.vods.map((vod) => (vod.id === vodId ? { ...vod, displayName } : vod)),
   });
 }
 

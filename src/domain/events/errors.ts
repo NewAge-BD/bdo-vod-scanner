@@ -1,8 +1,9 @@
-const EXPECTED_FORMAT = '[HH:mm:ss] FamilyA killed FamilyB from GuildB (CharacterB, CharacterA)';
+const EXPECTED_FORMAT =
+  '[HH:mm:ss] FamilyA [has] killed FamilyB from GuildB (CharacterB, CharacterA), or Ikusa raw-session JSON v4';
 
 export class InvalidLogFileNameError extends Error {
   constructor(fileName: string) {
-    super(`Expected a valid YYYY-MM-DD.log filename, but received "${fileName}".`);
+    super(`Expected a dated .log or .ikusa.json filename, but received "${fileName}".`);
     this.name = 'InvalidLogFileNameError';
   }
 }

@@ -27,7 +27,7 @@ const event: BdoEvent = {
 };
 
 describe('AutoSyncPanel', () => {
-  it('runs a local scan and lets the user preview a suggestion before saving it', async () => {
+  it('jumps to a local suggestion and asks the user for frame-level refinement', async () => {
     const user = userEvent.setup();
     const onUseSuggestion = vi.fn();
     vi.mocked(scanVideoForSynchronization).mockImplementation(({ onProgress }) => {
@@ -57,8 +57,7 @@ describe('AutoSyncPanel', () => {
     expect(await screen.findByText('Matching kill event found')).toBeInTheDocument();
     expect(screen.getByText('91% match confidence')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Recognized in-game chat crop' })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Preview suggested anchor' }));
+    expect(screen.getByText(/Previous frame.*Next frame/)).toBeInTheDocument();
     expect(onUseSuggestion).toHaveBeenCalledWith(
       expect.objectContaining({ event, videoTimeSeconds: 42.5 }),
     );

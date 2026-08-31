@@ -43,6 +43,7 @@ export function ProjectWorkspace({
   const reorderClips = useProjectStore((state) => state.reorderClips);
   const saveDavinciDefaults = useProjectStore((state) => state.saveDavinciDefaults);
   const deleteVod = useProjectStore((state) => state.deleteVod);
+  const renameVod = useProjectStore((state) => state.renameVod);
   const setClipPanelCollapsed = useProjectStore((state) => state.setClipPanelCollapsed);
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<
@@ -169,6 +170,7 @@ export function ProjectWorkspace({
           <SourceOverview
             linkedVodIds={linkedVodIds}
             onDeleteVod={(vodId) => void handleDeleteVod(vodId)}
+            onRenameVod={(vodId, displayName) => renameVod(project.id, vodId, displayName)}
             project={project}
           />
         </>

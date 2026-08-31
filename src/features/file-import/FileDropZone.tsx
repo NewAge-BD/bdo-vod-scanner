@@ -52,7 +52,7 @@ export function FileDropZone({ disabled, onFiles }: FileDropZoneProps) {
       }}
     >
       <input
-        accept=".log,.mp4,text/plain,video/mp4"
+        accept=".log,.ikusa.json,.mp4,text/plain,application/json,video/mp4"
         aria-label={t('sourceImport.fileInputLabel')}
         className="visually-hidden"
         disabled={disabled}
@@ -76,6 +76,19 @@ export function FileDropZone({ disabled, onFiles }: FileDropZoneProps) {
       >
         {disabled ? t('sourceImport.inspecting') : t('sourceImport.chooseFiles')}
       </button>
+      <details className="log-download-guide">
+        <summary>{t('sourceImport.logGuide.title')}</summary>
+        <ol>
+          <li>
+            <a href="https://guildyapper.com/" rel="noreferrer" target="_blank">
+              {t('sourceImport.logGuide.visit')}
+            </a>
+          </li>
+          <li>{t('sourceImport.logGuide.hoverName')}</li>
+          <li>{t('sourceImport.logGuide.openScores')}</li>
+          <li>{t('sourceImport.logGuide.download')}</li>
+        </ol>
+      </details>
     </div>
   );
 }

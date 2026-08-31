@@ -55,6 +55,77 @@ describe('parseBdoLog', () => {
     );
   });
 
+  it('accepts GuildYapper has-killed lines and a dated descriptive filename', () => {
+    const result = parseBdoLog(
+      'T2 Practice 16.08.2026 Win.log',
+      '[08:04:23] EmberVale has killed NightHarbor from MoonGuard (ShadeLance, SolarBloom)',
+    );
+
+    expect(result.sessionDate).toBe('2026-08-16');
+    expect(result.events[0]).toEqual(
+      expect.objectContaining({
+        verb: 'killed',
+        familyA: 'EmberVale',
+        familyB: 'NightHarbor',
+        guildB: 'MoonGuard',
+        characterA: 'SolarBloom',
+        characterB: 'ShadeLance',
+      }),
+    );
+  });
+
+  it('validates and maps Ikusa raw-session JSON v4', () => {
+    const result = parseBdoLog(
+      'siege_2026-08-29.ikusa.json',
+      JSON.stringify({
+        format: 'ikusa-raw-session',
+        version: 4,
+        saved_at: '2026-08-29T19:49:37.920Z',
+        logs: [
+          {
+            identifier: 'synthetic-event',
+            time: '20:01:39',
+            isKill: true,
+            names: ['ShadeLance', 'MoonGuard', 'SolarBloom', 'EmberVale', 'NightHarbor'],
+            name_offsets: [10, 20, 30, 40, 50],
+          },
+        ],
+      }),
+    );
+
+    expect(result.sessionDate).toBe('2026-08-29');
+    expect(result.events[0]).toEqual(
+      expect.objectContaining({
+        clockTime: '20:01:39',
+        verb: 'killed',
+        familyA: 'EmberVale',
+        familyB: 'NightHarbor',
+        guildB: 'MoonGuard',
+        characterA: 'SolarBloom',
+        characterB: 'ShadeLance',
+      }),
+    );
+  });
+
+  it('rejects incompatible Ikusa JSON versions and malformed entries', () => {
+    expect(() =>
+      parseBdoLog(
+        'siege_2026-08-29.ikusa.json',
+        JSON.stringify({ format: 'ikusa-raw-session', version: 3, logs: [] }),
+      ),
+    ).toThrow(UnrecognizedLogError);
+    expect(() =>
+      parseBdoLog(
+        'siege_2026-08-29.ikusa.json',
+        JSON.stringify({
+          format: 'ikusa-raw-session',
+          version: 4,
+          logs: [{ time: '20:01:39', isKill: true, names: ['incomplete'] }],
+        }),
+      ),
+    ).toThrow(UnrecognizedLogError);
+  });
+
   it('keeps events with the same timestamp distinct', () => {
     const result = parseBdoLog(
       '2026-08-29.log',

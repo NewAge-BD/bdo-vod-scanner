@@ -14,6 +14,7 @@ import {
   deleteProjectVod,
   parseProjectFile,
   renameProject,
+  renameVod,
   setDavinciDefaults,
   setVodSearchTerms,
   setVodSplitSearchTerms,
@@ -42,6 +43,7 @@ export interface ProjectStoreState {
     project: PortableProject,
     vodFiles: ReadonlyMap<string, File>,
   ) => Promise<boolean>;
+  readonly renameVod: (projectId: string, vodId: string, displayName: string) => Promise<boolean>;
   readonly saveSynchronization: (
     projectId: string,
     vodId: string,
@@ -200,6 +202,17 @@ export function createProjectStore(repository: ProjectRepository) {
       }
     },
 
+    renameVod: async (projectId, vodId, displayName) => {
+      return saveProjectUpdate(
+        set,
+        get,
+        repository,
+        projectId,
+        (project) => renameVod(project, vodId, displayName),
+        'projects.errors.vodName',
+      );
+    },
+
     saveSynchronization: async (projectId, vodId, anchor) => {
       const project = get().projects.find((candidate) => candidate.id === projectId);
       if (project === undefined) {
@@ -347,6 +360,7 @@ async function saveProjectUpdate(
   repository: ProjectRepository,
   projectId: string,
   update: (project: PortableProject) => PortableProject,
+  errorMessage = 'projects.errors.clips',
 ): Promise<boolean> {
   const project = get().projects.find((candidate) => candidate.id === projectId);
   if (project === undefined) {
@@ -366,7 +380,7 @@ async function saveProjectUpdate(
     });
     return true;
   } catch {
-    set({ errorMessage: 'projects.errors.clips' });
+    set({ errorMessage });
     return false;
   }
 }

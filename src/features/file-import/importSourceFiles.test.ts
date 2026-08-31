@@ -63,6 +63,32 @@ describe('source import', () => {
     expect(result.issues).toEqual([{ code: 'metadataUnavailable', fileName: 'AV1.mp4' }]);
   });
 
+  it('imports a validated Ikusa JSON event source', async () => {
+    const rawLog = JSON.stringify({
+      format: 'ikusa-raw-session',
+      version: 4,
+      saved_at: '2026-08-29T19:49:37.920Z',
+      logs: [
+        {
+          time: '20:01:39',
+          isKill: true,
+          names: ['ShadeLance', 'MoonGuard', 'SolarBloom', 'EmberVale', 'NightHarbor'],
+        },
+      ],
+    });
+    const result = await importSourceFiles(
+      createProject('Siege'),
+      [new File([rawLog], 'siege_2026-08-29.ikusa.json', { type: 'application/json' })],
+      metadataInspector,
+    );
+
+    expect(result.importedLog).toBe(true);
+    expect(result.eventCount).toBe(1);
+    expect(result.project.sessionDate).toBe('2026-08-29');
+    expect(result.project.rawLog).toBe(rawLog);
+    expect(result.project.parserVersion).toBe(2);
+  });
+
   it('rejects fake MP4 content while reporting unrelated unsupported files', async () => {
     const fakeVideo = new File(['not a video'], 'Fake.mp4', { type: 'video/mp4' });
     const note = new File(['note'], 'readme.txt', { type: 'text/plain' });

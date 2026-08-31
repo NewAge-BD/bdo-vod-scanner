@@ -512,6 +512,29 @@ h1 {
   line-height: 1.55;
 }
 
+.log-download-guide {
+  grid-column: 2 / -1;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.log-download-guide summary {
+  width: fit-content;
+  color: #d7dde5;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.log-download-guide ol {
+  margin: 0.7rem 0 0;
+  padding-left: 1.25rem;
+  line-height: 1.7;
+}
+
+.log-download-guide a {
+  color: var(--accent);
+}
+
 .import-message,
 .import-results {
   margin-bottom: 1rem;
@@ -619,6 +642,58 @@ h1 {
 .source-card__identity h3 {
   margin-bottom: 0.2rem;
   font-size: 0.95rem;
+}
+
+.source-card__title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.source-card__title-row h3 {
+  min-width: 0;
+}
+
+.vod-rename-button {
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 750;
+}
+
+.vod-rename-button:hover {
+  color: var(--accent);
+}
+
+.vod-rename-form {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.vod-rename-form input {
+  min-width: 8rem;
+  width: min(20rem, 36vw);
+  padding: 0.38rem 0.45rem;
+  color: var(--text);
+  background: #080b0f;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.3rem;
+}
+
+.vod-rename-form button {
+  padding: 0.38rem 0.48rem;
+  color: var(--text);
+  background: #151a22;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.3rem;
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 750;
 }
 
 .source-card__identity p {
@@ -1949,6 +2024,15 @@ h1 {
 .auto-sync-result span {
   color: var(--muted);
   font-size: 0.64rem;
+}
+
+.auto-sync-result .auto-sync-result__fine-tune {
+  margin: 0.55rem 0;
+  padding: 0.55rem 0.65rem;
+  color: #e6f4cb;
+  background: rgb(216 254 69 / 8%);
+  border-left: 3px solid var(--accent);
+  white-space: normal;
 }
 
 .auto-sync-progress progress {

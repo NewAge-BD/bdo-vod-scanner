@@ -4,7 +4,8 @@ const MP4_FILE_TYPE_BOX = 'ftyp';
 export const MAX_RAW_LOG_BYTES = 5_000_000;
 
 export function isLogFileName(fileName: string): boolean {
-  return fileName.toLocaleLowerCase('en-US').endsWith('.log');
+  const normalizedName = fileName.toLocaleLowerCase('en-US');
+  return normalizedName.endsWith('.log') || normalizedName.endsWith('.ikusa.json');
 }
 
 export function isMp4FileName(fileName: string): boolean {
