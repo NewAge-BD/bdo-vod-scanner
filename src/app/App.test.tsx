@@ -116,6 +116,34 @@ describe('App', () => {
       y: 0,
       toJSON: () => undefined,
     });
+    Object.defineProperties(videoElement, {
+      videoHeight: { configurable: true, value: 1440 },
+      videoWidth: { configurable: true, value: 2560 },
+    });
+    await user.click(screen.getByRole('button', { name: 'Define chat area' }));
+    const cropSelector = screen.getByLabelText(/Chat area selector/);
+    vi.spyOn(cropSelector, 'getBoundingClientRect').mockReturnValue({
+      bottom: 450,
+      height: 450,
+      left: 0,
+      right: 800,
+      top: 0,
+      width: 800,
+      x: 0,
+      y: 0,
+      toJSON: () => undefined,
+    });
+    Object.assign(cropSelector, {
+      hasPointerCapture: vi.fn(() => true),
+      releasePointerCapture: vi.fn(),
+      setPointerCapture: vi.fn(),
+    });
+    fireEvent.pointerDown(cropSelector, { button: 0, clientX: 60, clientY: 260, pointerId: 9 });
+    fireEvent.pointerMove(cropSelector, { clientX: 390, clientY: 430, pointerId: 9 });
+    fireEvent.pointerUp(cropSelector, { clientX: 390, clientY: 430, pointerId: 9 });
+    expect(screen.queryByLabelText(/Chat area selector/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start Auto Sync' })).toBeEnabled();
+    expect(screen.getByText(/Chat area ready/)).toBeInTheDocument();
     const videoWheel = new WheelEvent('wheel', {
       bubbles: true,
       cancelable: true,

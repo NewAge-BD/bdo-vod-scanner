@@ -20,6 +20,33 @@ export const en = {
     localOnly: 'Local processing only',
     statusLabel: 'Privacy status',
   },
+  autoSync: {
+    cancel: 'Cancel scan',
+    confidence: '{{confidence}}% match confidence',
+    cropSelectorLabel:
+      'Chat area selector. Drag to redraw. Arrow keys move the area; Shift plus arrow keys resize it.',
+    defineRegion: 'Define chat area',
+    description:
+      'Mark the in-game chat once. Local OCR samples this recording and proposes a matching log anchor.',
+    drawHint: 'Drag a rectangle around only the chat messages in the video.',
+    error: 'Auto Sync could not scan this recording. You can still synchronize it manually.',
+    experimental: 'EXPERIMENTAL',
+    localOnly: 'LOCAL OCR',
+    matchFound: 'Matching kill event found',
+    notFound:
+      'No reliable match was found. Redraw the chat area, move near a readable chat moment, or synchronize manually.',
+    phases: {
+      loading: 'Loading local text recognition…',
+      refining: 'Refining the first visible kill frame…',
+      sampling: 'Sampling chat frames…',
+    },
+    previewAlt: 'Recognized in-game chat crop',
+    redrawRegion: 'Redraw chat area',
+    regionReady: 'Chat area ready. The scan begins near the current playhead.',
+    start: 'Start Auto Sync',
+    title: 'Auto Sync',
+    useSuggestion: 'Preview suggested anchor',
+  },
   projects: {
     actionsLabel: 'Project actions',
     back: 'All projects',

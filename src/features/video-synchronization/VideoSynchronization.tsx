@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { AutoSyncRegion } from '../../domain/auto-sync';
 import type { CreateClipInput, UpdateClipInput } from '../../domain/clips';
 import type { DaVinciTimelineSettings } from '../../domain/davinci-export';
 import { parseBdoLog, searchEvents, type BdoEvent } from '../../domain/events';
@@ -32,7 +33,10 @@ import { SplitTimelineIcon } from '../../shared/components/SplitTimelineIcon';
 import { SpeakerIcon } from '../../shared/components/SpeakerIcon';
 import { TrashIcon } from '../../shared/components/TrashIcon';
 import { ClipPanel } from '../clip-editor';
+import type { AutoSyncScanResult } from '../../infrastructure/ocr';
+import { AutoSyncPanel } from './AutoSyncPanel';
 import { useObjectUrl } from './useObjectUrl';
+import { VideoCropSelector } from './VideoCropSelector';
 import { VideoTimelineFilmstrip } from './VideoTimelineFilmstrip';
 
 const MAX_VISIBLE_EVENTS = 50;
@@ -109,6 +113,10 @@ export function VideoSynchronization({
   const [workspaceMode, setWorkspaceMode] = useState<'synchronization' | 'clipping'>(
     'synchronization',
   );
+  const [autoSyncRegionsByVod, setAutoSyncRegionsByVod] = useState<
+    ReadonlyMap<string, AutoSyncRegion>
+  >(() => new Map());
+  const [isSelectingAutoSyncRegion, setIsSelectingAutoSyncRegion] = useState(false);
 
   const file = activeVod === undefined ? undefined : vodFiles.get(activeVod.id);
   const firstEventId = events[0]?.id;
@@ -190,6 +198,7 @@ export function VideoSynchronization({
     setClipSaveState('idle');
     setSaveState('idle');
     setIsVideoReady(false);
+    setIsSelectingAutoSyncRegion(false);
     setVideoTime(clampToVod(nextVideoTime, vod));
   }
 
@@ -383,6 +392,17 @@ export function VideoSynchronization({
     setSaveState(saved ? 'saved' : 'error');
   }
 
+  function useAutoSyncSuggestion(result: AutoSyncScanResult) {
+    setSelectedEventId(result.event.id);
+    setIsMainPlaying(false);
+    setVideoTime(result.videoTimeSeconds);
+    setSaveState('idle');
+    setEventSeekRequest((current) => ({
+      sequence: (current?.sequence ?? 0) + 1,
+      videoTimeSeconds: result.videoTimeSeconds,
+    }));
+  }
+
   async function deleteVod(vodId: string) {
     if (!(await onDeleteVod(vodId))) {
       return;
@@ -499,6 +519,7 @@ export function VideoSynchronization({
               ]
             : [];
         })}
+        autoSyncRegion={autoSyncRegionsByVod.get(activeVod.id)}
         audibleVodIds={audibleVodIds}
         clippingMode={clippingMode}
         estimatedFrameRate={estimatedFrameRate}
@@ -514,6 +535,14 @@ export function VideoSynchronization({
           setClipDraft(range);
           setClipSaveState('idle');
         }}
+        onAutoSyncRegionChange={(region) => {
+          setAutoSyncRegionsByVod((current) => {
+            const next = new Map(current);
+            next.set(activeVod.id, region);
+            return next;
+          });
+          setIsSelectingAutoSyncRegion(false);
+        }}
         onMarkClipBoundary={markClipBoundary}
         onPerspectiveAudioToggle={togglePerspectiveAudio}
         onPlaybackChange={setIsMainPlaying}
@@ -528,6 +557,7 @@ export function VideoSynchronization({
         onSelectEvent={setSelectedEventId}
         onTimeChange={setVideoTime}
         onSaveClip={() => void saveMarkedClip()}
+        isSelectingAutoSyncRegion={!clippingMode && isSelectingAutoSyncRegion}
         searchDraft={clipSearchDraft}
         searchSaveState={clipSearchSaveState}
         searchTerms={activeVod.searchTerms}
@@ -592,6 +622,18 @@ export function VideoSynchronization({
         <div className="video-sync__player-column">{renderPlayer(false)}</div>
 
         <div className="sync-event-panel">
+          {file !== undefined && activeVod !== undefined && (
+            <AutoSyncPanel
+              events={events}
+              file={file}
+              isSelectingRegion={isSelectingAutoSyncRegion}
+              key={activeVod.id}
+              onRegionSelectionChange={setIsSelectingAutoSyncRegion}
+              onUseSuggestion={useAutoSyncSuggestion}
+              region={autoSyncRegionsByVod.get(activeVod.id)}
+              startTimeSeconds={videoTime}
+            />
+          )}
           <p className="sync-event-panel__label">{t('synchronization.selectedEvent')}</p>
           {selectedEvent !== undefined && (
             <div className={`selected-event selected-event--${selectedEvent.verb}`}>
@@ -733,6 +775,7 @@ export function VideoSynchronization({
 
 function SynchronizedVideoPlayer({
   additionalPerspectives,
+  autoSyncRegion,
   audibleVodIds,
   clippingMode,
   file,
@@ -749,6 +792,8 @@ function SynchronizedVideoPlayer({
   searchTerms,
   splitSearchTerms,
   selectedEvent,
+  isSelectingAutoSyncRegion,
+  onAutoSyncRegionChange,
   onClipRangeChange,
   onMarkClipBoundary,
   onPerspectiveAudioToggle,
@@ -764,6 +809,7 @@ function SynchronizedVideoPlayer({
   onSaveClip,
 }: {
   readonly additionalPerspectives: readonly SynchronizedPerspective[];
+  readonly autoSyncRegion: AutoSyncRegion | undefined;
   readonly audibleVodIds: ReadonlySet<string>;
   readonly clippingMode: boolean;
   readonly file: File;
@@ -780,6 +826,8 @@ function SynchronizedVideoPlayer({
   readonly searchTerms: readonly string[];
   readonly splitSearchTerms: readonly string[];
   readonly selectedEvent: BdoEvent | undefined;
+  readonly isSelectingAutoSyncRegion: boolean;
+  readonly onAutoSyncRegionChange: (region: AutoSyncRegion) => void;
   readonly onClipRangeChange: (range: ClipDraftRange) => void;
   readonly onMarkClipBoundary: (boundary: 'in' | 'out', time: number) => void;
   readonly onPerspectiveAudioToggle: (vodId: string) => void;
@@ -943,6 +991,13 @@ function SynchronizedVideoPlayer({
     window.addEventListener('keydown', handleGlobalVideoKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalVideoKeyDown);
   }, []);
+
+  useEffect(() => {
+    if (!isSelectingAutoSyncRegion) {
+      return;
+    }
+    videoRef.current?.pause();
+  }, [isSelectingAutoSyncRegion]);
 
   useEffect(() => {
     if (eventSeekRequest === undefined) {
@@ -1145,7 +1200,7 @@ function SynchronizedVideoPlayer({
   }
 
   function beginVideoPan(event: ReactPointerEvent<HTMLDivElement>) {
-    if (event.button !== 1 || videoZoom === 1) {
+    if (isSelectingAutoSyncRegion || event.button !== 1 || videoZoom === 1) {
       return;
     }
     event.preventDefault();
@@ -1259,7 +1314,7 @@ function SynchronizedVideoPlayer({
         <div
           aria-label={t('synchronization.videoViewport')}
           className={`video-viewport${isVideoPanning ? ' video-viewport--panning' : ''}`}
-          onDoubleClick={resetVideoViewport}
+          onDoubleClick={isSelectingAutoSyncRegion ? undefined : resetVideoViewport}
           onPointerCancel={endVideoPan}
           onPointerDown={beginVideoPan}
           onPointerMove={moveVideoPan}
@@ -1298,10 +1353,20 @@ function SynchronizedVideoPlayer({
             ref={videoRef}
             src={objectUrl}
             style={{
-              transform: `translate3d(${videoPan.x}px, ${videoPan.y}px, 0) scale(${videoZoom})`,
+              transform: isSelectingAutoSyncRegion
+                ? 'translate3d(0, 0, 0) scale(1)'
+                : `translate3d(${videoPan.x}px, ${videoPan.y}px, 0) scale(${videoZoom})`,
             }}
             tabIndex={0}
           />
+          {isSelectingAutoSyncRegion && (
+            <VideoCropSelector
+              label={t('autoSync.cropSelectorLabel')}
+              onChange={onAutoSyncRegionChange}
+              region={autoSyncRegion}
+              videoRef={videoRef}
+            />
+          )}
           <span className="video-viewport__zoom" aria-live="polite">
             {t('synchronization.videoZoom', { factor: formatZoom(videoZoom) })}
           </span>

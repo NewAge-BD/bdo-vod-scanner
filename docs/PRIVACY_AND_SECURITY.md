@@ -9,6 +9,7 @@ BDO VOD Scanner is local-first:
 - There is no account, backend, cloud storage, telemetry, analytics, or automatic crash reporting.
 - Application resources are bundled; no third-party font, script, stylesheet, or CDN is loaded at runtime.
 - The application makes no third-party network requests after loading.
+- Auto Sync performs OCR in a locally bundled Web Worker. Selected chat crops, recognized text, and match previews remain transient in memory and are discarded without entering project storage.
 
 ## Sensitive information
 

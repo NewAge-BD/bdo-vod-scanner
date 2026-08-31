@@ -33,8 +33,7 @@ Current scope excludes:
 - Backend, cloud storage, uploads, accounts, authentication, or collaboration.
 - Mobile/tablet optimization or PWA installation.
 - Full nonlinear editing or rendered split-screen output.
-- AI/video-image event recognition.
-- Automatic synchronization-frame recognition.
+- General-purpose AI/video-image event recognition beyond the approved local chat OCR workflow.
 - Professional guaranteed browser frame indexing.
 - Second synchronization anchors or drift correction.
 - Containers other than MP4 or guaranteed support for every MP4 codec.
@@ -111,6 +110,8 @@ Provide a red, accessible trash action for each VOD in both its imported-source 
 Expected sources include NVIDIA ShadowPlay, AMD Adrenalin, and OBS. Do not infer codec from the MP4 container.
 
 Every VOD has its own synchronization anchor and offset. Highlight an unsynchronized VOD's Sync button. Propose the first event, but allow another event to be searched and selected. Let the user navigate visually frame by frame, stop on the matching event, and confirm.
+
+Offer an experimental **Auto Sync** helper before manual confirmation. The user draws one normalized rectangle around the in-game chat for the active VOD. A locally bundled Tesseract.js worker samples only that crop, beginning near the current playhead and expanding outward in bounded intervals. Match recognized `killed` chat lines against log character/family names, opposing guild, verb, and visible minute; require both opposing names and a minimum confidence before proposing an anchor. Refine backward to the first sampled frame where the matched kill becomes visible. Show progress, cancellation, a cropped preview, matched log line, and confidence. Applying the suggestion only seeks and selects the candidate; the user still confirms the normal synchronization point. Keep the region, OCR text, and preview session-only, discard them when the workspace is closed, never upload them, and preserve manual synchronization as the fallback.
 
 Store VOD ID, event ID, event session time, matching video time, and offset. Use:
 
@@ -324,7 +325,8 @@ Build the web MVP in controlled milestones:
 8. Clip marking, editing, ordering, and project roundtrip.
 9. DaVinci export.
 10. Experimental lossless browser export.
-11. Accessibility, diagnostics, security hardening, and release readiness.
+11. Experimental local chat OCR and automatic synchronization suggestions.
+12. Accessibility, diagnostics, security hardening, and release readiness.
 
 Public GitHub Pages deployment and AGPL-3.0-or-later licensing were separately approved for version 0.1.0.
 
@@ -333,7 +335,7 @@ Public GitHub Pages deployment and AGPL-3.0-or-later licensing were separately a
 - Windows `.exe` with complete offline operation and FFmpeg-based export.
 - Full paths with privacy warning and stronger Resolve relinking.
 - Secondary sync anchors and drift correction.
-- Automatic AI/image event recognition.
+- General-purpose AI/image event recognition beyond local chat-based synchronization.
 - Additional log event types, languages, containers, and codecs.
 - Optional authenticated preview hosting if it is ever required.
 - Genuinely authenticated preview hosting if required.
@@ -361,5 +363,5 @@ Do not decide these silently:
 - Any future license change or dual-licensing approach.
 - Desktop framework and FFmpeg distribution strategy.
 - Excessive-VOD warning heuristics.
-- AI recognition design.
+- Recognition features beyond the approved local Tesseract.js chat OCR adapter.
 - Additional languages, containers, and codecs.

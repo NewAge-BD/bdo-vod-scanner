@@ -100,6 +100,8 @@ Multiple events may share one second and therefore initially map to the same vid
 
 The implemented synchronization workspace proposes the first valid event, supports searching and selecting another event, and records the paused video's fractional time. Its video timeline derives a bounded visible window from media duration, current center, and exponential zoom level; these calculations remain independent of React and browser APIs. Updating a sync point replaces only that VOD's anchor. Secondary anchors and drift correction remain intentionally unsupported.
 
+Experimental Auto Sync is a suggestion layer in front of the same anchor operation. The crop selector produces normalized coordinates without persisting media pixels. A browser OCR adapter opens a second transient video element, samples only that rectangle around the current playhead, preprocesses it on a canvas, and sends it to one lazily created Tesseract.js Web Worker. Worker code, WebAssembly core variants, and English language data are copied from pinned npm packages into the static build, so recognition makes no runtime third-party request. Pure domain matching tolerates small OCR errors but requires attacker and victim agreement before considering guild, verb, and visible minute. A coarse hit is refined backward to the first visible matching kill. The result updates only the transient selected event and playhead until the user confirms the existing synchronization action.
+
 If the log clock crosses from late night to an earlier time, increment the day offset. A second synchronization point and drift correction remain future work.
 
 ## Playback coordination

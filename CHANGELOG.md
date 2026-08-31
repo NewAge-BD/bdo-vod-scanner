@@ -6,6 +6,11 @@ The project intends to follow Semantic Versioning once releases begin.
 
 ## [Unreleased]
 
+### Added
+
+- Added an experimental privacy-first Auto Sync workflow with a user-defined chat crop, bounded local OCR sampling, fuzzy kill-line matching, refinement to the first visible matched kill, progress, cancellation, and a confirmable anchor suggestion.
+- Bundled the OCR worker, WebAssembly core, and English language data locally so recordings and chat crops never require a third-party service.
+
 ## [0.1.1] - 2026-08-31
 
 ### Added
