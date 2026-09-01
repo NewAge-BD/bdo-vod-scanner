@@ -70,11 +70,9 @@ test('manages a portable private local project', async ({ page }) => {
   await expect(page.getByText('Linked for this session')).toBeVisible();
   await expect(page.getByText('SYNC REQUIRED', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Synchronize VODs' })).toBeVisible();
-  await expect(
-    page.getByText(
-      '[20:00:56] FrostCairn died to RiverWarden from DawnKeep (TideCaller, IcePetal)',
-    ),
-  ).toBeVisible();
+  await expect(page.locator('.selected-event')).toContainText(
+    'FrostCairn was slain by RiverWarden from DawnKeep (TideCaller, IcePetal)',
+  );
   await expect(page.getByLabel('Video timeline playhead')).toBeVisible();
   await expect(page.getByLabel('Timeline zoom level')).toBeVisible();
   await expect(page.getByLabel('Shared log event timeline')).toBeVisible();

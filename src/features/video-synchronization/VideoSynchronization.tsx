@@ -37,6 +37,7 @@ import { TrashIcon } from '../../shared/components/TrashIcon';
 import { ClipPanel } from '../clip-editor';
 import type { AutoSyncScanResult } from '../../infrastructure/ocr';
 import { AutoSyncPanel } from './AutoSyncPanel';
+import { EventChatText } from './EventChatText';
 import { useObjectUrl } from './useObjectUrl';
 import { VideoCropSelector } from './VideoCropSelector';
 import { VideoTimelineFilmstrip } from './VideoTimelineFilmstrip';
@@ -649,7 +650,9 @@ export function VideoSynchronization({
           {selectedEvent !== undefined && (
             <div className={`selected-event selected-event--${selectedEvent.verb}`}>
               <time>{selectedEvent.clockTime}</time>
-              <p>{selectedEvent.rawLine}</p>
+              <p>
+                <EventChatText detailed event={selectedEvent} />
+              </p>
             </div>
           )}
 
@@ -735,7 +738,7 @@ export function VideoSynchronization({
                   type="button"
                 >
                   <time>{event.clockTime}</time>
-                  <span>{describeEvent(event)}</span>
+                  <EventChatText event={event} />
                 </button>
               </div>
             ))}
@@ -2298,7 +2301,7 @@ function getTimelineMarkerStyle(marker: LogTimelineMarker, markerIndex: number):
 }
 
 function describeEvent(event: BdoEvent): string {
-  return `${event.familyA} ${event.verb === 'killed' ? 'killed' : 'died to'} ${event.familyB}`;
+  return `${event.familyA} ${event.verb === 'killed' ? 'killed' : 'was slain by'} ${event.familyB}`;
 }
 
 function formatTime(seconds: number): string {

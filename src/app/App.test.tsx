@@ -214,11 +214,9 @@ describe('App', () => {
 
     await user.click(screen.getByRole('button', { name: /3 log events around video time/ }));
     expect(screen.getByText('Zoom ×1.0')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        '[23:59:58] EmberVale killed NightHarbor from MoonGuard (ShadeLance, SolarBloom)',
-      ),
-    ).toBeInTheDocument();
+    expect(document.querySelector('.selected-event')).toHaveTextContent(
+      /23:59:58.*EmberVale killed NightHarbor from MoonGuard \(ShadeLance, SolarBloom\)/,
+    );
     expect(screen.getByText('00:00:00.000', { selector: 'output' })).toBeInTheDocument();
     fireEvent.doubleClick(timeline);
 
@@ -228,11 +226,9 @@ describe('App', () => {
         name: '00:00:03: CopperGrove killed MistRunner',
       }),
     );
-    expect(
-      screen.getByText(
-        '[00:00:03] CopperGrove killed MistRunner from StarFoundry (CloudStep, BronzeLeaf)',
-      ),
-    ).toBeInTheDocument();
+    expect(document.querySelector('.selected-event')).toHaveTextContent(
+      /00:00:03.*CopperGrove killed MistRunner from StarFoundry \(CloudStep, BronzeLeaf\)/,
+    );
     expect(screen.getByText('00:00:05.000')).toBeInTheDocument();
     fireEvent.doubleClick(timeline);
 
@@ -249,23 +245,21 @@ describe('App', () => {
     await user.type(searchInput, 'EmberVale');
     await user.click(screen.getByRole('button', { name: 'Add name' }));
     expect(await screen.findByText('1 matching event')).toBeInTheDocument();
-    expect(screen.getByText('EmberVale')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove EmberVale' })).toBeInTheDocument();
 
     await user.type(searchInput, 'RiverWarden{Enter}');
     expect(await screen.findByText('2 matching events')).toBeInTheDocument();
-    expect(screen.getByText('RiverWarden')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove RiverWarden' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Previous matching event' }));
-    expect(
-      screen.getByText(
-        '[23:59:58] FrostCairn died to RiverWarden from DawnKeep (TideCaller, IcePetal)',
-      ),
-    ).toBeInTheDocument();
+    expect(document.querySelector('.selected-event')).toHaveTextContent(
+      /23:59:58.*FrostCairn was slain by RiverWarden from DawnKeep \(TideCaller, IcePetal\)/,
+    );
     expect(screen.getByText('00:00:55.000')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Remove EmberVale' }));
     expect(await screen.findByText('1 matching event')).toBeInTheDocument();
-    expect(screen.queryByText('EmberVale')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remove EmberVale' })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Second Perspective, Sync required' }));
     const secondVideoElement = screen.getByLabelText<HTMLVideoElement>(
@@ -536,7 +530,7 @@ describe('App', () => {
       'perspective-tab--active',
     );
     await user.type(screen.getByLabelText('Find a specific family name'), 'FrostCairn{Enter}');
-    expect(await screen.findByText('FrostCairn')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Remove FrostCairn' })).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Video timeline playhead'), {
       target: { value: '60' },
@@ -544,11 +538,11 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Perspective A, Synchronized' }));
 
     expect(screen.getByLabelText('Perspective A video perspective')).toBeInTheDocument();
-    expect(screen.queryByText('FrostCairn')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remove FrostCairn' })).not.toBeInTheDocument();
     expect(screen.getByText('00:01:00.000')).toBeInTheDocument();
     expect(screen.queryByText('Show mini')).not.toBeInTheDocument();
     expect(screen.queryByText('Hide mini')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Perspective B, Synchronized' }));
-    expect(await screen.findByText('FrostCairn')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Remove FrostCairn' })).toBeInTheDocument();
   });
 });

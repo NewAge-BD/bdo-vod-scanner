@@ -2382,6 +2382,24 @@ h1 {
   line-height: 1.5;
 }
 
+.event-chat-text__family {
+  color: #e1c467;
+}
+
+.event-chat-text__verb--kill,
+.event-chat-text__guild {
+  color: #59d4d1;
+}
+
+.event-chat-text__verb--death {
+  color: #f08f80;
+}
+
+.event-chat-text__connector,
+.event-chat-text__details {
+  color: #aeb8c5;
+}
+
 .sync-event-panel input {
   width: 100%;
   min-height: 2.45rem;
