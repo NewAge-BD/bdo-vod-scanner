@@ -19,6 +19,8 @@ The project intends to follow Semantic Versioning once releases begin.
 ### Fixed
 
 - Kept the guided-tour highlighter locked to its target while the page scrolls.
+- Improved text size, contrast, and browser capability wording in the imported-source and VOD synchronization workspaces.
+- Read MP4 video/audio codecs and sampled frame-rate information locally during import, including metadata refresh when an existing VOD is relinked.
 
 ## [0.2.0] - 2026-08-31
 

@@ -957,18 +957,20 @@ h1 {
 
 .source-card__facts dt {
   margin-bottom: 0.2rem;
-  color: var(--quiet);
-  font-size: 0.62rem;
+  color: #aeb8c5;
+  font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.05em;
+  line-height: 1.35;
   text-transform: uppercase;
 }
 
 .source-card__facts dd {
   margin: 0;
   overflow: hidden;
-  color: #d9dee5;
-  font-size: 0.75rem;
+  color: #e3e8ee;
+  font-size: 0.84rem;
+  line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -991,6 +993,12 @@ h1 {
   margin-bottom: 1rem;
 }
 
+.source-overview .section-kicker,
+.video-sync .section-kicker {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+}
+
 .video-sync__heading h2 {
   margin-bottom: 0;
   font-size: 1.5rem;
@@ -1000,8 +1008,8 @@ h1 {
 .video-sync__heading > p {
   max-width: 34rem;
   margin-bottom: 0;
-  color: var(--muted);
-  font-size: 0.78rem;
+  color: #b7c0cc;
+  font-size: 0.86rem;
   line-height: 1.5;
   text-align: right;
 }
@@ -1094,13 +1102,14 @@ h1 {
 
 .perspective-tab span {
   color: inherit;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   font-weight: 750;
 }
 
 .perspective-tab small {
   margin-top: 0.25rem;
-  font-size: 0.62rem;
+  font-size: 0.69rem;
+  line-height: 1.35;
 }
 
 .perspective-tab--sync-required small {
@@ -2227,9 +2236,9 @@ h1 {
 .auto-sync-panel > p,
 .auto-sync-result p {
   margin: 0;
-  color: var(--muted);
-  font-size: 0.68rem;
-  line-height: 1.45;
+  color: #b7c0cc;
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
 .auto-sync-panel__actions button,
@@ -2278,8 +2287,9 @@ h1 {
 .auto-sync-progress span,
 .auto-sync-progress strong,
 .auto-sync-result span {
-  color: var(--muted);
-  font-size: 0.64rem;
+  color: #b7c0cc;
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 .auto-sync-result .auto-sync-result__fine-tune {
@@ -2322,18 +2332,19 @@ h1 {
 .sync-event-panel label {
   display: block;
   margin-bottom: 0.45rem;
-  color: var(--quiet);
-  font-size: 0.65rem;
+  color: #b7c0cc;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.08em;
+  line-height: 1.35;
   text-transform: uppercase;
 }
 
 .sync-event-panel__hint {
   margin: -0.15rem 0 0.55rem;
-  color: var(--quiet);
-  font-size: 0.61rem;
-  line-height: 1.4;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
 }
 
 .selected-event {
@@ -2354,16 +2365,16 @@ h1 {
 }
 
 .selected-event time {
-  color: var(--muted);
+  color: #b7c0cc;
   font-family: 'Cascadia Mono', Consolas, monospace;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
 }
 
 .selected-event p {
   margin: 0.35rem 0 0;
-  color: #d9dee5;
-  font-size: 0.76rem;
-  line-height: 1.45;
+  color: #e3e8ee;
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 .sync-event-panel input {
@@ -2432,7 +2443,7 @@ h1 {
   border: 1px solid var(--border-strong);
   border-radius: 0.4rem;
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   font-weight: 750;
 }
 
@@ -2449,8 +2460,8 @@ h1 {
   justify-content: space-between;
   gap: 0.75rem;
   margin-top: 0.65rem;
-  color: var(--muted);
-  font-size: 0.68rem;
+  color: #b7c0cc;
+  font-size: 0.72rem;
 }
 
 .event-match-navigation > div {
@@ -2471,13 +2482,14 @@ h1 {
   grid-template-columns: 4.4rem 1fr;
   width: 100%;
   padding: 0.5rem;
-  color: var(--muted);
+  color: #b7c0cc;
   text-align: left;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 0.35rem;
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: 0.74rem;
+  line-height: 1.4;
 }
 
 .sync-event-list button:hover {
@@ -2492,7 +2504,7 @@ h1 {
 }
 
 .sync-event-list time {
-  color: var(--quiet);
+  color: var(--muted);
   font-family: 'Cascadia Mono', Consolas, monospace;
 }
 

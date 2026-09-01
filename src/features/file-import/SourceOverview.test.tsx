@@ -49,5 +49,6 @@ describe('SourceOverview', () => {
 
     expect(onRenameVod).toHaveBeenCalledWith(project.vods[0]!.id, 'Main shotcaller');
     expect(screen.getByText('Original recording.mp4')).toBeInTheDocument();
+    expect(screen.getByText('Reselect VOD to inspect')).toBeInTheDocument();
   });
 });

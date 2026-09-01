@@ -129,6 +129,36 @@ describe('source import', () => {
     expect(relinked.vodFiles.get(imported.project.vods[0]!.id)).toBe(file);
     expect(relinked.issues).toEqual([{ code: 'relinkedVod', fileName: 'Perspective.mp4' }]);
   });
+
+  it('fills missing container metadata when an existing VOD is relinked', async () => {
+    const file = createMp4File('Perspective.mp4');
+    const imported = await importSourceFiles(createProject('Node War'), [file], metadataInspector);
+    const refreshedMetadata: InspectedVideoMetadata = {
+      ...metadata,
+      nominalFrameRate: 59.94,
+      variableFrameRate: false,
+      videoCodec: 'avc',
+      audioCodec: 'aac',
+    };
+    const refreshedAt = new Date('2026-09-01T10:00:00.000Z');
+
+    const relinked = await importSourceFiles(
+      imported.project,
+      [file],
+      { inspect: () => Promise.resolve(refreshedMetadata) },
+      refreshedAt,
+    );
+
+    expect(relinked.project.vods[0]).toEqual(
+      expect.objectContaining({
+        nominalFrameRate: 59.94,
+        variableFrameRate: false,
+        videoCodec: 'avc',
+        audioCodec: 'aac',
+      }),
+    );
+    expect(relinked.project.updatedAt).toBe(refreshedAt.toISOString());
+  });
 });
 
 function createMp4File(name: string, lastModified = 100): File {

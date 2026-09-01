@@ -71,6 +71,7 @@ export async function importSourceFiles(
   const existingVodsByKey = new Map(project.vods.map((vod) => [getVodDuplicateKey(vod), vod]));
   const vods = [...project.vods];
   const vodFiles = new Map<string, File>();
+  let refreshedVodMetadata = false;
 
   for (const file of files.filter((candidate) => isMp4FileName(candidate.name))) {
     const duplicateKey = getFileDuplicateKey(file);
@@ -86,6 +87,20 @@ export async function importSourceFiles(
         issues.push({ code: 'duplicateVod', fileName: file.name });
       } else {
         vodFiles.set(existingVod.id, file);
+        if (hasMissingVideoMetadata(existingVod)) {
+          try {
+            const metadata = await metadataInspector.inspect(file);
+            const vodIndex = vods.findIndex((vod) => vod.id === existingVod.id);
+            const refreshedVod = fillMissingVideoMetadata(existingVod, metadata);
+            if (vodIndex >= 0 && refreshedVod !== existingVod) {
+              vods[vodIndex] = refreshedVod;
+              existingVodsByKey.set(duplicateKey, refreshedVod);
+              refreshedVodMetadata = true;
+            }
+          } catch {
+            // Relinking still succeeds when optional container metadata cannot be read.
+          }
+        }
         issues.push({ code: 'relinkedVod', fileName: file.name });
       }
       continue;
@@ -121,7 +136,10 @@ export async function importSourceFiles(
     rawLog,
     parserVersion: importedLog ? 2 : project.parserVersion,
     vods,
-    updatedAt: importedLog || importedVodCount > 0 ? now.toISOString() : project.updatedAt,
+    updatedAt:
+      importedLog || importedVodCount > 0 || refreshedVodMetadata
+        ? now.toISOString()
+        : project.updatedAt,
     davinciDefaults:
       largestResolution === undefined
         ? project.davinciDefaults
@@ -142,6 +160,47 @@ export async function importSourceFiles(
     logIssueCount,
     issues,
   };
+}
+
+function hasMissingVideoMetadata(vod: VodReference): boolean {
+  return (
+    vod.durationSeconds === null ||
+    vod.width === null ||
+    vod.height === null ||
+    vod.nominalFrameRate === null ||
+    vod.variableFrameRate === null ||
+    vod.videoCodec === null ||
+    vod.audioCodec === null
+  );
+}
+
+function fillMissingVideoMetadata(
+  vod: VodReference,
+  metadata: InspectedVideoMetadata,
+): VodReference {
+  const refreshedVod = {
+    ...vod,
+    durationSeconds: vod.durationSeconds ?? metadata.durationSeconds,
+    width: vod.width ?? metadata.width,
+    height: vod.height ?? metadata.height,
+    nominalFrameRate: vod.nominalFrameRate ?? metadata.nominalFrameRate,
+    variableFrameRate: vod.variableFrameRate ?? metadata.variableFrameRate,
+    videoCodec: vod.videoCodec ?? metadata.videoCodec,
+    audioCodec: vod.audioCodec ?? metadata.audioCodec,
+  };
+  return hasSameVideoMetadata(vod, refreshedVod) ? vod : refreshedVod;
+}
+
+function hasSameVideoMetadata(first: VodReference, second: VodReference): boolean {
+  return (
+    first.durationSeconds === second.durationSeconds &&
+    first.width === second.width &&
+    first.height === second.height &&
+    first.nominalFrameRate === second.nominalFrameRate &&
+    first.variableFrameRate === second.variableFrameRate &&
+    first.videoCodec === second.videoCodec &&
+    first.audioCodec === second.audioCodec
+  );
 }
 
 function createVodReference(file: File, metadata: InspectedVideoMetadata): VodReference {

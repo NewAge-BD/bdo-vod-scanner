@@ -108,6 +108,8 @@ Preserve raw line and line number. Assign an event ID independent of timestamp. 
 
 Show filename, size, duration, resolution, frame-rate information, variable-frame-rate indication when discoverable, video/audio codecs, sync status, and sync offset.
 
+Inspect MP4 container metadata locally with bounded reads rather than relying only on the browser video element. Derive codec names from the actual tracks and estimate frame rate from a limited packet sample without loading the complete VOD into memory. Refresh missing metadata when an existing VOD is relinked.
+
 Provide a red, accessible trash action for each VOD in both its imported-source card and perspective tab. Always confirm before deleting a VOD. The action removes only that VOD reference, its synchronization/search state, local file link, and clips owned by that perspective; it never deletes the original MP4, log, project, or other VODs.
 
 Expected sources include NVIDIA ShadowPlay, AMD Adrenalin, and OBS. Do not infer codec from the MP4 container.

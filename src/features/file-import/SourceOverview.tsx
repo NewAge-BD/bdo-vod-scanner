@@ -176,8 +176,11 @@ function VodCard({
         <Fact label={t('sources.size')} value={formatBytes(vod.fileSizeBytes, numberFormatter)} />
         <Fact label={t('sources.duration')} value={formatDuration(vod.durationSeconds)} />
         <Fact label={t('sources.resolution')} value={formatResolution(vod)} />
-        <Fact label={t('sources.frameRate')} value={formatFrameRate(vod, numberFormatter, t)} />
-        <Fact label={t('sources.codecs')} value={formatCodecs(vod, t)} />
+        <Fact
+          label={t('sources.frameRate')}
+          value={formatFrameRate(vod, numberFormatter, linked, t)}
+        />
+        <Fact label={t('sources.codecs')} value={formatCodecs(vod, linked, t)} />
         <Fact
           label={t('sources.localFile')}
           value={linked ? t('sources.linked') : t('sources.reselectRequired')}
@@ -235,17 +238,20 @@ function formatResolution(vod: VodReference): string {
 function formatFrameRate(
   vod: VodReference,
   formatter: Intl.NumberFormat,
+  linked: boolean,
   t: (key: string) => string,
 ): string {
   if (vod.nominalFrameRate === null) {
-    return t('sources.notExposed');
+    return t(linked ? 'sources.metadataInspectionFailed' : 'sources.metadataReselectRequired');
   }
   return `${formatter.format(vod.nominalFrameRate)} FPS${vod.variableFrameRate === true ? ' VFR' : ''}`;
 }
 
-function formatCodecs(vod: VodReference, t: (key: string) => string): string {
+function formatCodecs(vod: VodReference, linked: boolean, t: (key: string) => string): string {
   const codecs = [vod.videoCodec, vod.audioCodec].filter(
     (codec): codec is string => codec !== null,
   );
-  return codecs.length === 0 ? t('sources.notExposed') : codecs.join(' / ');
+  return codecs.length === 0
+    ? t(linked ? 'sources.metadataInspectionFailed' : 'sources.metadataReselectRequired')
+    : codecs.join(' / ');
 }
