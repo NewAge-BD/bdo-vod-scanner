@@ -256,6 +256,8 @@ There are no accounts, roles, login, OAuth, or password gate. The public GitHub 
 
 Use English by default with translation resources prepared from the start. Create a dark, restrained professional-editor design optimized for desktop. Provide clear loading, empty, unsupported-media, denied-permission, progress, cancellation, and partial-failure states. Confirm destructive actions. Target WCAG 2.2 AA where practical with focus visibility, contrast, semantic labels, and accessible alternatives to graphical controls.
 
+Keep project setup and imported-source content in a focused reading column, but let the complete **Align Perspectives** synchronization workspace and clipping workspace use the available viewport width with consistent page gutters. Do not reserve empty side columns for advertising.
+
 ## Security
 
 Treat imported content and metadata as untrusted. Strictly validate project files and bounds, render strings as text, sanitize filenames, prevent path traversal, require explicit write permission, and never upload data. Bundle resources, use a restrictive CSP, avoid unsafe dynamic execution, and keep dependency count low. Do not commit secrets, real player data, paths, VODs, or generated media. Warn before future desktop project exports include full paths. Provide Clear all local data and confirmations for project deletion, session discard, VOD removal with clips, and local-data clearing. Use least-privilege CI permissions.

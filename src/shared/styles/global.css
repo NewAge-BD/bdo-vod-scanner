@@ -600,9 +600,14 @@ h1 {
 }
 
 .project-workspace {
-  width: min(1180px, calc(100% - 3rem));
+  width: calc(100% - 3rem);
   margin: 0 auto;
   padding-block: clamp(2rem, 6vh, 4.5rem);
+}
+
+.project-workspace__setup {
+  width: min(1180px, 100%);
+  margin-inline: auto;
 }
 
 .project-workspace--clipping {

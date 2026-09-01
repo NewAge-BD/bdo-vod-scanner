@@ -126,7 +126,7 @@ export function ProjectWorkspace({
       id="main-content"
     >
       {!isClipping && (
-        <>
+        <div className="project-workspace__setup">
           <button className="back-button" onClick={onBack} type="button">
             <span aria-hidden="true">←</span> {t('projects.back')}
           </button>
@@ -173,7 +173,7 @@ export function ProjectWorkspace({
             onRenameVod={(vodId, displayName) => renameVod(project.id, vodId, displayName)}
             project={project}
           />
-        </>
+        </div>
       )}
       <VideoSynchronization
         onClipPanelCollapsedChange={(collapsed) => setClipPanelCollapsed(project.id, collapsed)}
