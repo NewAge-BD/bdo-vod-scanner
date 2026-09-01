@@ -2395,6 +2395,10 @@ h1 {
   color: #f08f80;
 }
 
+.event-chat-text__death-connector {
+  color: #e3e8ee;
+}
+
 .event-chat-text__connector,
 .event-chat-text__details {
   color: #aeb8c5;

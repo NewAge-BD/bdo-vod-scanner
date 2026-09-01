@@ -35,8 +35,12 @@ describe('EventChatText', () => {
   });
 
   it('uses the death color role for died-to events', () => {
-    render(<EventChatText event={{ ...event, verb: 'diedTo' }} />);
+    const { container } = render(<EventChatText event={{ ...event, verb: 'diedTo' }} />);
 
-    expect(screen.getByText('was slain by')).toHaveClass('event-chat-text__verb--death');
+    expect(screen.getByText('slain')).toHaveClass('event-chat-text__verb--death');
+    expect(screen.getByText('was', { exact: false })).toHaveClass(
+      'event-chat-text__death-connector',
+    );
+    expect(container).toHaveTextContent('Vinny was slain by Haroshu');
   });
 });

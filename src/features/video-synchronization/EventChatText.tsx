@@ -9,11 +9,15 @@ export function EventChatText({ detailed = false, event }: EventChatTextProps) {
   return (
     <span className="event-chat-text">
       <span className="event-chat-text__family">{event.familyA}</span>{' '}
-      <span
-        className={`event-chat-text__verb event-chat-text__verb--${event.verb === 'killed' ? 'kill' : 'death'}`}
-      >
-        {event.verb === 'killed' ? 'killed' : 'was slain by'}
-      </span>{' '}
+      {event.verb === 'killed' ? (
+        <span className="event-chat-text__verb event-chat-text__verb--kill">killed</span>
+      ) : (
+        <>
+          <span className="event-chat-text__death-connector">was </span>
+          <span className="event-chat-text__verb event-chat-text__verb--death">slain</span>
+          <span className="event-chat-text__death-connector"> by</span>
+        </>
+      )}{' '}
       <span className="event-chat-text__family">{event.familyB}</span>
       {detailed && (
         <>
