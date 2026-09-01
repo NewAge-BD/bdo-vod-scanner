@@ -22,6 +22,7 @@ The project intends to follow Semantic Versioning once releases begin.
 - Improved text size, contrast, and browser capability wording in the imported-source and VOD synchronization workspaces.
 - Read MP4 video/audio codecs and sampled frame-rate information locally during import, including metadata refresh when an existing VOD is relinked.
 - Expanded the complete VOD synchronization workspace to the available viewport width while retaining consistent page gutters.
+- Increased the synchronization side panel's instructional, event, control, and status text for better desktop readability.
 - Styled synchronization event text with accessible BDO-inspired colors for families, kill/death verbs, guilds, and supporting details.
 - Matched BDO's death-message emphasis more closely by coloring only “slain” red while keeping “was” and “by” in the timestamp color.
 

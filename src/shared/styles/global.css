@@ -2228,12 +2228,12 @@ h1 {
 
 .auto-sync-panel__heading h3 {
   margin: 0.1rem 0 0;
-  font-size: 0.96rem;
+  font-size: 1.05rem;
 }
 
 .auto-sync-panel__heading span {
   color: var(--accent);
-  font-size: 0.57rem;
+  font-size: 0.65rem;
   font-weight: 850;
   letter-spacing: 0.1em;
 }
@@ -2242,7 +2242,7 @@ h1 {
 .auto-sync-result p {
   margin: 0;
   color: #b7c0cc;
-  font-size: 0.78rem;
+  font-size: 0.86rem;
   line-height: 1.5;
 }
 
@@ -2256,7 +2256,7 @@ h1 {
   border: 1px solid var(--border-strong);
   border-radius: 0.35rem;
   cursor: pointer;
-  font-size: 0.66rem;
+  font-size: 0.74rem;
   font-weight: 750;
 }
 
@@ -2293,7 +2293,7 @@ h1 {
 .auto-sync-progress strong,
 .auto-sync-result span {
   color: #b7c0cc;
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   line-height: 1.4;
 }
 
@@ -2338,7 +2338,7 @@ h1 {
   display: block;
   margin-bottom: 0.45rem;
   color: #b7c0cc;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   line-height: 1.35;
@@ -2348,7 +2348,7 @@ h1 {
 .sync-event-panel__hint {
   margin: -0.15rem 0 0.55rem;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   line-height: 1.5;
 }
 
@@ -2372,13 +2372,13 @@ h1 {
 .selected-event time {
   color: #b7c0cc;
   font-family: 'Cascadia Mono', Consolas, monospace;
-  font-size: 0.76rem;
+  font-size: 0.82rem;
 }
 
 .selected-event p {
   margin: 0.35rem 0 0;
   color: #e3e8ee;
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   line-height: 1.5;
 }
 
@@ -2412,6 +2412,7 @@ h1 {
   background: #0b0e12;
   border: 1px solid var(--border-strong);
   border-radius: 0.4rem;
+  font-size: 0.86rem;
 }
 
 .search-term-list {
@@ -2470,7 +2471,7 @@ h1 {
   border: 1px solid var(--border-strong);
   border-radius: 0.4rem;
   cursor: pointer;
-  font-size: 0.74rem;
+  font-size: 0.8rem;
   font-weight: 750;
 }
 
@@ -2488,7 +2489,7 @@ h1 {
   gap: 0.75rem;
   margin-top: 0.65rem;
   color: #b7c0cc;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
 }
 
 .event-match-navigation > div {
@@ -2515,7 +2516,7 @@ h1 {
   border: 1px solid transparent;
   border-radius: 0.35rem;
   cursor: pointer;
-  font-size: 0.74rem;
+  font-size: 0.82rem;
   line-height: 1.4;
 }
 
@@ -2544,7 +2545,7 @@ h1 {
 .sync-offset {
   margin: 0.6rem 0 0;
   color: var(--kill);
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   text-align: center;
 }
 
