@@ -37,6 +37,10 @@ describe('App', () => {
       'href',
       'https://github.com/NewAge-BD/bdo-vod-scanner',
     );
+    expect(screen.getByRole('link', { name: 'Support on Ko-fi' })).toHaveAttribute(
+      'href',
+      'https://ko-fi.com/newage57976',
+    );
   });
 
   it('creates a named project and opens its local workspace', async () => {

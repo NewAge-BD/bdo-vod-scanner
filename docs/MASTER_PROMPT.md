@@ -14,6 +14,8 @@ Users align each VOD to a visible log event, search names across the log, jump e
 
 The project is publicly available as an AGPL-3.0-or-later licensed GitHub Pages application. Imported logs, VODs, projects, and exports remain local. The project is an unofficial community project and is not affiliated with Pearl Abyss.
 
+The global footer includes an optional external link to the project's Ko-fi donation page. Donations remain entirely outside the application and are never required to use it.
+
 ## Goals
 
 - Find useful moments in long BDO VODs quickly.

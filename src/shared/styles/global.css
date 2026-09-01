@@ -3128,6 +3128,12 @@ h1 {
   font-size: 0.72rem;
 }
 
+.app-footer__links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 @media (max-width: 880px) {
   .project-workspace--clipping {
     width: calc(100% - 2rem);

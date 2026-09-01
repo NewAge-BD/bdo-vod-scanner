@@ -56,9 +56,14 @@ function AppContent({
       <footer className="app-footer">
         <span>{t('app.version', { version: '0.2.0' })}</span>
         <span>{t('app.disclaimer')}</span>
-        <a href="https://github.com/NewAge-BD/bdo-vod-scanner" rel="noreferrer" target="_blank">
-          {t('app.sourceCode')}
-        </a>
+        <div className="app-footer__links">
+          <a href="https://ko-fi.com/newage57976" rel="noreferrer" target="_blank">
+            {t('app.supportOnKofi')}
+          </a>
+          <a href="https://github.com/NewAge-BD/bdo-vod-scanner" rel="noreferrer" target="_blank">
+            {t('app.sourceCode')}
+          </a>
+        </div>
       </footer>
     </div>
   );
